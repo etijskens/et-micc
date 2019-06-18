@@ -32,7 +32,7 @@ if not ('.' in sys.path or os.getcwd() in sys.path):
     echo(f"Adding '.' to sys.path.\n")
     sys.path.insert(0, '.')
 #===============================================================================
-clean_up = False
+clean_up = True
 """remove projects created during testing"""
 #===============================================================================    
 # from micc import micc

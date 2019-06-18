@@ -73,6 +73,7 @@ def micc( cookiecutter_template='micc-module', micc_file='micc.json'
     Create a project skeleton. 
         
     :param str cookiecutter_template: path to the Cookiecutter_ template.
+        (``micc-module`` by default). 
     :param str micc_file: the json file containing the template parameters
         descrioptions. Default is ``micc.json`` in ``cookiecutter_template``.
     :param str output_dir: path where the project will be created. By default
@@ -81,6 +82,8 @@ def micc( cookiecutter_template='micc-module', micc_file='micc.json'
     """
     click.echo('Micc - My cookiecutter wrapper.')
     cookiecutter_template = os.path.expanduser(cookiecutter_template)
+    if cookiecutter_template in ['micc-module']:        
+        cookiecutter_template =  os.path.join(os.path.dirname(__file__),cookiecutter_template)
     if not os.path.exists(cookiecutter_template):
         raise FileNotFoundError('ERROR: Missing cookiecutter template: ' +
                                 file_not_found_msg(cookiecutter_template, looking_for='folder')
