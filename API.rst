@@ -3,7 +3,7 @@ API
 
 To use the micc API in a project:
 
-.. codeblock:: python
+.. code-block:: python
    import micc
 
 .. automodule:: micc.micc
