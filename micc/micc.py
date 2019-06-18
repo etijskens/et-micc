@@ -12,11 +12,12 @@ from cookiecutter.main import cookiecutter
 #===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
-    Inform the user about the current working directory, if the
-    *filepath* is a relative path.
-
+    This function constructs an error message for when a file is not found. 
+    If the file is referred to with a relative path, the current working 
+    directory is reported to be more informative.
+    
     :param str path: path to file or directory.
-    :param str looking_for: description of what *path* was supposede to refer
+    :param str looking_for: description of what *path* was supposed to refer
         to: 'file', 'directory', ...
     """
     if path.startswith('~') or path.startswith(os.sep):
