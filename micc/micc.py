@@ -31,7 +31,7 @@ def get_template_parameters(micc_file,verbose=False):
     """
     Read the template parameter descriptions from the micc file, and
     prompt the user for supplying the values for the parameters with an
-    empty string as default. 
+    empty string as default.     
     
     :returns: a dict of (parameter,value) pairs.
     """
@@ -73,10 +73,11 @@ def micc( cookiecutter_template='micc-module', micc_file='micc.json'
     Create a project skeleton. 
         
     :param str cookiecutter_template: path to the Cookiecutter_ template.
-    :param str micc_file: the json file containing the template parameters for
-         the template. Default is 'micc.json' in ``cookiecutter_template``.
-    :param str output_dir: path where the project will be created.
-    :param bool verbose: verbose output 
+    :param str micc_file: the json file containing the template parameters
+        descrioptions. Default is ``micc.json`` in ``cookiecutter_template``.
+    :param str output_dir: path where the project will be created. By default
+        the current directory.
+    :param bool verbose: verbose output, False by default. 
     """
     click.echo('Micc - My cookiecutter wrapper.')
     cookiecutter_template = os.path.expanduser(cookiecutter_template)
