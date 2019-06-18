@@ -4,4 +4,4 @@
 
 __author__ = """Engelbert Tijskens"""
 __email__ = 'engelbert.tijskens@uantwerpen.be'
-__version__ = '0.2.0'
+__version__ = '0.2.1'
