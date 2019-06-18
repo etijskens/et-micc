@@ -70,6 +70,7 @@ def micc( cookiecutter_template='micc-module', micc_file='micc.json'
         ):
     """
     Create a project skeleton. 
+        
     :param str cookiecutter_template: path to the Cookiecutter_ template.
     :param str micc_file: the json file containing the template parameters for
          the template. Default is 'micc.json' in ``cookiecutter_template``.
