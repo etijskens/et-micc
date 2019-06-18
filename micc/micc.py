@@ -64,8 +64,17 @@ def get_template_parameters(micc_file,verbose=False):
     return template_parameters
 
 #===============================================================================
-def micc(cookiecutter_template, micc_file, verbose):
+def micc( cookiecutter_template='micc-module', micc_file='micc.json'
+        , output_dir='.'
+        , verbose=False
+        ):
     """
+    Create a project skeleton. 
+    :param str cookiecutter_template: path to the Cookiecutter_ template.
+    :param str micc_file: the json file containing the template parameters for
+         the template. Default is 'micc.json' in ``cookiecutter_template``.
+    :param str output_dir: path where the project will be created.
+    :param bool verbose: verbose output 
     """
     click.echo('Micc - My cookiecutter wrapper.')
     cookiecutter_template = os.path.expanduser(cookiecutter_template)
@@ -102,7 +111,11 @@ def micc(cookiecutter_template, micc_file, verbose):
     # run cookiecutter 
     click.echo(f"Creating {cookiecutter_template}{os.sep}{template_parameters['project_name']}")
     click.echo(f"      in {os.getcwd()}")
-    cookiecutter(cookiecutter_template,no_input=True,overwrite_if_exists=True)
+    cookiecutter( cookiecutter_template
+                , no_input=True
+                , overwrite_if_exists=True
+                , output_dir=output_dir
+                )
     click.echo( "Done.")
     
     return 0

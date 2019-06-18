@@ -10,8 +10,9 @@ import os
 import sys
 from shutil import rmtree
 import uuid
-import pytest
 
+#===============================================================================
+# import pytest
 from click import echo
 from click.testing import CliRunner
 #===============================================================================
@@ -21,7 +22,7 @@ from click.testing import CliRunner
 if os.getcwd().endswith('tests'):
     echo(f"Changing current working directory"
          f"\n  from '{os.getcwd()}'"
-         f"\n  to   '{os.path.abspath(os.path.join(os.getcwd(),'..'))}'.\n")
+         f"\n  to   '{os.path.abspath(os.path.join(os.getcwd(),'..'))}'\n")
     os.chdir('..')
 #===============================================================================    
 # Make sure that we can import the module being tested. When running 
@@ -30,14 +31,12 @@ if os.getcwd().endswith('tests'):
 if not ('.' in sys.path or os.getcwd() in sys.path):
     echo(f"Adding '.' to sys.path.\n")
     sys.path.insert(0, '.')
-
-
+#===============================================================================
 clean_up = False
 """remove projects created during testing"""
-    
+#===============================================================================    
 # from micc import micc
 from micc import cli
-  
 #===============================================================================
 def get_project_name():
     """
@@ -90,11 +89,12 @@ def test_cli():
     """Test the CLI."""
     runner = CliRunner()
     project_name = get_project_name()
+    output_dir = os.path.join(os.getcwd(),'tests','output')
     input_ = f'{project_name}\ntesting micc project skeleton'
-    result = runner.invoke(cli.main,['-v'],input=input_)
+    result = runner.invoke(cli.main, ['-v','-o',output_dir], input=input_)
     assert result.exit_code == 0
     print(result.output)
-    project_dir = os.path.join(os.getcwd(),project_name)
+    project_dir = os.path.join(output_dir, project_name)
     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
     # clean up the project if required
     if clean_up:

@@ -114,7 +114,7 @@ venv*/
 cookiecutter*.json
 
 # test projectdirectories
-micc_test_project_*/
+tests/output/
 
 # apple
 .DS_Store
