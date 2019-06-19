@@ -1,7 +1,34 @@
 History
 =======
 
+Next issue
+**********
+Proper local install and uninstall. By Local we mean: not installing from PyPI.
+we had that in et/backbone using pip. But pip uses setup.py which we want to
+avoid. There is not pyproject.toml file sofar...
 
+Used ``poetry init`` to generate pyproject.toml. First issue is how to get
+the version number into the module. `Here <https://github.com/sdispater/poetry/issues/273>`_
+is a good post about that. 
+  
+* using pkg_resources implies a dependence on setuptools = no go
+* using tomlkit for reading the pyproject.toml file implies that the 
+ pyproject.toml file must be included in the distribution of the 
+ package.
+* alternatively, add a piece of code to micc that moves the version from
+ pyproject.toml to the package.__version__
+* poetry itself uses a separate __version__.py file in the package containing 
+ only ``__version__ = "M.m.p"`` which is imported in __init__.py as 
+ ``from .__version__ import __version__``. This makes transferring the version
+ from pyproject.toml to __version__.py easy.
+* `poetry-version <https://pypi.org/project/poetry-version/>`_
+
+Decided to use a __version__.py file. Planning to write some code using 
+`poetry-version <https://pypi.org/project/poetry-version/>`_ to transfer the
+version from pyproject.toml to __version__.py. For the time being we put up 
+with manually changing version numbers in both places.
+
+Let's first check if we can achieve a proper local install with poetry ...
 
 v0.1.21 (2019-06-11)
 ********************

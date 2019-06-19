@@ -9,6 +9,7 @@ from shutil import move
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
+from .__version__ import __version__
 #===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
@@ -80,7 +81,7 @@ def micc( cookiecutter_template='micc-module', micc_file='micc.json'
         the current directory.
     :param bool verbose: verbose output, False by default. 
     """
-    click.echo('Micc - My cookiecutter wrapper.')
+    click.echo('Micc v'+__version__)
     cookiecutter_template = os.path.expanduser(cookiecutter_template)
     if cookiecutter_template in ['micc-module']:        
         cookiecutter_template =  os.path.join(os.path.dirname(__file__),cookiecutter_template)

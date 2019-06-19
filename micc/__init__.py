@@ -4,4 +4,5 @@
 
 __author__ = """Engelbert Tijskens"""
 __email__ = 'engelbert.tijskens@uantwerpen.be'
-__version__ = '0.2.1'
+
+from .__version__ import __version__
