@@ -10,7 +10,6 @@ import os
 import sys
 from shutil import rmtree
 import uuid
-
 #===============================================================================
 # import pytest
 from click import echo
@@ -91,11 +90,16 @@ def test_cli():
     project_name = get_project_name()
     output_dir = os.path.join(os.getcwd(),'tests','output')
     input_ = f'{project_name}\ntesting micc project skeleton'
-    result = runner.invoke(cli.main, ['-v','-o',output_dir], input=input_)
+    result = runner.invoke(cli.cli, ['create','-v','-o',output_dir], input=input_)
     assert result.exit_code == 0
     print(result.output)
     project_dir = os.path.join(output_dir, project_name)
     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
+
+    result = runner.invoke(cli.cli, ['version', project_dir, '--patch'])
+    assert result.exit_code == 0
+    print(result.output)
+    
     # clean up the project if required
     if clean_up:
         echo(f"cleaning up {project_dir}")
@@ -107,7 +111,7 @@ def test_cli():
 def test_cli_help():
     """Test the CLI."""
     runner = CliRunner()
-    result = runner.invoke(cli.main, ['--help'])
+    result = runner.invoke(cli.cli, ['--help'])
     assert result.exit_code == 0
     assert '--help' in result.output
     assert 'Show this message and exit.' in result.output
