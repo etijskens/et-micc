@@ -146,22 +146,27 @@ def micc_create( template='micc-module', micc_file='micc.json'
     return 0
 #===============================================================================
 def micc_version(project_path, rule):
-    assert rule in ['major','minor','patch',None]
-    print(project_path,rule)
+    
     pyproject_toml_path = get_pyproject_toml_path(os.path.join(project_path,'pyproject.toml'))
     
-    if not pyproject_toml_path is None:
-        pyproject_toml = TomlFile(pyproject_toml_path)
-        content = pyproject_toml.read()
-        tool = content['tool']
-        tool_poetry = tool['poetry']
-        current_version = tool_poetry['version']
+    if pyproject_toml_path is None:
+        raise FileNotFoundError('pyproject.toml')
+    
+    pyproject_toml = TomlFile(pyproject_toml_path)
+    content = pyproject_toml.read()
+    tool = content['tool']
+    tool_poetry = tool['poetry']
+    current_version = tool_poetry['version']
+    name = tool_poetry['name']
+    if rule is None:
+        print(f"Current version: {name} v{current_version}")
+    else:
+        vc = VersionCommand()
+        version = vc.increment_version(current_version, rule)
+        print(version)
+        tool_poetry['version'] = version.text
+        tool['poetry'] = tool_poetry
+        pyproject_toml.write(tool)
+        print(f"New version: {name} v{version}")
 
-    print(current_version)
-    vc = VersionCommand()
-    version = vc.increment_version(current_version, rule)
-    print(version)
-    tool_poetry['version'] = version.text
-    tool['poetry'] = tool_poetry
-    pyproject_toml.write(tool)
 #===============================================================================
