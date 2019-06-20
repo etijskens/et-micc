@@ -70,6 +70,9 @@ def get_template_parameters(micc_file,verbose=False):
     return template_parameters
 #===============================================================================
 def get_pyproject_toml_path(source_file):
+    """
+    Try to locate a pyproject.toml file in one of the parent directories.
+    """
     d = Path(source_file)
     result = None
     while d.parent != d and result is None:
@@ -145,8 +148,12 @@ def micc_create( template='micc-module', micc_file='micc.json'
     
     return 0
 #===============================================================================
-def micc_version(project_path, rule):
-    
+def micc_version(project_path, rule=None):
+    """
+    Locate the pyproject.toml file in the project_path, bump the version using
+    *rule* ('major', 'minor', 'patch'). If rule is *None*, the current version 
+    is printed.
+    """
     pyproject_toml_path = get_pyproject_toml_path(os.path.join(project_path,'pyproject.toml'))
     
     if pyproject_toml_path is None:
