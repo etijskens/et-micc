@@ -20,6 +20,7 @@ def cli():
     """
 #===============================================================================
 @cli.command()
+@click.argument('project_name', default='')
 @click.option('-t','--template'
              , default='micc-module'
              )
@@ -33,17 +34,19 @@ def cli():
              , is_flag=True
              , default=False
              )
-def create( template, micc_file
+def create( project_name
+          , template, micc_file
           , output_dir
           , verbose
           ):
     """
-    Console script for micc. Prompts the user for all entries in the micc.json file
+    Create a project skeleton. Prompts the user for all entries in the micc.json file
     that do not have a default.
 
     :param str template: path to the cookiecutter template.  
     """
-    return micc_create( template=template
+    return micc_create( project_name
+                      , template=template
                       , micc_file=micc_file
                       , output_dir=output_dir
                       , verbose=verbose
@@ -51,15 +54,23 @@ def create( template, micc_file
 #===============================================================================
 @cli.command()
 @click.argument('project_path',default='')
-@click.option('--major','-M',is_flag=True,default=False,help='increment major version number component')
-@click.option('--minor','-m',is_flag=True,default=False,help='increment minor version number component')
-@click.option('--patch','-p',is_flag=True,default=False,help='increment patch version number component')
-def version(project_path,major,minor,patch):
-    level = None
-    if patch: level = 'patch'
-    if minor: level = 'minor'
-    if major: level = 'major'
-    return micc_version(project_path,level)
+@click.option('-M','--major', is_flag=True, default=False, help='increment major version number component')
+@click.option('-m','--minor', is_flag=True, default=False, help='increment minor version number component')
+@click.option('-p','--patch', is_flag=True, default=False, help='increment patch version number component')
+@click.option('-r','--poetry-version-rule', help='a "poetry version <rule>"'
+             , type=click.Choice(['','patch', 'minor', 'major', 'prepatch', 'preminor', 'premajor', 'prerelease'])
+             )
+def version(project_path,major,minor,patch,poetry_version_rule):
+    """
+    Micc version subcommand, similar to ``poetry version``. Increments the
+    project's version number. 
+    """
+    rule = None
+    if poetry_version_rule: rule = poetry_version_rule
+    if patch: rule = 'patch'
+    if minor: rule = 'minor'
+    if major: rule = 'major'
+    return micc_version(project_path,rule)
 #===============================================================================
 if __name__ == "__main__":
     sys.exit(cli())  # pragma: no cover

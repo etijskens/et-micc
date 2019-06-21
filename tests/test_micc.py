@@ -36,6 +36,7 @@ clean_up = True
 #===============================================================================    
 # from micc import micc
 from micc import cli
+from micc.micc import get_pyproject_toml_document
 #===============================================================================
 def get_project_name():
     """
@@ -89,16 +90,57 @@ def test_cli():
     runner = CliRunner()
     project_name = get_project_name()
     output_dir = os.path.join(os.getcwd(),'tests','output')
-    input_ = f'{project_name}\ntesting micc project skeleton'
+    input_ = f'{project_name}\ntest_cli()'
     result = runner.invoke(cli.cli, ['create','-v','-o',output_dir], input=input_)
     assert result.exit_code == 0
     print(result.output)
     project_dir = os.path.join(output_dir, project_name)
     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
+    pyproject_toml = get_pyproject_toml_document(os.path.join(project_dir,'pyproject.toml'))
+    current_version = pyproject_toml['tool']['poetry']['version']
+    assert current_version == "0.0.0"
+    print('current_version',current_version)
+
 
     result = runner.invoke(cli.cli, ['version', project_dir, '--patch'])
-    assert result.exit_code == 0
     print(result.output)
+    assert result.exit_code == 0
+    pyproject_toml = get_pyproject_toml_document(os.path.join(project_dir,'pyproject.toml'))
+    current_version = pyproject_toml['tool']['poetry']['version']
+    print('current_version',current_version)
+    assert current_version == "0.0.1"
+    
+    # clean up the project if required
+    if clean_up:
+        echo(f"cleaning up {project_dir}")
+        rmtree(project_dir)
+    else:
+        echo(f"Project directory left: {project_dir}")
+    
+#===============================================================================
+def test_cli_with_project_name():
+    """Test the CLI."""
+    runner = CliRunner()
+    project_name = 'a-test-project'
+    output_dir = os.path.join(os.getcwd(),'tests','output')
+    input_ = 'test_cli_with_project_name()'
+    result = runner.invoke(cli.cli, ['create',project_name,'-v','-o',output_dir], input=input_)
+    print(result.output)
+    assert result.exit_code == 0
+    project_dir = os.path.join(output_dir, project_name)
+    assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
+    pyproject_toml = get_pyproject_toml_document(os.path.join(project_dir,'pyproject.toml'))
+    current_version = pyproject_toml['tool']['poetry']['version']
+    print('current_version',current_version)
+    assert current_version == "0.0.0"
+
+    result = runner.invoke(cli.cli, ['version', project_dir, '--minor'])
+    print(result.output)
+    assert result.exit_code == 0
+    pyproject_toml = get_pyproject_toml_document(os.path.join(project_dir,'pyproject.toml'))
+    current_version = pyproject_toml['tool']['poetry']['version']
+    print('current_version',current_version)
+    assert current_version == "0.1.0"
     
     # clean up the project if required
     if clean_up:
@@ -122,7 +164,7 @@ def test_cli_help():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_cli
+    the_test_you_want_to_debug = test_cli_with_project_name
 
     from execution_trace import trace
     with trace(f"__main__ running {the_test_you_want_to_debug}",

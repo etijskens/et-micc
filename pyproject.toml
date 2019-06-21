@@ -20,9 +20,8 @@ cookiecutter = "^1.6.0"
 [tool.poetry.dev-dependencies]
 pytest = "^4.4.2"
 
+[tool.poetry.scripts]
+#my-script = 'my_package:main'
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
-
-[tool.poetry.scripts]
-#my-script = 'my_package:main'

@@ -7,13 +7,17 @@ import os
 import json
 from shutil import move
 from pathlib import Path
-import tomlkit
+from contextlib import contextmanager
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
-from micc.__version__ import __version__
 from poetry.console.commands import VersionCommand 
 from poetry.utils.toml_file import TomlFile
+from poetry.console.application import Application
+from cleo.inputs.argv_input import ArgvInput
+#===============================================================================
+from micc.__version__ import __version__
+from distutils.sysconfig import get_python_inc
 #===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
@@ -32,7 +36,7 @@ def file_not_found_msg(path, looking_for='File'):
     return msg
 
 #===============================================================================
-def get_template_parameters(micc_file,verbose=False):
+def get_template_parameters(micc_file, project_name='', verbose=False):
     """
     Read the template parameter descriptions from the micc file, and
     prompt the user for supplying the values for the parameters with an
@@ -42,6 +46,9 @@ def get_template_parameters(micc_file,verbose=False):
     """
     with open(micc_file,'r') as f:
         template_parameters = json.load(f)
+        
+    if project_name:
+        template_parameters['project_name']['default'] = project_name 
 
     if verbose:
         click.echo("  template parameters:")
@@ -87,10 +94,11 @@ def get_pyproject_toml_path(source_file):
 #                     result = pyproject_toml['tool']['poetry']['version']
     return result
 #===============================================================================
-def micc_create( template='micc-module', micc_file='micc.json'
-        , output_dir='.'
-        , verbose=False
-        ):
+def micc_create( project_name
+               , template='micc-module', micc_file='micc.json'
+               , output_dir='.'
+               , verbose=False
+               ):
     """
     Create a project skeleton. 
         
@@ -118,7 +126,7 @@ def micc_create( template='micc-module', micc_file='micc.json'
         raise FileNotFoundError('ERROR: Missing micc file: '+file_not_found_msg(micc_file))
     else:
         if verbose: click.echo('  Micc file   : ' + micc_file)
-    template_parameters = get_template_parameters(path_to_micc_json,verbose)
+    template_parameters = get_template_parameters(path_to_micc_json,project_name=project_name,verbose=verbose)
         
 
     cookiecutter_json = os.path.join(template, 'cookiecutter.json')
@@ -148,32 +156,84 @@ def micc_create( template='micc-module', micc_file='micc.json'
     
     return 0
 #===============================================================================
-def micc_version(project_path, rule=None):
+@contextmanager
+def in_directory(path):
+    previous_dir = os.getcwd()
+    os.chdir(path)
+    yield os.getcwd()
+    os.chdir(previous_dir)
+#===============================================================================
+def get_pyproject_toml_document(path_to_pyproject_toml):
     """
-    Locate the pyproject.toml file in the project_path, bump the version using
-    *rule* ('major', 'minor', 'patch'). If rule is *None*, the current version 
-    is printed.
+    Read a pyproject.toml file and provide read-only access.
     """
-    pyproject_toml_path = get_pyproject_toml_path(os.path.join(project_path,'pyproject.toml'))
+    if not os.path.exists(path_to_pyproject_toml):
+        raise FileNotFoundError(path_to_pyproject_toml)
+    pyproject_toml = TomlFile(path_to_pyproject_toml).read()
+    return pyproject_toml
+#===============================================================================
+def micc_version(path='.', rule=None):
+    """
+    Bump the version according to *rule*, and modify the pyproject.toml in 
+    *project_path*.
     
-    if pyproject_toml_path is None:
-        raise FileNotFoundError('pyproject.toml')
-    
-    pyproject_toml = TomlFile(pyproject_toml_path)
-    content = pyproject_toml.read()
-    tool = content['tool']
-    tool_poetry = tool['poetry']
-    current_version = tool_poetry['version']
-    name = tool_poetry['name']
+    :param str path: path to a pyproject.toml file or its parent directory. 
+    :param str rule: one of the valid arguments for the ``poetry version <rule>``
+        command.
+    """
+    if not path.endswith('pyproject.toml'):
+        path = os.path.join(path, 'pyproject.toml')
+    pyproject_toml = get_pyproject_toml_document(path)
+    project_name    = pyproject_toml['tool']['poetry']['name']
+    current_version = pyproject_toml['tool']['poetry']['version']
     if rule is None:
-        print(f"Current version: {name} v{current_version}")
+        print(f"Current version: {project_name} v{current_version}")
     else:
-        vc = VersionCommand()
-        version = vc.increment_version(current_version, rule)
-        print(version)
-        tool_poetry['version'] = version.text
-        tool['poetry'] = tool_poetry
-        pyproject_toml.write(tool)
-        print(f"New version: {name} v{version}")
+        next_version = VersionCommand().increment_version(current_version, rule)
+        print(f"{project_name} v{current_version} -> v{next_version}")
+        # Hacking around the problem below:        
+        with open(path) as f:
+            content_as_string = f.read()
+        content_as_string = content_as_string.replace(f'version = "{current_version}"'
+                                                     ,f'version = "{next_version.text}"'
+                                                     )
+        with open(path,"w") as f:
+            f.write(content_as_string)
+        
+# none of this seems to work ... i filed an issue https://github.com/sdispater/poetry/issues/1182
+#         with in_directory(project_path): 
+#             i = ArgvInput(['poetry','version',rule])
+#             Application().run(i)
+#             pyproject_toml_path = os.path.join(project_path,  'pyproject.toml')
+#             pyproject_toml = TomlFile(pyproject_toml_path)
+#             content = pyproject_toml.read()
+#             current_version = content['tool']['poetry']['version']
+#             vc = VersionCommand()
+#             version = vc.increment_version(current_version, rule)
+#             print(version)
+#             content['tool']['poetry'].__setitem__('version', version.text ) 
+#             print(content['tool']['poetry']['version']) 
+#             pyproject_toml.write(content)
+#     pyproject_toml_path = get_pyproject_toml_path(os.path.join(project_path,'pyproject.toml'))
+#     
+#     if pyproject_toml_path is None:
+#         raise FileNotFoundError('pyproject.toml')
+#     
+#     pyproject_toml = TomlFile(pyproject_toml_path)
+#     content = pyproject_toml.read()
+#     tool = content['tool']
+#     tool_poetry = tool['poetry']
+#     current_version = tool_poetry['version']
+#     name = tool_poetry['name']
+#     if rule is None:
+#         print(f"Current version: {name} v{current_version}")
+#     else:
+#         vc = VersionCommand()
+#         version = vc.increment_version(current_version, rule)
+#         print(version)
+#         tool_poetry['version'] = version.text
+#         tool['poetry'] = tool_poetry
+#         pyproject_toml.write(tool)
+#         print(f"New version: {name} v{version}")
 
 #===============================================================================

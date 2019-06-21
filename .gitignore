@@ -115,6 +115,7 @@ cookiecutter*.json
 
 # test projectdirectories
 tests/output/
+sandbox/
 
 # apple
 .DS_Store
