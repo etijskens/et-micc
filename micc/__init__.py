@@ -2,7 +2,6 @@
 
 """Top-level package for micc."""
 
-__author__ = """Engelbert Tijskens"""
-__email__ = 'engelbert.tijskens@uantwerpen.be'
-
-from .__version__ import __version__
+__author__ = "Engelbert Tijskens"
+__email__ = "engelbert.tijskens@uantwerpen.be"
+__version__ = "0.2.2"

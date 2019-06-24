@@ -12,12 +12,11 @@ from contextlib import contextmanager
 import click
 from cookiecutter.main import cookiecutter
 from poetry.console.commands import VersionCommand 
-from poetry.utils.toml_file import TomlFile
-from poetry.console.application import Application
-from cleo.inputs.argv_input import ArgvInput
-#===============================================================================
-from micc.__version__ import __version__
-from distutils.sysconfig import get_python_inc
+# from poetry.utils.toml_file import TomlFile
+# from poetry.console.application import Application
+# from cleo.inputs.argv_input import ArgvInput
+import toml
+from micc import __version__
 #===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
@@ -94,14 +93,15 @@ def get_pyproject_toml_path(source_file):
 #                     result = pyproject_toml['tool']['poetry']['version']
     return result
 #===============================================================================
-def micc_create( project_name
+def micc_create( project_name=''
                , template='micc-module', micc_file='micc.json'
                , output_dir='.'
                , verbose=False
                ):
     """
-    Create a project skeleton. 
-        
+    Create a new project skeleton. 
+    
+    :param str project_name: the name of the project to be created. If empty str,
     :param str template: path to the Cookiecutter_ template.
         (``micc-module`` by default). 
     :param str micc_file: the json file containing the template parameters
@@ -158,20 +158,36 @@ def micc_create( project_name
 #===============================================================================
 @contextmanager
 def in_directory(path):
+    """
+    Run some code in  working directory *path* (and switch back to the current
+    working directory when done. 
+    """
     previous_dir = os.getcwd()
     os.chdir(path)
     yield os.getcwd()
     os.chdir(previous_dir)
 #===============================================================================
-def get_pyproject_toml_document(path_to_pyproject_toml):
-    """
-    Read a pyproject.toml file and provide read-only access.
-    """
-    if not os.path.exists(path_to_pyproject_toml):
-        raise FileNotFoundError(path_to_pyproject_toml)
-    pyproject_toml = TomlFile(path_to_pyproject_toml).read()
-    return pyproject_toml
+def replace_version_in_file(filepath,current_version,new_version):
+    if os.path.exists(filepath):
+        print('    Updating :',filepath)
+        if os.path.basename(filepath)=="pyproject.toml":
+            fmt = 'version = "{}"'
+        else:
+            fmt = '__version__ = "{}"'
+        old = fmt.format(current_version)
+        new = fmt.format(new_version)
+        replace_in_file(filepath,old,new)
+    else:
+        print('    Not found:',filepath)
 #===============================================================================
+def replace_in_file(filepath,old,new):
+    with open(filepath) as f:
+        content_as_string = f.read()
+    content_as_string = content_as_string.replace(old,new)
+    with open(filepath,"w") as f:
+        f.write(content_as_string)
+#===============================================================================
+use_poetry = False
 def micc_version(path='.', rule=None):
     """
     Bump the version according to *rule*, and modify the pyproject.toml in 
@@ -181,59 +197,35 @@ def micc_version(path='.', rule=None):
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
     """
-    if not path.endswith('pyproject.toml'):
-        path = os.path.join(path, 'pyproject.toml')
-    pyproject_toml = get_pyproject_toml_document(path)
-    project_name    = pyproject_toml['tool']['poetry']['name']
-    current_version = pyproject_toml['tool']['poetry']['version']
-    if rule is None:
-        print(f"Current version: {project_name} v{current_version}")
-    else:
-        next_version = VersionCommand().increment_version(current_version, rule)
-        print(f"{project_name} v{current_version} -> v{next_version}")
-        # Hacking around the problem below:        
-        with open(path) as f:
-            content_as_string = f.read()
-        content_as_string = content_as_string.replace(f'version = "{current_version}"'
-                                                     ,f'version = "{next_version.text}"'
-                                                     )
-        with open(path,"w") as f:
-            f.write(content_as_string)
-        
-# none of this seems to work ... i filed an issue https://github.com/sdispater/poetry/issues/1182
-#         with in_directory(project_path): 
+#     if use_poetry: # what a shame - cannot get this to work`; i filed an issue https://github.com/sdispater/poetry/issues/1182
+#         with in_directory('/Users/etijskens/software/dev/workspace/micc/tests/output/a_test_project/a_test_project'): 
+#             print(1,os.getcwd())
 #             i = ArgvInput(['poetry','version',rule])
 #             Application().run(i)
-#             pyproject_toml_path = os.path.join(project_path,  'pyproject.toml')
-#             pyproject_toml = TomlFile(pyproject_toml_path)
-#             content = pyproject_toml.read()
-#             current_version = content['tool']['poetry']['version']
-#             vc = VersionCommand()
-#             version = vc.increment_version(current_version, rule)
-#             print(version)
-#             content['tool']['poetry'].__setitem__('version', version.text ) 
-#             print(content['tool']['poetry']['version']) 
-#             pyproject_toml.write(content)
-#     pyproject_toml_path = get_pyproject_toml_path(os.path.join(project_path,'pyproject.toml'))
-#     
-#     if pyproject_toml_path is None:
-#         raise FileNotFoundError('pyproject.toml')
-#     
-#     pyproject_toml = TomlFile(pyproject_toml_path)
-#     content = pyproject_toml.read()
-#     tool = content['tool']
-#     tool_poetry = tool['poetry']
-#     current_version = tool_poetry['version']
-#     name = tool_poetry['name']
-#     if rule is None:
-#         print(f"Current version: {name} v{current_version}")
+#             print(2,os.getcwd())
+#             
 #     else:
-#         vc = VersionCommand()
-#         version = vc.increment_version(current_version, rule)
-#         print(version)
-#         tool_poetry['version'] = version.text
-#         tool['poetry'] = tool_poetry
-#         pyproject_toml.write(tool)
-#         print(f"New version: {name} v{version}")
+    # We ara hacking around the problem https://github.com/sdispater/poetry/issues/1182:        
+    
+    # pyproject.toml
+    path_to_pyproject_toml = os.path.join(path,'pyproject.toml')
+    pyproject_toml = toml.load(path_to_pyproject_toml)
+    project_name    = pyproject_toml['tool']['poetry']['name']
+    current_version = pyproject_toml['tool']['poetry']['version']
+    package_name    = project_name.replace('-','_').replace(' ','_')
+    
+    if rule is None:
+        print(f"Current version: {package_name} v{current_version}")
+    else:
+        new_version = VersionCommand().increment_version(current_version, rule)
+        print(f"{package_name} v{current_version} -> v{new_version}")
+        
+        replace_version_in_file( path_to_pyproject_toml
+                               , current_version, new_version)
+        
+        replace_version_in_file( os.path.join(path, package_name, '__init__.py')
+                               , current_version, new_version)
 
+        replace_version_in_file( os.path.join(path, package_name+'.py')
+                               , current_version, new_version)
 #===============================================================================

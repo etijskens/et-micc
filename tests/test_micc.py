@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Tests for `micc` package.
+Tests for micc package.
 """
 #===============================================================================
 
@@ -14,6 +14,7 @@ import uuid
 # import pytest
 from click import echo
 from click.testing import CliRunner
+import toml
 #===============================================================================
 # Make sure that the current directory is the project directory.
 # 'make test" and 'pytest' are generally run from the project directory.
@@ -31,12 +32,11 @@ if not ('.' in sys.path or os.getcwd() in sys.path):
     echo(f"Adding '.' to sys.path.\n")
     sys.path.insert(0, '.')
 #===============================================================================
-clean_up = True
+clean_up = False
 """remove projects created during testing"""
 #===============================================================================    
 # from micc import micc
 from micc import cli
-from micc.micc import get_pyproject_toml_document
 #===============================================================================
 def get_project_name():
     """
@@ -96,7 +96,7 @@ def test_cli():
     print(result.output)
     project_dir = os.path.join(output_dir, project_name)
     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
-    pyproject_toml = get_pyproject_toml_document(os.path.join(project_dir,'pyproject.toml'))
+    pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
     current_version = pyproject_toml['tool']['poetry']['version']
     assert current_version == "0.0.0"
     print('current_version',current_version)
@@ -105,7 +105,7 @@ def test_cli():
     result = runner.invoke(cli.cli, ['version', project_dir, '--patch'])
     print(result.output)
     assert result.exit_code == 0
-    pyproject_toml = get_pyproject_toml_document(os.path.join(project_dir,'pyproject.toml'))
+    pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
     current_version = pyproject_toml['tool']['poetry']['version']
     print('current_version',current_version)
     assert current_version == "0.0.1"
@@ -129,7 +129,7 @@ def test_cli_with_project_name():
     assert result.exit_code == 0
     project_dir = os.path.join(output_dir, project_name)
     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
-    pyproject_toml = get_pyproject_toml_document(os.path.join(project_dir,'pyproject.toml'))
+    pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
     current_version = pyproject_toml['tool']['poetry']['version']
     print('current_version',current_version)
     assert current_version == "0.0.0"
@@ -137,7 +137,7 @@ def test_cli_with_project_name():
     result = runner.invoke(cli.cli, ['version', project_dir, '--minor'])
     print(result.output)
     assert result.exit_code == 0
-    pyproject_toml = get_pyproject_toml_document(os.path.join(project_dir,'pyproject.toml'))
+    pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
     current_version = pyproject_toml['tool']['poetry']['version']
     print('current_version',current_version)
     assert current_version == "0.1.0"
