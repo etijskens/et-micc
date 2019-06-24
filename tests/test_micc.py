@@ -15,6 +15,7 @@ import uuid
 from click import echo
 from click.testing import CliRunner
 import toml
+from importlib import import_module
 #===============================================================================
 # Make sure that the current directory is the project directory.
 # 'make test" and 'pytest' are generally run from the project directory.
@@ -101,14 +102,13 @@ def test_cli():
     assert current_version == "0.0.0"
     print('current_version',current_version)
 
-
     result = runner.invoke(cli.cli, ['version', project_dir, '--patch'])
     print(result.output)
     assert result.exit_code == 0
     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
     current_version = pyproject_toml['tool']['poetry']['version']
     print('current_version',current_version)
-    assert current_version == "0.0.1"
+    assert current_version == "0.0.1"    
     
     # clean up the project if required
     if clean_up:
@@ -141,6 +141,11 @@ def test_cli_with_project_name():
     current_version = pyproject_toml['tool']['poetry']['version']
     print('current_version',current_version)
     assert current_version == "0.1.0"
+
+    # verify that the project exports the new version    
+    sys.path.insert(0, project_dir)
+    package = import_module(project_name.replace(' ','_').replace('-','_'))
+    assert package.__version__=="0.1.0"
     
     # clean up the project if required
     if clean_up:
