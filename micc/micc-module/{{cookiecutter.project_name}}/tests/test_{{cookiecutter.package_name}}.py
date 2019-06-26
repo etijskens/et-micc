@@ -11,6 +11,7 @@ from click.testing import CliRunner
 from click import echo
 
 from {{ cookiecutter.package_name }} import {{ cookiecutter.package_name }}
+from {{ cookiecutter.package_name }} import __version__
 {#
 {%- if cookiecutter.command_line_interface|lower == 'click' %}
 from {{ cookiecutter.project_name }} import cli
@@ -46,7 +47,9 @@ def test_content(response):
     # from bs4 import BeautifulSoup
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
 # ==============================================================================
-
+def test_version():
+    assert __version__=="0.0.0"
+# ==============================================================================
 # def test_command_line_interface():
 #     """Test the CLI."""
 #     runner = CliRunner()
@@ -62,7 +65,7 @@ def test_content(response):
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_content
+    the_test_you_want_to_debug = test_version
 
     from execution_trace import trace
     with trace(f"__main__ running {the_test_you_want_to_debug}",
