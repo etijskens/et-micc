@@ -31,7 +31,7 @@ if not ('.' in sys.path or os.getcwd() in sys.path):
     echo(f"Adding '.' to sys.path.\n")
     sys.path.insert(0, '.')
 
-
+# ==============================================================================
 @pytest.fixture
 def response():
     """Sample pytest fixture.
@@ -40,12 +40,12 @@ def response():
     """
     # import requests
     # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
-
-
+# ==============================================================================
 def test_content(response):
     """Sample pytest test function with the pytest fixture as an argument."""
     # from bs4 import BeautifulSoup
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
+# ==============================================================================
 
 # def test_command_line_interface():
 #     """Test the CLI."""
@@ -57,4 +57,15 @@ def test_content(response):
 #     assert help_result.exit_code == 0
 #     assert '--help  Show this message and exit.' in help_result.output
 
+# ==============================================================================
+# The code below is for debugging a particular test in eclipse/pydev.
+# (normally all tests are run with pytest)
+# ==============================================================================
+if __name__ == "__main__":
+    the_test_you_want_to_debug = test_content
 
+    from execution_trace import trace
+    with trace(f"__main__ running {the_test_you_want_to_debug}",
+               '-*# finished #*-', singleline=False, combine=False):
+        the_test_you_want_to_debug()
+# ==============================================================================

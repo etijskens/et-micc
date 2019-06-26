@@ -95,32 +95,4 @@ servedocs: docs ## compile the docs watching for changes
 release: dist ## package and upload a release
 	twine upload dist/*
 
-#-------------------------------------------------------------------------------
-#-- INSTALLATION TARGETS -------------------------------------------------------
-#-------------------------------------------------------------------------------
-# Create distribution wheel
-dist: clean ## builds source and wheel package
-	poetry build
-
-#-------------------------------------------------------------------------------
-# Install package {{ cookiecutter.package_name }} to the active Python's site-packages
-install: clean
-	pip install dist/$(module_name)-$(version)-py3-none-any.whl
-
-#-------------------------------------------------------------------------------
-# Uninstall package {{ cookiecutter.package_name }} from current Python environment
-uninstall:
-	pip uninstall $(module_name)
-
-#-------------------------------------------------------------------------------
-# Install package {{ cookiecutter.package_name }} in development mode, so that edited changes in the 
-# packages are immediately efficitive. This is achieved through a soft link.
-#	pip install -e $(module_name)
-install-dev: 
-	ln -s $(cwd)/$(module_name) $(site_packages)/$(module_name)
-	
-#-------------------------------------------------------------------------------
-# Uninstall package {{ cookiecutter.package_name }} development mode from the current Python environment
-uninstall-dev:
-	rm $(site_packages)/$(module_name)
 

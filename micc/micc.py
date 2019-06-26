@@ -16,7 +16,6 @@ from poetry.console.commands import VersionCommand
 # from poetry.console.application import Application
 # from cleo.inputs.argv_input import ArgvInput
 import toml
-from micc import __version__
 #===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
@@ -110,7 +109,6 @@ def micc_create( project_name=''
         the current directory.
     :param bool verbose: verbose output, False by default. 
     """
-    click.echo('Micc v' + __version__)
     template = os.path.expanduser(template)
     if template in ['micc-module']:        
         template = os.path.join(os.path.dirname(__file__), template)
