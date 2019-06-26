@@ -70,7 +70,11 @@ def create( project_name
                                  ]
                                 )
              )
-def version(project_path,major,minor,patch,poetry_version_rule):
+@click.option('-t', '--tag'
+             , is_flag=True
+             , default=False
+             )
+def version(project_path,major,minor,patch,poetry_version_rule,tag):
     """
     Micc version subcommand, similar to ``poetry version``. Increments the
     project's version number. 
@@ -84,7 +88,9 @@ def version(project_path,major,minor,patch,poetry_version_rule):
         rule = 'minor'
     if major:
         rule = 'major'
-    return micc_version(project_path,rule)
+    return_code = micc_version(project_path,rule)
+    if return_code==0 and tag:
+        return micc_tag(project_path)
 #===============================================================================
 @main.command()
 @click.argument('project_path',default='')

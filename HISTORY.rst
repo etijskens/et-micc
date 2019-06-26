@@ -1,7 +1,13 @@
 History
 =======
 
-* git tagging
+v0.2.4 (2019-06-11)
+*******************
+
+* git support
+
+  * ``git init` in ``micc create``
+  * ``micc tag``
 
 v0.2.4 (2019-06-11)
 *******************
