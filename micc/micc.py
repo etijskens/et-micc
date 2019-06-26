@@ -43,7 +43,7 @@ def get_template_parameters(micc_file, project_name='', verbose=False):
     
     :returns: a dict of (parameter,value) pairs.
     """
-    with open(micc_file,'r') as f:
+    with open(micc_file, 'r') as f:
         template_parameters = json.load(f)
         
     if project_name:
@@ -110,24 +110,29 @@ def micc_create( project_name=''
         the current directory.
     :param bool verbose: verbose output, False by default. 
     """
-    click.echo('Micc v'+__version__)
+    click.echo('Micc v' + __version__)
     template = os.path.expanduser(template)
     if template in ['micc-module']:        
-        template =  os.path.join(os.path.dirname(__file__),template)
+        template = os.path.join(os.path.dirname(__file__), template)
     if not os.path.exists(template):
-        raise FileNotFoundError('ERROR: Missing cookiecutter template: ' +
+        raise FileNotFoundError('ERROR: Missing cookiecutter template: ' + 
                                 file_not_found_msg(template, looking_for='folder')
                                 )
     else:
-        if verbose: click.echo('  Cookiecutter: ' + template)
+        if verbose:
+            click.echo('  Cookiecutter: ' + template)
         
     path_to_micc_json = os.path.join(template,micc_file)
     if not os.path.exists(path_to_micc_json):        
-        raise FileNotFoundError('ERROR: Missing micc file: '+file_not_found_msg(micc_file))
+        raise FileNotFoundError('ERROR: Missing micc file: ' + file_not_found_msg(micc_file))
     else:
-        if verbose: click.echo('  Micc file   : ' + micc_file)
-    template_parameters = get_template_parameters(path_to_micc_json,project_name=project_name,verbose=verbose)
-        
+        if verbose:
+            click.echo('  Micc file   : ' + micc_file)
+            
+    template_parameters = get_template_parameters( path_to_micc_json
+                                                 , project_name=project_name
+                                                 , verbose=verbose
+                                                 )  
 
     cookiecutter_json = os.path.join(template, 'cookiecutter.json')
     if os.path.exists(cookiecutter_json):
@@ -136,9 +141,6 @@ def micc_create( project_name=''
         if not os.path.exists(cookiecutter_orig_json):
             # make a copy of the original cookiecutter.json file if there isn't one already.
             move(cookiecutter_json, cookiecutter_orig_json)
-#         else:
-#             os.remove(cookiecutter_json)
-    
     
     # write a cookiecutter.json file in the cookiecutter template directory
     with open(cookiecutter_json,'w') as f:
@@ -170,7 +172,7 @@ def in_directory(path):
 def replace_version_in_file(filepath,current_version,new_version):
     if os.path.exists(filepath):
         print('    Updating :',filepath)
-        if os.path.basename(filepath)=="pyproject.toml":
+        if os.path.basename(filepath) == "pyproject.toml":
             fmt = 'version = "{}"'
         else:
             fmt = '__version__ = "{}"'
@@ -197,8 +199,9 @@ def micc_version(path='.', rule=None):
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
     """
-#     if use_poetry: # what a shame - cannot get this to work`; i filed an issue https://github.com/sdispater/poetry/issues/1182
-#         with in_directory('/Users/etijskens/software/dev/workspace/micc/tests/output/a_test_project/a_test_project'): 
+#     if use_poetry: # what a shame - cannot get this to work`; 
+#                    # I filed an issue https://github.com/sdispater/poetry/issues/1182
+#         with in_directory(???): 
 #             print(1,os.getcwd())
 #             i = ArgvInput(['poetry','version',rule])
 #             Application().run(i)
@@ -226,6 +229,6 @@ def micc_version(path='.', rule=None):
         replace_version_in_file( os.path.join(path, package_name, '__init__.py')
                                , current_version, new_version)
 
-        replace_version_in_file( os.path.join(path, package_name+'.py')
+        replace_version_in_file( os.path.join(path, package_name + '.py')
                                , current_version, new_version)
 #===============================================================================

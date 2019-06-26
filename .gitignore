@@ -116,6 +116,7 @@ cookiecutter*.json
 # test projectdirectories
 tests/output/
 sandbox/
+issue*/
 
 # apple
 .DS_Store
@@ -126,3 +127,4 @@ sandbox/
 setup.*
 tox.ini
 requirements_dev.txt
+

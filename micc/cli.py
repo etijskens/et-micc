@@ -6,7 +6,7 @@ Console script for micc
 
 Create a cookiecutter project from a micc file. Micc files are .json files
 representing a dict. Keys are *str* objects representing cookiecutter template
-arguments. The values are dicts of ``click.prompt()`` keyword arguments.
+arguments. The values are dicts of ``mainck.prompt()`` keyword arguments.
 """
 #===============================================================================
 import sys
@@ -14,12 +14,12 @@ import click
 from micc.micc import micc_create, micc_version
 #===============================================================================
 @click.group()
-def cli():
+def main():
     """
     Micc command line interface. Type ``micc --help`` on the command line for details.
     """
 #===============================================================================
-@cli.command()
+@main.command()
 @click.argument('project_name', default='')
 @click.option('-t','--template'
              , default='micc-module'
@@ -52,13 +52,23 @@ def create( project_name
                       , verbose=verbose
                       )
 #===============================================================================
-@cli.command()
+@main.command()
 @click.argument('project_path',default='')
-@click.option('-M','--major', is_flag=True, default=False, help='increment major version number component')
-@click.option('-m','--minor', is_flag=True, default=False, help='increment minor version number component')
-@click.option('-p','--patch', is_flag=True, default=False, help='increment patch version number component')
+@click.option('-M','--major', is_flag=True, default=False
+             , help='increment major version number component'
+             )
+@click.option('-m','--minor', is_flag=True, default=False
+             , help='increment minor version number component'
+             )
+@click.option('-p','--patch', is_flag=True, default=False
+             , help='increment patch version number component'
+             )
 @click.option('-r','--poetry-version-rule', help='a "poetry version <rule>"'
-             , type=click.Choice(['','patch', 'minor', 'major', 'prepatch', 'preminor', 'premajor', 'prerelease'])
+             , type=click.Choice(['','patch', 'minor', 'major'
+                                 , 'prepatch', 'preminor'
+                                 , 'premajor', 'prerelease'
+                                 ]
+                                )
              )
 def version(project_path,major,minor,patch,poetry_version_rule):
     """
@@ -66,12 +76,16 @@ def version(project_path,major,minor,patch,poetry_version_rule):
     project's version number. 
     """
     rule = None
-    if poetry_version_rule: rule = poetry_version_rule
-    if patch: rule = 'patch'
-    if minor: rule = 'minor'
-    if major: rule = 'major'
+    if poetry_version_rule:
+        rule = poetry_version_rule
+    if patch:
+        rule = 'patch'
+    if minor:
+        rule = 'minor'
+    if major:
+        rule = 'major'
     return micc_version(project_path,rule)
 #===============================================================================
 if __name__ == "__main__":
-    sys.exit(cli())  # pragma: no cover
+    sys.exit(main())  # pragma: no cover
 #===============================================================================

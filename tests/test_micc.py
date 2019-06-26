@@ -153,7 +153,7 @@ def test_cli_with_project_name():
         rmtree(project_dir)
     else:
         echo(f"Project directory left: {project_dir}")
-    
+
 #===============================================================================
 def test_cli_help():
     """Test the CLI."""

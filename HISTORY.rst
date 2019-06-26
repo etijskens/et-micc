@@ -52,13 +52,36 @@ is a good post about that.
   from pyproject.toml to __version__.py easy.
   
 Let's first check if we can achieve a proper local install with poetry ...
+Install a package::
+
+   > poetry build
+   > pip install dist/<package>-<version>-py3-none-any.whl
+
+Uninstall::
+
+   > pip uninstall <package>
+
 This seems to do the trick::
 
     > pip install -e <project_dir>
     
-But take care, **uninstalling removes the source files**? 
+Install a dev package use cmd::
+
+   > pip install --editable <project_dir>
+   
+Uninstall::
+
+   > rm -r $(find . -name '*.egg-info')
+   
+But take care, uninstalling like this::
+
+   > pip uninstall <package>
+
+removed the source files. 
 See `this post <https://stackoverflow.com/questions/17346619/how-to-uninstall-editable-packages-with-pip-installed-with-e>`_.
 
+
+   
 v0.1.21 (2019-06-11)
 ********************
 
