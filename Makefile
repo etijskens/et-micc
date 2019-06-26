@@ -1,3 +1,15 @@
+#-------------------------------------------------------------------------------
+# This makefile automates a number of tasks for the developer of this Python
+# package.\
+# This makefile is meant to be run in the project directory (not elsewhere) as:
+#   > make <target>
+#-------------------------------------------------------------------------------
+
+module_name := micc
+
+# retrieve the version string from the module
+version := $(shell python -c 'from $(module_name) import __version__; print(__version__)')
+
 .PHONY: clean clean-test clean-pyc clean-build docs help
 .DEFAULT_GOAL := help
 
@@ -54,7 +66,7 @@ lint: ## check style with flake8
 	flake8 --max-line-length=100 micc tests
 
 test: ## run tests quickly with the default Python
-	py.test tests
+	py.test tests/test*
 
 test-all: ## run tests on every Python version with tox
 	tox
@@ -80,13 +92,10 @@ release: dist ## package and upload a release
 	twine upload dist/*
 
 dist: clean ## builds source and wheel package
-	python setup.py sdist
-	python setup.py bdist_wheel
-	ls -l dist
+	poetry build
 
 install: clean ## install the package to the active Python's site-packages
-	python setup.py install
+	pip install dist/$(module_name)-$(version)-py3-none-any.whl
 
-uninstall: 
-	pip uninstall micc
-	
+uninstall:
+	pip uninstall $(module_name)
