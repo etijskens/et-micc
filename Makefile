@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # This makefile automates a number of tasks for the developer of this Python
-# package.\
+# package.
 # This makefile is meant to be run in the project directory (not elsewhere) as:
 #   > make <target>
 #-------------------------------------------------------------------------------
@@ -91,11 +91,22 @@ servedocs: docs ## compile the docs watching for changes
 release: dist ## package and upload a release
 	twine upload dist/*
 
+#-------------------------------------------------------------------------------
+#-- INSTALLATION TARGETS -------------------------------------------------------
+#-------------------------------------------------------------------------------
+# Create distribution wheel
 dist: clean ## builds source and wheel package
 	poetry build
 
-install: clean ## install the package to the active Python's site-packages
+#-------------------------------------------------------------------------------
+# Install package micc ## install the package to the active Python's
+# site-packages
+install: clean
 	pip install dist/$(module_name)-$(version)-py3-none-any.whl
 
+#-------------------------------------------------------------------------------
+# Uninstall package micc from current Python environment
 uninstall:
 	pip uninstall $(module_name)
+
+	

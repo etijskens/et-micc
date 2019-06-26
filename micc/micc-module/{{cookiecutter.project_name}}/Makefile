@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # This makefile automates a number of tasks for the developer of this Python
-# package.\
+# package.
 # This makefile is meant to be run in the project directory (not elsewhere) as:
 #   > make <target>
 #-------------------------------------------------------------------------------
@@ -99,24 +99,24 @@ dist: clean ## builds source and wheel package
 	poetry build
 
 #-------------------------------------------------------------------------------
-# Install package micc ## install the package to the active Python's
-# site-packages
+# Install package {{ cookiecutter.package_name }} to the active Python's site-packages
 install: clean
 	pip install dist/$(module_name)-$(version)-py3-none-any.whl
 
 #-------------------------------------------------------------------------------
-# Uninstall package micc from current Python environment
+# Uninstall package {{ cookiecutter.package_name }} from current Python environment
 uninstall:
 	pip uninstall $(module_name)
 
 #-------------------------------------------------------------------------------
-# Install package micc ## install the package to the active Python's
-# site-packages
-install-dev: clean
-	pip install -e $(module_name)
-
+# Install package {{ cookiecutter.package_name }} in development mode, so that edited changes in the 
+# packages are immediately efficitive. This is achieved through a soft link.
+#	pip install -e $(module_name)
+install-dev: 
+	ln -s $(cwd)/$(module_name) $(site_packages)/oops
+	
 #-------------------------------------------------------------------------------
-# Uninstall package micc from current Python environment
-# todo: test
+# Uninstall package {{ cookiecutter.package_name }} development mode from the current Python environment
 uninstall-dev:
-	rm -r $(find . -name '*.egg-info')
+	rm $(site_packages)/oops
+
