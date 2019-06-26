@@ -10,6 +10,10 @@ module_name := {{ cookiecutter.package_name }}
 # retrieve the version string from the module
 version := $(shell python -c 'from $(module_name) import __version__; print(__version__)')
 
+site_packages := $(shell python -c "import site; print(site.getsitepackages()[0])")
+
+cwd := $(shell pwd)
+
 .PHONY: clean clean-test clean-pyc clean-build docs help uninstall
 .DEFAULT_GOAL := help
 
@@ -113,10 +117,10 @@ uninstall:
 # packages are immediately efficitive. This is achieved through a soft link.
 #	pip install -e $(module_name)
 install-dev: 
-	ln -s $(cwd)/$(module_name) $(site_packages)/oops
+	ln -s $(cwd)/$(module_name) $(site_packages)/$(module_name)
 	
 #-------------------------------------------------------------------------------
 # Uninstall package {{ cookiecutter.package_name }} development mode from the current Python environment
 uninstall-dev:
-	rm $(site_packages)/oops
+	rm $(site_packages)/$(module_name)
 
