@@ -1,17 +1,14 @@
 #-------------------------------------------------------------------------------
 # This makefile automates a number of tasks for the developer of this Python
-# package.
+# package.\
 # This makefile is meant to be run in the project directory (not elsewhere) as:
 #   > make <target>
 #-------------------------------------------------------------------------------
 
 module_name := micc
 
+# retrieve the version string from the module
 version := $(shell python -c 'from $(module_name) import __version__; print(__version__)')
-
-site_packages := $(shell python -c "import site; print(site.getsitepackages()[0])")
-
-cwd := $(shell pwd)
 
 .PHONY: clean clean-test clean-pyc clean-build docs help
 .DEFAULT_GOAL := help
@@ -95,30 +92,17 @@ release: dist ## package and upload a release
 	twine upload dist/*
 
 #-------------------------------------------------------------------------------
-#-- INSTALLATION TARGETS -------------------------------------------------------
-#-------------------------------------------------------------------------------
 # Create distribution wheel
-dist: clean
+dist: clean ## builds source and wheel package
 	poetry build
 
 #-------------------------------------------------------------------------------
-# Install package {{ cookiecutter.package_name }} to the active Python's site-packages
-install: clean
+# Install package micc and its requirements in the current Python
+# environment.
+install: clean ## install the package to the active Python's site-packages
 	pip install dist/$(module_name)-$(version)-py3-none-any.whl
 
 #-------------------------------------------------------------------------------
-# Uninstall package {{ cookiecutter.package_name }} from current Python environment
+# Uninstall package micc from current Python environment
 uninstall:
 	pip uninstall $(module_name)
-
-#-------------------------------------------------------------------------------
-# Install package {{ cookiecutter.package_name }} in development mode, so that edited changes in the 
-# packages are immediately efficitive. This is achieved through a soft link.
-#	pip install -e $(module_name)
-install-dev: 
-	ln -s $(cwd)/$(module_name) $(site_packages)/$(module_name)
-	
-#-------------------------------------------------------------------------------
-# Uninstall package {{ cookiecutter.package_name }} development mode from the current Python environment
-uninstall-dev:
-	rm $(site_packages)/$(module_name)

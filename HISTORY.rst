@@ -1,10 +1,22 @@
 History
 =======
 
-Current issues
-**************
+* git tagging
 
-* Using pyproject.toml instead of the flawed setup.py
+v0.2.4 (2019-06-11)
+*******************
+
+* Makefile improvements:
+  
+  * documentation
+  * tests
+  * install/uninstall
+  * install-dev/uninstall-dev
+
+v0.2.3 (2019-06-11)
+*******************
+
+* Using pyproject.toml, instead of the flawed setup.py
 
 * Proper local install and uninstall. By Local we mean: not installing from PyPI.
   we had that in et/backbone using pip. But pip uses setup.py which we want to

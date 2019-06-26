@@ -5,6 +5,7 @@ Main module.
 #===============================================================================
 import os
 import json
+import subprocess
 from shutil import move
 from pathlib import Path
 from contextlib import contextmanager
@@ -16,6 +17,8 @@ from poetry.console.commands import VersionCommand
 # from poetry.console.application import Application
 # from cleo.inputs.argv_input import ArgvInput
 import toml
+#===============================================================================
+from micc import __version__
 #===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
@@ -152,8 +155,13 @@ def micc_create( project_name=''
                 , overwrite_if_exists=True
                 , output_dir=output_dir
                 )
-    click.echo( "Done.")
     
+    with in_directory(os.path.join(output_dir,project_name)):
+        cmd = "git init"
+        click.echo(f"Running '{cmd}'")
+        subprocess.run(cmd)
+    
+    click.echo( "Done.")
     return 0
 #===============================================================================
 @contextmanager
@@ -229,4 +237,17 @@ def micc_version(path='.', rule=None):
 
         replace_version_in_file( os.path.join(path, package_name + '.py')
                                , current_version, new_version)
+#===============================================================================
+def micc_tag(path):
+    """
+    Create and push a tag for the current version.
+    """
+    with in_directory(path):
+        cmd = f'git tag -a v{__version__} -m "tag version {__version__}"'
+        click.echo(f"Running '{cmd}'")
+        subprocess.run(cmd)
+
+        cmd = f'git push origin v{__version__}'
+        click.echo(f"Running '{cmd}'")
+        subprocess.run(cmd)
 #===============================================================================

@@ -11,7 +11,7 @@ arguments. The values are dicts of ``mainck.prompt()`` keyword arguments.
 #===============================================================================
 import sys
 import click
-from micc.micc import micc_create, micc_version
+from micc.micc import micc_create, micc_version, micc_tag
 #===============================================================================
 @click.group()
 def main():
@@ -21,7 +21,7 @@ def main():
 #===============================================================================
 @main.command()
 @click.argument('project_name', default='')
-@click.option('-t','--template'
+@click.option('-T','--template'
              , default='micc-module'
              )
 @click.option('-m', '--micc-file'
@@ -85,6 +85,14 @@ def version(project_path,major,minor,patch,poetry_version_rule):
     if major:
         rule = 'major'
     return micc_version(project_path,rule)
+#===============================================================================
+@main.command()
+@click.argument('project_path',default='')
+def tag(project_path):
+    """
+    Micc tag subcommand, create a git tag for the current version. 
+    """
+    return micc_tag(project_path)
 #===============================================================================
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
