@@ -174,12 +174,12 @@ def micc_app(app_name,project_path='',verbose=False):
             click.echo( json.dumps(template_parameters, indent=2) )
         
         cookiecutter_json = os.path.join(template, 'cookiecutter.json')
-        if os.path.exists(cookiecutter_json):
-            cookiecutter_orig_json = os.path.join(template, 'cookiecutter.orig.json')
-            # make way for a new cookiecutter.json file
-            if not os.path.exists(cookiecutter_orig_json):
-                # make a copy of the original cookiecutter.json file if there isn't one already.
-                move(cookiecutter_json, cookiecutter_orig_json)
+#         if os.path.exists(cookiecutter_json):
+#             cookiecutter_orig_json = os.path.join(template, 'cookiecutter.orig.json')
+#             # make way for a new cookiecutter.json file
+#             if not os.path.exists(cookiecutter_orig_json):
+#                 # make a copy of the original cookiecutter.json file if there isn't one already.
+#                 move(cookiecutter_json, cookiecutter_orig_json)
         
         # write a cookiecutter.json file in the cookiecutter template directory
         with open(cookiecutter_json,'w') as f:
@@ -192,5 +192,26 @@ def micc_app(app_name,project_path='',verbose=False):
                         , no_input=True
                         , overwrite_if_exists=True
                         )
-    
+            
+        cli_app_name = 'cli_' + template_parameters['app_name'    ].lower().replace('-', '_')
+        package_name =          template_parameters['project_name'].lower().replace('-', '_')
+        # docs
+        with open('docs/apps.rst',"w") as f:
+            f.write(".. include:: ../APPS.rst\n")
+        if not os.path.exists("APPS.rst"):
+            with open("APPS.rst","w") as f:
+                f.write( "Apps\n")
+                f.write( "====\n\n")
+        with open("APPS.rst","a") as f:
+            f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
+            f.write( "   :members:\n\n")
+        # pyproject.toml
+        with open('pyproject.toml','r') as f:
+            lines = f.readlines()
+        with open('pyproject.toml','w') as f:
+            for line in lines:
+                f.write(line)
+                if line.startswith('[tool.poetry.scripts]'):
+                    f.write(f"{template_parameters['app_name']} = {package_name}:{cli_app_name}\n")
+        
 #===============================================================================

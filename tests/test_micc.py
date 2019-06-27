@@ -37,16 +37,19 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 clean_up = False
 """remove projects created during testing"""
+uuid_ = True
 #===============================================================================    
 # from micc import micc
 from micc.utils import in_directory
 from micc import cli
 #===============================================================================
-def micc_test_project_uuid():
+def micc_test_project_uuid(uuid_=uuid_):
     """
     create a unique name for a test project.
     """
-    project_name = 'micc-test-project-' + str(uuid.uuid1())
+    project_name = 'micc-test-project'
+    if uuid_:
+        project_name += '-' + str(uuid.uuid1())
     return project_name
 #===============================================================================
 
@@ -195,15 +198,13 @@ def test_micc_app():
         result = runner.invoke(cli.main, ['app'], input=input_)
         print(result.output)
         assert result.exit_code == 0
-        # add the app to the documentation
         
-        # register the app in pyproject.toml
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_micc_create_and_version
+    the_test_you_want_to_debug = test_micc_app
 
     from execution_trace import trace
     with trace(f"__main__ running {the_test_you_want_to_debug}",

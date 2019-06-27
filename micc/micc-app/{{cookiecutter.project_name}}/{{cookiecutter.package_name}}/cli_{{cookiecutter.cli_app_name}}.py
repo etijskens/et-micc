@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-{{cookiecutter.app_name}} app
-=================================
+Application {{cookiecutter.app_name}} 
+=====================================
 
 A console script
 
