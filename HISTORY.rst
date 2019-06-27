@@ -1,7 +1,12 @@
 History
 =======
 
-v0.2.4 (2019-06-11)
+v0.2.6 (2019-06-11)
+*******************
+
+* add a console script to the project skeleton
+
+v0.2.5 (2019-06-11)
 *******************
 
 * git support

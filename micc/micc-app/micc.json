@@ -1,0 +1,11 @@
+{
+  "app_name"		: {"default":""
+                  	  ,"text"   :"name of your app (CLI)"
+                  	  }
+, "project_name"	: {"default":""
+  					  ,"text"   :"the name of the project to be created"
+  					  }
+, "package_name"    : {"default":"{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}"
+  					  ,"text"   :"the name of the project to be created"
+  					  }
+}

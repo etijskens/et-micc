@@ -82,11 +82,12 @@ coverage: ## check code coverage quickly with the default Python
 	$(BROWSER) htmlcov/index.html
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/{{ cookiecutter.project_name }}.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ {{ cookiecutter.project_name }}
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
+#	rm -f docs/{{ cookiecutter.project_name }}.rst
+#	rm -f docs/modules.rst
+#	sphinx-apidoc -o docs/ {{ cookiecutter.package_name }}
+#	$(MAKE) -C docs clean
+#	$(MAKE) -C docs html
+	cd docs && make html
 	$(BROWSER) docs/_build/html/index.html
 
 servedocs: docs ## compile the docs watching for changes
@@ -95,4 +96,35 @@ servedocs: docs ## compile the docs watching for changes
 release: dist ## package and upload a release
 	twine upload dist/*
 
+#-------------------------------------------------------------------------------
+# INSTALLATION TARGETS
+#-------------------------------------------------------------------------------
+# Create distribution wheel
+dist: clean ## builds source and wheel package
+	poetry build
 
+#-------------------------------------------------------------------------------
+# Install package {{cookiecutter.package_name}} in the current Python
+# environment.
+install: clean 
+	pip install dist/$(module_name)-$(version)-py3-none-any.whl
+
+#-------------------------------------------------------------------------------
+# Uninstall package {{cookiecutter.package_name}} from current Python environment
+uninstall:
+	pip uninstall $(module_name)
+	
+#-------------------------------------------------------------------------------
+# Install package {{cookiecutter.package_name}} in development mode 
+# in the current Python environment.
+# (does not install apps)
+install-dev: 
+	ln -s ./$(module_name) $(site_packages)/$(module_name)
+
+#-------------------------------------------------------------------------------
+# Uninstall package {{cookiecutter.package_name}} from current Python environment
+uninstall-dev:
+	rm $(site_packages)/$(module_name)
+
+#-------------------------------------------------------------------------------
+	

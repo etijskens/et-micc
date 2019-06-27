@@ -30,22 +30,25 @@ if os.getcwd().endswith('tests'):
 # 'make test" and 'pytest' in the project directory, the current working
 # directory is not automatically added to sys.path.
 if not ('.' in sys.path or os.getcwd() in sys.path):
-    echo(f"Adding '.' to sys.path.\n")
-    sys.path.insert(0, '.')
+    p = os.path.abspath('.')
+    echo(f"Adding '{p}' to sys.path.\n")
+    sys.path.insert(0, p)
+echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 clean_up = False
 """remove projects created during testing"""
 #===============================================================================    
 # from micc import micc
+from micc.utils import in_directory
 from micc import cli
 #===============================================================================
-def get_project_name():
+def micc_test_project_uuid():
     """
     create a unique name for a test project.
     """
     project_name = 'micc-test-project-' + str(uuid.uuid1())
     return project_name
-
+#===============================================================================
 
 # @pytest.fixture
 # def response():
@@ -86,13 +89,27 @@ def get_project_name():
 #             raise
 
 #===============================================================================
-def test_cli():
-    """Test the CLI."""
+def test_micc_help():
+    """
+    Test ``micc --help``.
+    """
     runner = CliRunner()
-    project_name = get_project_name()
+    result = runner.invoke(cli.main, ['--help'])
+    assert result.exit_code == 0
+    assert '--help' in result.output
+    assert 'Show this message and exit.' in result.output
+    print(result.output)
+
+#===============================================================================
+def test_micc_create_and_version():
+    """
+    Test for creating a project skeleton and bump the version.
+    """
+    runner = CliRunner()
+    project_name = micc_test_project_uuid()
     output_dir = os.path.join(os.getcwd(),'tests','output')
     input_ = f'{project_name}\ntest_cli()'
-    result = runner.invoke(cli.cli, ['create','-v','-o',output_dir], input=input_)
+    result = runner.invoke(cli.main, ['create','-v','-o',output_dir], input=input_)
     assert result.exit_code == 0
     print(result.output)
     project_dir = os.path.join(output_dir, project_name)
@@ -102,7 +119,7 @@ def test_cli():
     assert current_version == "0.0.0"
     print('current_version',current_version)
 
-    result = runner.invoke(cli.cli, ['version', project_dir, '--patch'])
+    result = runner.invoke(cli.main, ['version', project_dir, '--patch'])
     print(result.output)
     assert result.exit_code == 0
     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
@@ -118,13 +135,16 @@ def test_cli():
         echo(f"Project directory left: {project_dir}")
     
 #===============================================================================
-def test_cli_with_project_name():
-    """Test the CLI."""
+def test_micc_create_with_project_name_and_version():
+    """
+    Test for creating a project skeleton, with a project name provided on the 
+    command line and bump the version.
+    """
     runner = CliRunner()
     project_name = 'a-test-project'
     output_dir = os.path.join(os.getcwd(),'tests','output')
     input_ = 'test_cli_with_project_name()'
-    result = runner.invoke(cli.cli, ['create',project_name,'-v','-o',output_dir], input=input_)
+    result = runner.invoke(cli.main, ['create',project_name,'-v','-o',output_dir], input=input_)
     print(result.output)
     assert result.exit_code == 0
     project_dir = os.path.join(output_dir, project_name)
@@ -134,7 +154,7 @@ def test_cli_with_project_name():
     print('current_version',current_version)
     assert current_version == "0.0.0"
 
-    result = runner.invoke(cli.cli, ['version', project_dir, '--minor'])
+    result = runner.invoke(cli.main, ['version', project_dir, '--minor'])
     print(result.output)
     assert result.exit_code == 0
     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
@@ -154,22 +174,36 @@ def test_cli_with_project_name():
     else:
         echo(f"Project directory left: {project_dir}")
 
-#===============================================================================
-def test_cli_help():
-    """Test the CLI."""
+# ==============================================================================
+def test_micc_app():
+    """
+    Test ``micc app``
+    """
+    # First create a project
     runner = CliRunner()
-    result = runner.invoke(cli.cli, ['--help'])
-    assert result.exit_code == 0
-    assert '--help' in result.output
-    assert 'Show this message and exit.' in result.output
+    project_name = micc_test_project_uuid()
+    output_dir = os.path.join(os.getcwd(),'tests','output')
+    input_ = f'{project_name}\ntest_cli()'
+    result = runner.invoke(cli.main, ['create','-v','-o',output_dir], input=input_)
     print(result.output)
+    assert result.exit_code == 0
 
+    # Add an app
+    project_dir = os.path.join(output_dir, project_name)
+    with in_directory(project_dir):
+        input_ = 'my-app'
+        result = runner.invoke(cli.main, ['app'], input=input_)
+        print(result.output)
+        assert result.exit_code == 0
+        # add the app to the documentation
+        
+        # register the app in pyproject.toml
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_cli_with_project_name
+    the_test_you_want_to_debug = test_micc_create_and_version
 
     from execution_trace import trace
     with trace(f"__main__ running {the_test_you_want_to_debug}",

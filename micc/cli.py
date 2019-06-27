@@ -11,7 +11,7 @@ arguments. The values are dicts of ``mainck.prompt()`` keyword arguments.
 #===============================================================================
 import sys
 import click
-from micc.micc import micc_create, micc_version, micc_tag
+from .commands import micc_create, micc_version, micc_tag, micc_app
 #===============================================================================
 @click.group()
 def main():
@@ -53,7 +53,7 @@ def create( project_name
                       )
 #===============================================================================
 @main.command()
-@click.argument('project_path',default='')
+@click.argument('project_path', default='')
 @click.option('-M','--major', is_flag=True, default=False
              , help='increment major version number component'
              )
@@ -74,9 +74,9 @@ def create( project_name
              , is_flag=True
              , default=False
              )
-def version(project_path,major,minor,patch,poetry_version_rule,tag):
+def version(project_path, major, minor, patch, poetry_version_rule, tag):
     """
-    Micc version subcommand, similar to ``poetry version``. Increments the
+    ``micc version`` subcommand, similar to ``poetry version``. Increments the
     project's version number. 
     """
     rule = None
@@ -93,12 +93,23 @@ def version(project_path,major,minor,patch,poetry_version_rule,tag):
         return micc_tag(project_path)
 #===============================================================================
 @main.command()
-@click.argument('project_path',default='')
+@click.argument('project_path', default='')
 def tag(project_path):
     """
-    Micc tag subcommand, create a git tag for the current version. 
+    ``micc tag`` subcommand, create a git tag for the current version. 
     """
     return micc_tag(project_path)
+#===============================================================================
+@main.command()
+@click.argument('app_name', default='')
+@click.option('-P', '--project_path', default='')
+def app(app_name,project_path):
+    """
+    ``micc app`` subcommand, add an app (console script) to the package. 
+    
+    :param str app_name: name of the cli application.
+    """
+    return micc_app(app_name, project_path)
 #===============================================================================
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
