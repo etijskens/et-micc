@@ -2,12 +2,13 @@ Welcome to micc's documentation!
 ================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    readme
    installation
    usage
+   apps
    api
    authors
    history

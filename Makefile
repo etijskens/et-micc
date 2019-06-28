@@ -78,11 +78,7 @@ coverage: ## check code coverage quickly with the default Python
 	$(BROWSER) htmlcov/index.html
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/micc.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ micc
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
+	cd docs && make html
 	$(BROWSER) docs/_build/html/index.html
 
 servedocs: docs ## compile the docs watching for changes
@@ -99,7 +95,7 @@ dist: clean ## builds source and wheel package
 #-------------------------------------------------------------------------------
 # Install package micc and its requirements in the current Python
 # environment.
-install: clean ## install the package to the active Python's site-packages
+install: clean dist ## install the package to the active Python's site-packages
 	pip install dist/$(module_name)-$(version)-py3-none-any.whl
 
 #-------------------------------------------------------------------------------

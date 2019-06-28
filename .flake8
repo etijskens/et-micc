@@ -25,6 +25,6 @@ ignore =
     # E221 multiple spaces before operator
     E221
 
-exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,micc/micc-module/*
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist
 max-complexity = 10
 max-line-length = 100

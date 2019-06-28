@@ -135,7 +135,7 @@ def micc_app( app_name
             for line in lines:
                 f.write(line)
                 if line.startswith('[tool.poetry.scripts]'):
-                    f.write(f"{template_parameters['app_name']} = {package_name}:{cli_app_name}\n")
+                    f.write(f"{template_parameters['app_name']} = '{package_name}:{cli_app_name}'\n")
     return 0
 #===============================================================================
 def micc_module( module_name

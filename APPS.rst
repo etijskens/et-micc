@@ -1,0 +1,3 @@
+
+.. automodule:: micc.cli
+   :members:
