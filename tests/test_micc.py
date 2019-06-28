@@ -52,6 +52,15 @@ def micc_test_project_uuid(uuid_=uuid_):
         project_name += '-' + str(uuid.uuid1())
     return project_name
 #===============================================================================
+def report(result):
+    if result.exception:
+        print(result.exception)
+        if result.stderr_bytes:
+            print(result.stderr)
+        print('exit_code =',result.exit_code)
+    print(result.output)
+    assert result.exit_code == 0
+#===============================================================================
 
 # @pytest.fixture
 # def response():
@@ -98,10 +107,9 @@ def test_micc_help():
     """
     runner = CliRunner()
     result = runner.invoke(cli.main, ['--help'])
-    assert result.exit_code == 0
+    report(result)
     assert '--help' in result.output
     assert 'Show this message and exit.' in result.output
-    print(result.output)
 
 #===============================================================================
 def test_micc_create_and_version():
@@ -112,9 +120,8 @@ def test_micc_create_and_version():
     project_name = micc_test_project_uuid()
     output_dir = os.path.join(os.getcwd(),'tests','output')
     input_ = f'{project_name}\ntest_cli()'
-    result = runner.invoke(cli.main, ['create','-v','-o',output_dir], input=input_)
-    assert result.exit_code == 0
-    print(result.output)
+    result = runner.invoke(cli.main, ['-v','create','-o',output_dir], input=input_)
+    report(result)
     project_dir = os.path.join(output_dir, project_name)
     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
@@ -123,8 +130,7 @@ def test_micc_create_and_version():
     print('current_version',current_version)
 
     result = runner.invoke(cli.main, ['version', project_dir, '--patch'])
-    print(result.output)
-    assert result.exit_code == 0
+    report(result)
     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
     current_version = pyproject_toml['tool']['poetry']['version']
     print('current_version',current_version)
@@ -147,9 +153,8 @@ def test_micc_create_with_project_name_and_version():
     project_name = 'a-test-project'
     output_dir = os.path.join(os.getcwd(),'tests','output')
     input_ = 'test_cli_with_project_name()'
-    result = runner.invoke(cli.main, ['create',project_name,'-v','-o',output_dir], input=input_)
-    print(result.output)
-    assert result.exit_code == 0
+    result = runner.invoke(cli.main, ['-v','create',project_name,'-o',output_dir], input=input_)
+    report(result)
     project_dir = os.path.join(output_dir, project_name)
     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
@@ -158,8 +163,7 @@ def test_micc_create_with_project_name_and_version():
     assert current_version == "0.0.0"
 
     result = runner.invoke(cli.main, ['version', project_dir, '--minor'])
-    print(result.output)
-    assert result.exit_code == 0
+    report(result)
     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
     current_version = pyproject_toml['tool']['poetry']['version']
     print('current_version',current_version)
@@ -187,17 +191,15 @@ def test_micc_app():
     project_name = micc_test_project_uuid()
     output_dir = os.path.join(os.getcwd(),'tests','output')
     input_ = f'{project_name}\ntest_micc_app()'
-    result = runner.invoke(cli.main, ['create','-v','-o',output_dir], input=input_)
-    print(result.output)
-    assert result.exit_code == 0
-
+    result = runner.invoke(cli.main, ['-v','create','-o',output_dir], input=input_)
+    report(result)
+    
     # Add an app
     project_dir = os.path.join(output_dir, project_name)
     with in_directory(project_dir):
         input_ = 'my-app'
         result = runner.invoke(cli.main, ['app'], input=input_)
-        print(result.output)
-        assert result.exit_code == 0
+        report(result)
         
 # ==============================================================================
 def test_micc_module():
@@ -209,17 +211,15 @@ def test_micc_module():
     project_name = micc_test_project_uuid()
     output_dir = os.path.join(os.getcwd(),'tests','output')
     input_ = f'{project_name}\ntest_micc_module()'
-    result = runner.invoke(cli.main, ['create','-v','-o',output_dir], input=input_)
-    print(result.output)
-    assert result.exit_code == 0
-
+    result = runner.invoke(cli.main, ['-v','create','-o',output_dir], input=input_)
+    report(result)
+    
     # Add an app
     project_dir = os.path.join(output_dir, project_name)
     with in_directory(project_dir):
         input_ = 'my_module'
         result = runner.invoke(cli.main, ['module'], input=input_)
-        print(result.output)
-        assert result.exit_code == 0
+        report(result)
         
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.

@@ -6,7 +6,6 @@ Main module.
 import os
 import json
 import subprocess
-from shutil import move
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
@@ -38,7 +37,7 @@ def micc_create( project_name=''
     :param bool verbose: verbose output, False by default. 
     """
     template = os.path.expanduser(template)
-    if template in ['micc-package']:        
+    if template == 'micc-package':        
         template = os.path.join(os.path.dirname(__file__), template)
     if not os.path.exists(template):
         raise FileNotFoundError('ERROR: Missing cookiecutter template: ' + 
@@ -187,7 +186,7 @@ def micc_module(module_name, project_path='', verbose=False):
         
 #===============================================================================
 use_poetry = False
-def micc_version(path='.', rule=None):
+def micc_version(path='.', rule=None, verbose=False):
     """
     Bump the version according to *rule*, and modify the pyproject.toml in 
     *project_path*.
@@ -229,7 +228,7 @@ def micc_version(path='.', rule=None):
         utils.replace_version_in_file( os.path.join(path, package_name + '.py')
                                      , current_version, new_version)
 #===============================================================================
-def micc_tag(project_path):
+def micc_tag(project_path, verbose=False):
     """
     Create and push a version tag ``vM.m.p`` for the current version.
     
@@ -238,9 +237,15 @@ def micc_tag(project_path):
     with utils.in_directory(project_path):
         cmd = f'git tag -a v{__version__} -m "tag version {__version__}"'
         click.echo(f"Running '{cmd}'")
-        subprocess.run(cmd)
+        completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        click.echo(completed_process.stdout)
+        if completed_process.stderr:
+            click.echo(completed_process.stderr)
 
         cmd = f'git push origin v{__version__}'
         click.echo(f"Running '{cmd}'")
-        subprocess.run(cmd)
+        completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        click.echo(completed_process.stdout)
+        if completed_process.stderr:
+            click.echo(completed_process.stderr)
 #===============================================================================

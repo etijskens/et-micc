@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
-"""Top-level package for micc."""
+"""
+Package micc
+============
 
-__author__  = "Engelbert Tijskens"
-__email__   = "engelbert.tijskens@uantwerpen.be"
-__version__ = "0.2.5"
+Top-level package for micc.
+"""
+#===============================================================================
+__version__ = "0.3.0"
+#===============================================================================
