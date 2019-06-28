@@ -74,7 +74,6 @@ def micc_create( project_name=''
         click.echo(completed_process.stdout)
         if completed_process.stderr:
             click.echo(completed_process.stderr)
-
     return 0
 #===============================================================================
 def micc_app( app_name
@@ -234,7 +233,7 @@ def micc_tag(project_path, verbose=False):
     if not project_path:
         project_path = os.getcwd()
     with utils.in_directory(project_path):
-        cmd = ['git', 'tag', '-a', f'v{__version__}', '-m', '"tag version {__version__}"']
+        cmd = ['git', 'tag', '-a', f'v{__version__}', '-m', f'"tag version {__version__}"']
         if verbose:
             click.echo(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
