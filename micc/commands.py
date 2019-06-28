@@ -21,7 +21,7 @@ from micc import utils
 from micc.utils import in_directory
 #===============================================================================
 def micc_create( project_name=''
-               , template='micc-module', micc_file='micc.json'
+               , template='micc-package', micc_file='micc.json'
                , output_dir='.'
                , verbose=False
                ):
@@ -38,7 +38,7 @@ def micc_create( project_name=''
     :param bool verbose: verbose output, False by default. 
     """
     template = os.path.expanduser(template)
-    if template in ['micc-module']:        
+    if template in ['micc-package']:        
         template = os.path.join(os.path.dirname(__file__), template)
     if not os.path.exists(template):
         raise FileNotFoundError('ERROR: Missing cookiecutter template: ' + 
@@ -62,16 +62,9 @@ def micc_create( project_name=''
     if verbose:
         click.echo('\ntemplate parameters:')
         click.echo( json.dumps(template_parameters, indent=2) )
-    
-    cookiecutter_json = os.path.join(template, 'cookiecutter.json')
-    if os.path.exists(cookiecutter_json):
-        cookiecutter_orig_json = os.path.join(template, 'cookiecutter.orig.json')
-        # make way for a new cookiecutter.json file
-        if not os.path.exists(cookiecutter_orig_json):
-            # make a copy of the original cookiecutter.json file if there isn't one already.
-            move(cookiecutter_json, cookiecutter_orig_json)
-    
+        
     # write a cookiecutter.json file in the cookiecutter template directory
+    cookiecutter_json = os.path.join(template, 'cookiecutter.json')
     with open(cookiecutter_json,'w') as f:
         json.dump(template_parameters, f, indent=2)
     
@@ -91,6 +84,107 @@ def micc_create( project_name=''
             click.echo(completed_process.stderr)
 
     return 0
+#===============================================================================
+def micc_app(app_name,project_path='',verbose=False):
+    """
+    Micc cli subcommand, add a console script (app) to the package. 
+    
+    :param str app_name: name of the application.
+    :param str project_path: if empty, use the current working directory
+    """
+    template = os.path.join(os.path.dirname(__file__), 'micc-app')
+    path_to_micc_json = os.path.join(template,'micc.json')            
+    
+    if not project_path:
+        project_path = os.getcwd()
+        
+    with in_directory(project_path):
+        project_name = os.path.basename(project_path)
+        template_parameters = utils.get_template_parameters( path_to_micc_json
+                                                           , app_name=app_name
+                                                           , project_name=project_name
+                                                           ) 
+        if verbose:
+            click.echo('\ntemplate parameters:')
+            click.echo( json.dumps(template_parameters, indent=2) )
+        
+        # write a cookiecutter.json file in the cookiecutter template directory
+        cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
+        with open(cookiecutter_json,'w') as f:
+            json.dump(template_parameters, f, indent=2)
+        
+        # run cookiecutter 
+        click.echo(f"Adding app '{template_parameters['app_name']}' to project '{template_parameters['project_name']}'")
+        with in_directory('..'):
+            cookiecutter( template
+                        , no_input=True
+                        , overwrite_if_exists=True
+                        )
+            
+        cli_app_name = 'cli_' + template_parameters['app_name'    ].lower().replace('-', '_')
+        package_name =          template_parameters['project_name'].lower().replace('-', '_')
+        # docs
+        with open('docs/apps.rst',"w") as f:
+            f.write(".. include:: ../APPS.rst\n")
+        if not os.path.exists("APPS.rst"):
+            with open("APPS.rst","w") as f:
+                f.write( "Apps\n")
+                f.write( "====\n\n")
+        with open("APPS.rst","a") as f:
+            f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
+            f.write( "   :members:\n\n")
+        # pyproject.toml
+        with open('pyproject.toml','r') as f:
+            lines = f.readlines()
+        with open('pyproject.toml','w') as f:
+            for line in lines:
+                f.write(line)
+                if line.startswith('[tool.poetry.scripts]'):
+                    f.write(f"{template_parameters['app_name']} = {package_name}:{cli_app_name}\n")
+                    
+#===============================================================================
+def micc_module(module_name, project_path='', verbose=False):
+    """
+    Micc module subcommand, add a module to the package. 
+    
+    :param str module_name: name of the module.
+    :param str project_path: if empty, use the current working directory
+    """
+    template = os.path.join(os.path.dirname(__file__), 'micc-module')
+    path_to_micc_json = os.path.join(template,'micc.json')            
+    
+    if not project_path:
+        project_path = os.getcwd()
+        
+    with in_directory(project_path):
+        project_name = os.path.basename(project_path)
+        template_parameters = utils.get_template_parameters( path_to_micc_json
+                                                           , module_name=module_name
+                                                           , project_name=project_name
+                                                           ) 
+        if verbose:
+            click.echo('\ntemplate parameters:')
+            click.echo( json.dumps(template_parameters, indent=2) )
+        
+        # write a cookiecutter.json file in the cookiecutter template directory
+        cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
+        with open(cookiecutter_json,'w') as f:
+            json.dump(template_parameters, f, indent=2)
+        
+        # run cookiecutter 
+        click.echo(f"Adding app '{template_parameters['module_name']}' to project '{template_parameters['project_name']}'")
+        with in_directory('..'):
+            cookiecutter( template
+                        , no_input=True
+                        , overwrite_if_exists=True
+                        )
+            
+        package_name = template_parameters['project_name'].lower().replace('-', '_')
+        # docs
+        with open("API.rst","a") as f:
+            f.write(f"\n.. automodule:: {package_name}.{template_parameters['module_name']}")
+            f.write( "\n   :members:\n\n")
+        
 #===============================================================================
 use_poetry = False
 def micc_version(path='.', rule=None):
@@ -149,69 +243,4 @@ def micc_tag(project_path):
         cmd = f'git push origin v{__version__}'
         click.echo(f"Running '{cmd}'")
         subprocess.run(cmd)
-#===============================================================================
-def micc_app(app_name,project_path='',verbose=False):
-    """
-    Micc cli subcommand, add a console script (app) to the package. 
-    
-    :param str app_name: name of the application.
-    :param str project_path: if empty, use the current working directory
-    """
-    template = os.path.join(os.path.dirname(__file__), 'micc-app')
-    path_to_micc_json = os.path.join(template,'micc.json')            
-    
-    if not project_path:
-        project_path = os.getcwd()
-        
-    with in_directory(project_path):
-        project_name = os.path.basename(project_path)
-        template_parameters = utils.get_template_parameters( path_to_micc_json
-                                                           , app_name=app_name
-                                                           , project_name=project_name
-                                                           ) 
-        if verbose:
-            click.echo('\ntemplate parameters:')
-            click.echo( json.dumps(template_parameters, indent=2) )
-        
-        cookiecutter_json = os.path.join(template, 'cookiecutter.json')
-#         if os.path.exists(cookiecutter_json):
-#             cookiecutter_orig_json = os.path.join(template, 'cookiecutter.orig.json')
-#             # make way for a new cookiecutter.json file
-#             if not os.path.exists(cookiecutter_orig_json):
-#                 # make a copy of the original cookiecutter.json file if there isn't one already.
-#                 move(cookiecutter_json, cookiecutter_orig_json)
-        
-        # write a cookiecutter.json file in the cookiecutter template directory
-        with open(cookiecutter_json,'w') as f:
-            json.dump(template_parameters, f, indent=2)
-        
-        # run cookiecutter 
-        click.echo(f"Adding app '{template_parameters['app_name']}' to project '{template_parameters['project_name']}'")
-        with in_directory('..'):
-            cookiecutter( template
-                        , no_input=True
-                        , overwrite_if_exists=True
-                        )
-            
-        cli_app_name = 'cli_' + template_parameters['app_name'    ].lower().replace('-', '_')
-        package_name =          template_parameters['project_name'].lower().replace('-', '_')
-        # docs
-        with open('docs/apps.rst',"w") as f:
-            f.write(".. include:: ../APPS.rst\n")
-        if not os.path.exists("APPS.rst"):
-            with open("APPS.rst","w") as f:
-                f.write( "Apps\n")
-                f.write( "====\n\n")
-        with open("APPS.rst","a") as f:
-            f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
-            f.write( "   :members:\n\n")
-        # pyproject.toml
-        with open('pyproject.toml','r') as f:
-            lines = f.readlines()
-        with open('pyproject.toml','w') as f:
-            for line in lines:
-                f.write(line)
-                if line.startswith('[tool.poetry.scripts]'):
-                    f.write(f"{template_parameters['app_name']} = {package_name}:{cli_app_name}\n")
-        
 #===============================================================================

@@ -11,7 +11,7 @@ arguments. The values are dicts of ``mainck.prompt()`` keyword arguments.
 #===============================================================================
 import sys
 import click
-from .commands import micc_create, micc_version, micc_tag, micc_app
+from .commands import micc_create, micc_version, micc_tag, micc_app, micc_module
 #===============================================================================
 @click.group()
 def main():
@@ -22,7 +22,7 @@ def main():
 @main.command()
 @click.argument('project_name', default='')
 @click.option('-T','--template'
-             , default='micc-module'
+             , default='micc-package'
              )
 @click.option('-m', '--micc-file'
              , default='micc.json'
@@ -107,9 +107,20 @@ def app(app_name,project_path):
     """
     ``micc app`` subcommand, add an app (console script) to the package. 
     
-    :param str app_name: name of the cli application.
+    :param str app_name: name of the cli application to be added to the package.
     """
     return micc_app(app_name, project_path)
+#===============================================================================
+@main.command()
+@click.argument('module_name', default='')
+@click.option('-P', '--project_path', default='')
+def module(module_name,project_path):
+    """
+    ``micc module`` subcommand, add a module to the package. 
+    
+    :param str module_name: name of the module to be added to the package.
+    """
+    return micc_module(module_name, project_path)
 #===============================================================================
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover

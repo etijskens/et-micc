@@ -37,12 +37,12 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 clean_up = False
 """remove projects created during testing"""
-uuid_ = True
 #===============================================================================    
 # from micc import micc
 from micc.utils import in_directory
 from micc import cli
 #===============================================================================
+uuid_ = True
 def micc_test_project_uuid(uuid_=uuid_):
     """
     create a unique name for a test project.
@@ -186,7 +186,7 @@ def test_micc_app():
     runner = CliRunner()
     project_name = micc_test_project_uuid()
     output_dir = os.path.join(os.getcwd(),'tests','output')
-    input_ = f'{project_name}\ntest_cli()'
+    input_ = f'{project_name}\ntest_micc_app()'
     result = runner.invoke(cli.main, ['create','-v','-o',output_dir], input=input_)
     print(result.output)
     assert result.exit_code == 0
@@ -200,11 +200,33 @@ def test_micc_app():
         assert result.exit_code == 0
         
 # ==============================================================================
+def test_micc_module():
+    """
+    Test ``micc module``
+    """
+    # First create a project
+    runner = CliRunner()
+    project_name = micc_test_project_uuid()
+    output_dir = os.path.join(os.getcwd(),'tests','output')
+    input_ = f'{project_name}\ntest_micc_module()'
+    result = runner.invoke(cli.main, ['create','-v','-o',output_dir], input=input_)
+    print(result.output)
+    assert result.exit_code == 0
+
+    # Add an app
+    project_dir = os.path.join(output_dir, project_name)
+    with in_directory(project_dir):
+        input_ = 'my_module'
+        result = runner.invoke(cli.main, ['module'], input=input_)
+        print(result.output)
+        assert result.exit_code == 0
+        
+# ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_micc_app
+    the_test_you_want_to_debug = test_micc_module
 
     from execution_trace import trace
     with trace(f"__main__ running {the_test_you_want_to_debug}",
