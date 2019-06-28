@@ -44,35 +44,61 @@ def create( ctx
     :param str project_name: name of the project to be created.  
     """
     return micc_create( project_name
+                      , output_dir=output_dir
                       , template=template
                       , micc_file=micc_file
-                      , output_dir=output_dir
                       , verbose=ctx.obj.verbose
                       )
 #===============================================================================
 @main.command()
 @click.argument('app_name', default='')
 @click.option('-P', '--project_path', default='')
+@click.option('-T', '--template',   default='micc-app'
+              , help="a Python package cookiecutter template")
+@click.option('-m', '--micc-file',  default='micc.json'
+              , help="the micc-file for the cookiecutter template")
 @click.pass_context
-def app(ctx, app_name, project_path):
+def app( ctx
+       , app_name
+       , project_path
+       , template, micc_file
+       ):
     """
     ``micc app`` subcommand, add an app (console script) to the package. 
     
     :param str app_name: name of the cli application to be added to the package.
     """
-    return micc_app(app_name, project_path, ctx.obj.verbose)
+    return micc_app( app_name
+                   , project_path
+                   , template=template
+                   , micc_file=micc_file
+                   , verbose=ctx.obj.verbose
+                   )
 #===============================================================================
 @main.command()
 @click.argument('module_name', default='')
 @click.option('-P', '--project_path', default='')
+@click.option('-T', '--template',   default='micc-module'
+              , help="a Python package cookiecutter template")
+@click.option('-m', '--micc-file',  default='micc.json'
+              , help="the micc-file for the cookiecutter template")
 @click.pass_context
-def module(ctx, module_name, project_path):
+def module( ctx
+          , module_name
+          , project_path
+          , template, micc_file
+          ):
     """
     ``micc module`` subcommand, add a module to the package. 
     
     :param str module_name: name of the module to be added to the package.
     """
-    return micc_module(module_name, project_path, ctx.obj.verbose)
+    return micc_module( module_name
+                      , project_path
+                      , template=template
+                      , micc_file=micc_file
+                      , verbose=ctx.obj.verbose
+                      )
 #===============================================================================
 @main.command()
 @click.argument('project_path', default='')

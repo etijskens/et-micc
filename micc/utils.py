@@ -8,6 +8,8 @@ import json
 import click
 from contextlib import contextmanager
 #===============================================================================
+from micc import __version__
+#===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
     This function constructs an error message for when a file is not found. 
@@ -25,7 +27,7 @@ def file_not_found_msg(path, looking_for='File'):
     return msg
 
 #===============================================================================
-def get_template_parameters(micc_file, **kwargs):
+def get_template_parameters(path_to_template, micc_file, verbose, **kwargs):
     """
     Read the template parameter descriptions from the micc file, and
     prompt the user for supplying the values for the parameters with an
@@ -33,6 +35,8 @@ def get_template_parameters(micc_file, **kwargs):
     
     :returns: a dict of (parameter,value) pairs.
     """
+    micc_file = os.path.join(path_to_template, micc_file)
+
     with open(micc_file, 'r') as f:
         template_parameters = json.load(f)
       
@@ -54,6 +58,13 @@ def get_template_parameters(micc_file, **kwargs):
             while not value:
                 value = click.prompt(**kwargs,show_default=False)
         template_parameters[key] = value
+
+    if verbose:
+        click.echo(f'Micc v{__version__}')
+        click.echo( '  Cookiecutter: ' + path_to_template)
+        click.echo( '  Micc file   : ' + micc_file)
+        click.echo('Template parameters:')
+        click.echo( json.dumps(template_parameters, indent=2) )
         
     return template_parameters
 #===============================================================================

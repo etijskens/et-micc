@@ -15,52 +15,44 @@ from poetry.console.commands import VersionCommand
 # from cleo.inputs.argv_input import ArgvInput
 import toml
 #===============================================================================
-from micc import __version__
 from micc import utils
 from micc.utils import in_directory
 #===============================================================================
+def _resolve_template(template):
+    """
+    """
+    if  template.startswith('~') or template.startswith(os.sep):
+        pass # absolute path
+    elif os.sep in template:
+        # reative path
+        template = os.path.join(os.getcwd(), template)
+    else:
+        # jutst the template name 
+        template = os.path.join(os.path.dirname(__file__), template)
+    return template
+#===============================================================================
 def micc_create( project_name=''
-               , template='micc-package', micc_file='micc.json'
                , output_dir='.'
                , verbose=False
+               , template='micc-package', micc_file='micc.json'
                ):
     """
     Create a new project skeleton. 
     
     :param str project_name: the name of the project to be created. If empty str,
-    :param str template: path to the Cookiecutter_ template.
-        (``micc-module`` by default). 
-    :param str micc_file: the json file containing the template parameters
-        descrioptions. Default is ``micc.json`` in ``template``.
     :param str output_dir: path where the project will be created. By default
         the current directory.
+    :param str template: path to the Cookiecutter_ template.
+        (``micc-module`` by default). 
+    :param str micc_file: path to the json file containing the template parameters
+        descrioptions, relative to ``template``.  Default is ``micc.json``.
     :param bool verbose: verbose output, False by default. 
     """
-    template = os.path.expanduser(template)
-    if template == 'micc-package':        
-        template = os.path.join(os.path.dirname(__file__), template)
-    if not os.path.exists(template):
-        raise FileNotFoundError('ERROR: Missing cookiecutter template: ' + 
-                                utils.file_not_found_msg(template, looking_for='folder')
-                                )
-    else:
-        if verbose:
-            click.echo(f'Micc v{__version__}')
-            click.echo( '  Cookiecutter: ' + template)
-        
-    path_to_micc_json = os.path.join(template,micc_file)
-    if not os.path.exists(path_to_micc_json):        
-        raise FileNotFoundError('ERROR: Missing micc file: ' + utils.file_not_found_msg(micc_file))
-    else:
-        if verbose:
-            click.echo('  Micc file   : ' + micc_file)
-            
-    template_parameters = utils.get_template_parameters( path_to_micc_json
+    template = _resolve_template(template)
+    template_parameters = utils.get_template_parameters( template, micc_file
+                                                       , verbose=verbose
                                                        , project_name=project_name
                                                        )  
-    if verbose:
-        click.echo('\ntemplate parameters:')
-        click.echo( json.dumps(template_parameters, indent=2) )
         
     # write a cookiecutter.json file in the cookiecutter template directory
     cookiecutter_json = os.path.join(template, 'cookiecutter.json')
@@ -84,29 +76,33 @@ def micc_create( project_name=''
 
     return 0
 #===============================================================================
-def micc_app(app_name,project_path='',verbose=False):
+def micc_app( app_name
+            , project_path=''
+            , verbose=False
+            , template='micc-app', micc_file='micc.json'
+            ):
     """
     Micc cli subcommand, add a console script (app) to the package. 
     
     :param str app_name: name of the application.
     :param str project_path: if empty, use the current working directory
+    :param str template: path to the Cookiecutter_ template.
+        (``micc-module`` by default). 
+    :param str micc_file: path to the json file containing the template parameters
+        descrioptions, relative to ``template``.  Default is ``micc.json``.
+    :param bool verbose: verbose output, False by default. 
     """
-    template = os.path.join(os.path.dirname(__file__), 'micc-app')
-    path_to_micc_json = os.path.join(template,'micc.json')            
-    
+    template = _resolve_template(template)
+
     if not project_path:
         project_path = os.getcwd()
-        
+    project_name = os.path.basename(project_path)
+    template_parameters = utils.get_template_parameters( template, micc_file
+                                                       , verbose=verbose
+                                                       , app_name=app_name
+                                                       , project_name=project_name
+                                                       )      
     with in_directory(project_path):
-        project_name = os.path.basename(project_path)
-        template_parameters = utils.get_template_parameters( path_to_micc_json
-                                                           , app_name=app_name
-                                                           , project_name=project_name
-                                                           ) 
-        if verbose:
-            click.echo('\ntemplate parameters:')
-            click.echo( json.dumps(template_parameters, indent=2) )
-        
         # write a cookiecutter.json file in the cookiecutter template directory
         cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
         with open(cookiecutter_json,'w') as f:
@@ -142,29 +138,28 @@ def micc_app(app_name,project_path='',verbose=False):
                     f.write(f"{template_parameters['app_name']} = {package_name}:{cli_app_name}\n")
                     
 #===============================================================================
-def micc_module(module_name, project_path='', verbose=False):
+def micc_module( module_name
+               , project_path=''
+               , verbose=False
+               , template='micc-module', micc_file='micc.json'
+               ):
     """
     Micc module subcommand, add a module to the package. 
     
     :param str module_name: name of the module.
     :param str project_path: if empty, use the current working directory
     """
-    template = os.path.join(os.path.dirname(__file__), 'micc-module')
-    path_to_micc_json = os.path.join(template,'micc.json')            
-    
+    template = _resolve_template(template)
+
     if not project_path:
         project_path = os.getcwd()
-        
-    with in_directory(project_path):
-        project_name = os.path.basename(project_path)
-        template_parameters = utils.get_template_parameters( path_to_micc_json
-                                                           , module_name=module_name
-                                                           , project_name=project_name
-                                                           ) 
-        if verbose:
-            click.echo('\ntemplate parameters:')
-            click.echo( json.dumps(template_parameters, indent=2) )
-        
+    project_name = os.path.basename(project_path)
+    template_parameters = utils.get_template_parameters( template, micc_file
+                                                       , verbose=verbose
+                                                       , module_name=module_name
+                                                       , project_name=project_name
+                                                       )              
+    with in_directory(project_path):        
         # write a cookiecutter.json file in the cookiecutter template directory
         cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
         with open(cookiecutter_json,'w') as f:
