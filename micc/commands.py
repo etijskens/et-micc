@@ -137,7 +137,7 @@ def micc_app( app_name
                 f.write(line)
                 if line.startswith('[tool.poetry.scripts]'):
                     f.write(f"{template_parameters['app_name']} = {package_name}:{cli_app_name}\n")
-                    
+    return 0
 #===============================================================================
 def micc_module( module_name
                , project_path=''
@@ -179,7 +179,7 @@ def micc_module( module_name
         with open("API.rst","a") as f:
             f.write(f"\n.. automodule:: {package_name}.{template_parameters['module_name']}")
             f.write( "\n   :members:\n\n")
-        
+    return 0
 #===============================================================================
 use_poetry = False
 def micc_version(path='.', rule=None, verbose=False):
@@ -223,6 +223,7 @@ def micc_version(path='.', rule=None, verbose=False):
 
         utils.replace_version_in_file( os.path.join(path, package_name + '.py')
                                      , current_version, new_version)
+    return 0
 #===============================================================================
 def micc_tag(project_path, verbose=False):
     """
@@ -233,19 +234,20 @@ def micc_tag(project_path, verbose=False):
     if not project_path:
         project_path = os.getcwd()
     with utils.in_directory(project_path):
-        cmd = f'git tag -a v{__version__} -m "tag version {__version__}"'
         cmd = ['git', 'tag', '-a', f'v{__version__}', '-m', '"tag version {__version__}"']
-#         click.echo(f"Running '{cmd}'")
+        if verbose:
+            click.echo(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         click.echo(completed_process.stdout)
         if completed_process.stderr:
             click.echo(completed_process.stderr)
 
-        cmd = f'git push origin v{__version__}'
         cmd = ['git', 'push', 'origin', f'v{__version__}']
-#         click.echo(f"Running '{cmd}'")
+        if verbose:
+            click.echo(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         click.echo(completed_process.stdout)
         if completed_process.stderr:
             click.echo(completed_process.stderr)
+    return 0
 #===============================================================================
