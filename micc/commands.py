@@ -17,6 +17,7 @@ import toml
 #===============================================================================
 from micc import utils
 from micc.utils import in_directory
+from micc import __version__
 #===============================================================================
 def _resolve_template(template):
     """
@@ -229,16 +230,20 @@ def micc_tag(project_path, verbose=False):
     
     :param str project_path: path to the project that must be tagged. 
     """
+    if not project_path:
+        project_path = os.getcwd()
     with utils.in_directory(project_path):
         cmd = f'git tag -a v{__version__} -m "tag version {__version__}"'
-        click.echo(f"Running '{cmd}'")
+        cmd = ['git', 'tag', '-a', f'v{__version__}', '-m', '"tag version {__version__}"']
+#         click.echo(f"Running '{cmd}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         click.echo(completed_process.stdout)
         if completed_process.stderr:
             click.echo(completed_process.stderr)
 
         cmd = f'git push origin v{__version__}'
-        click.echo(f"Running '{cmd}'")
+        cmd = ['git', 'push', 'origin', f'v{__version__}']
+#         click.echo(f"Running '{cmd}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         click.echo(completed_process.stdout)
         if completed_process.stderr:
