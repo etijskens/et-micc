@@ -1,10 +1,19 @@
 History
 =======
 
-v0.2.6 (2019-06-11)
+
+
+v0.4.0 (2019-06-11)
 *******************
 
-* add a console script to the project skeleton
+* First functional working version with
+   
+  * micc create 
+  * micc app 
+  * micc module
+  * micc version
+  * micc tag
+  
 
 v0.2.5 (2019-06-11)
 *******************
