@@ -60,6 +60,7 @@ def micc_create( project_name=''
                 click.echo("Proceeding...")
             else:
                 click.echo(f"Canceled 'micc create ...'")
+                return CANCEL
                 
     template = _resolve_template(template)
     template_parameters = utils.get_template_parameters( template, micc_file
@@ -78,9 +79,9 @@ def micc_create( project_name=''
     click.echo(f"Creating package {project_name}")
     if os.path.exists(os.path.join(output_dir,project_name)):
         if not global_options.quiet:
-            msg = f"Project already exists:|n    {os.path.join(output_dir,project_name)}\nOverwrite"
+            msg = f"Project already exists:\n    {os.path.abspath(os.path.join(output_dir,project_name))}\nOverwrite"
             if not click.confirm(msg):
-                click.echo("Canceled: 'micc create ...'")
+                click.echo(f"Canceled: 'micc create {project_name}'")
                 return CANCEL
             else:
                 click.echo("Overwriting ...")
@@ -92,7 +93,7 @@ def micc_create( project_name=''
                 , output_dir=output_dir
                 )
     
-    with utils.in_directory(os.path.join(output_dir,template_parameters['project_name'])):
+    with utils.in_directory(os.path.join(output_dir,project_name)):
         cmd = ['git','init']
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         click.echo(completed_process.stdout)
