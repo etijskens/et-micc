@@ -79,7 +79,7 @@ def micc_create( project_name=''
     click.echo(f"Creating package {project_name}")
     if os.path.exists(os.path.join(output_dir,project_name)):
         if not global_options.quiet:
-            msg = f"Project already exists:\n    {os.path.abspath(os.path.join(output_dir,project_name))}\nOverwrite"
+            msg = f"Project already exists:\n    {os.path.abspath(os.path.join(output_dir,project_name))}\nOverwrite?"
             if not click.confirm(msg):
                 click.echo(f"Canceled: 'micc create {project_name}'")
                 return CANCEL
@@ -131,7 +131,7 @@ def micc_app( app_name
                                                        )
     app_name = template_parameters['app_name']
     if not global_options.quiet:
-        msg = f"Are you sure to add application '{app_name}' to project '{project_name}'"
+        msg = f"Are you sure to add application '{app_name}' to project '{project_name}'?"
         if not click.confirm(msg,default=False):
             click.echo(f"Canceled: 'micc app {app_name}'")
             return CANCEL
@@ -195,7 +195,7 @@ def micc_module( module_name
         project_path = os.getcwd()
     assert utils.is_project_directory(project_path)
 
-    project_name = os.path.basename(project_path)
+    project_name = os.path.basename(project_path)        
     template_parameters = utils.get_template_parameters( template, micc_file
                                                        , verbose=global_options.verbose
                                                        , module_name=module_name
@@ -203,12 +203,24 @@ def micc_module( module_name
                                                        )   
     module_name = template_parameters['module_name']
     if not global_options.quiet:
-        msg = f"Are you sure to add module '{module_name}' to project '{project_name}'"
+        msg = f"Are you sure to add module '{module_name}' to project '{project_name}'?"
         if not click.confirm(msg,default=False):
             click.echo(f"Canceled: 'micc module {module_name}'")
             return CANCEL
         else:
             click.echo("Proceeding...")
+            
+    py_name = utils.python_name(module_name)
+    if not py_name==module_name:
+        msg  = f"Not a valid module name: {module_name}\n"
+        msg += f"Use {py_name} instead?"
+        if not click.confirm(msg):
+            click.echo(f"Canceled: 'micc module {module_name}'")
+            return CANCEL
+        else:
+            module_name = py_name
+        
+
            
     with in_directory(project_path):        
         # write a cookiecutter.json file in the cookiecutter template directory
@@ -217,7 +229,7 @@ def micc_module( module_name
             json.dump(template_parameters, f, indent=2)
         
         # run cookiecutter 
-        click.echo(f"Adding app '{template_parameters['module_name']}' to project '{template_parameters['project_name']}'")
+        click.echo(f"Adding app '{module_name}' to project '{project_name}'")
         with in_directory('..'):
             cookiecutter( template
                         , no_input=True
@@ -272,7 +284,7 @@ def micc_version(project_path='.', rule=None, global_options=_global_options):
         new_version = VersionCommand().increment_version(current_version, rule)
         if not global_options.quiet:
             msg = f"Package {package_name} v{current_version}\n"\
-                  f"Are you sure to move to v{new_version}'"
+                  f"Are you sure to move to v{new_version}'?"
             if not click.confirm(msg,default=False):
                 click.echo(f"Canceled: 'micc version {rule}'")
                 return CANCEL
@@ -304,7 +316,7 @@ def micc_tag(project_path, global_options=_global_options):
     # There is not really a reason to be careful when creating a tag
     # if not global_options.quiet:
     #     project_name, version = utils.get_name_version(project_path)
-    #     msg = f"Are you sure to create tag 'v{version}' for project '{project_name}'"
+    #     msg = f"Are you sure to create tag 'v{version}' for project '{project_name}'?"
     #     if not click.confirm(msg,default=False):
     #         click.echo("Canceled: 'micc tag'")
     #         return -1

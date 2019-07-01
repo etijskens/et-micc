@@ -236,7 +236,7 @@ def test_micc_module():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_micc_create_with_project_name_and_version
+    the_test_you_want_to_debug = test_micc_module
 
     from execution_trace import trace
     with trace(f"__main__ running {the_test_you_want_to_debug}",
