@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Module {{cookiecutter.module_name}} 
-=====================================
+Module {{cookiecutter.package_name}}.{{cookiecutter.module_name}} 
+=================================================================
 
 A module
 

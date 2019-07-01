@@ -219,7 +219,7 @@ def micc_module( module_name
             return CANCEL
         else:
             module_name = py_name
-        
+            template_parameters['module_name'] = py_name
 
            
     with in_directory(project_path):        
@@ -229,7 +229,7 @@ def micc_module( module_name
             json.dump(template_parameters, f, indent=2)
         
         # run cookiecutter 
-        click.echo(f"Adding app '{module_name}' to project '{project_name}'")
+        click.echo(f"Adding module '{module_name}' to project '{project_name}'")
         with in_directory('..'):
             cookiecutter( template
                         , no_input=True
@@ -244,7 +244,7 @@ def micc_module( module_name
         package_name = template_parameters['project_name'].lower().replace('-', '_')
         # docs
         with open("API.rst","a") as f:
-            f.write(f"\n.. automodule:: {package_name}.{template_parameters['module_name']}")
+            f.write(f"\n.. automodule:: {package_name}.{module_name}")
             f.write( "\n   :members:\n\n")
     return 0
 #===============================================================================
