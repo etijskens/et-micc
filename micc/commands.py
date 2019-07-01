@@ -18,6 +18,7 @@ import toml
 from micc import utils
 from micc.utils import in_directory
 from micc import __version__
+from types import SimpleNamespace
 #===============================================================================
 def _resolve_template(template):
     """
@@ -32,9 +33,12 @@ def _resolve_template(template):
         template = os.path.join(os.path.dirname(__file__), template)
     return template
 #===============================================================================
+_global_options = SimpleNamespace(verbose=False, quiet=False)
+CANCEL = -1
+#===============================================================================
 def micc_create( project_name=''
                , output_dir='.'
-               , verbose=False
+               , global_options=_global_options
                , template='micc-package', micc_file='micc.json'
                ):
     """
@@ -49,9 +53,17 @@ def micc_create( project_name=''
         descrioptions, relative to ``template``.  Default is ``micc.json``.
     :param bool verbose: verbose output, False by default. 
     """
+    if not global_options.quiet:
+        if utils.is_project_directory(output_dir):
+            if click.confirm(f"Directory '{output_dir}' is a project_directory.\n"
+                              "Are you sure you want to create a project inside a project?"):
+                click.echo("Proceeding...")
+            else:
+                click.echo(f"Canceled 'micc create ...'")
+                
     template = _resolve_template(template)
     template_parameters = utils.get_template_parameters( template, micc_file
-                                                       , verbose=verbose
+                                                       , verbose=global_options.verbose
                                                        , project_name=project_name
                                                        )  
         
@@ -60,11 +72,23 @@ def micc_create( project_name=''
     with open(cookiecutter_json,'w') as f:
         json.dump(template_parameters, f, indent=2)
     
+    project_name = template_parameters['project_name']
+    overwrite_if_exists = global_options.quiet
     # run cookiecutter 
-    click.echo(f"Creating package {template_parameters['project_name']}")
+    click.echo(f"Creating package {project_name}")
+    if os.path.exists(os.path.join(output_dir,project_name)):
+        if not global_options.quiet:
+            msg = f"Project already exists:|n    {os.path.join(output_dir,project_name)}\nOverwrite"
+            if not click.confirm(msg):
+                click.echo("Canceled: 'micc create ...'")
+                return CANCEL
+            else:
+                click.echo("Overwriting ...")
+                overwrite_if_exists = True
+        
     cookiecutter( template
                 , no_input=True
-                , overwrite_if_exists=True
+                , overwrite_if_exists=overwrite_if_exists
                 , output_dir=output_dir
                 )
     
@@ -78,11 +102,11 @@ def micc_create( project_name=''
 #===============================================================================
 def micc_app( app_name
             , project_path=''
-            , verbose=False
+            , global_options=_global_options
             , template='micc-app', micc_file='micc.json'
             ):
     """
-    Micc cli subcommand, add a console script (app) to the package. 
+    Micc app subcommand, add a console script (app) to the package. 
     
     :param str app_name: name of the application.
     :param str project_path: if empty, use the current working directory
@@ -96,12 +120,23 @@ def micc_app( app_name
 
     if not project_path:
         project_path = os.getcwd()
+    assert utils.is_project_directory(project_path)
+    
     project_name = os.path.basename(project_path)
     template_parameters = utils.get_template_parameters( template, micc_file
-                                                       , verbose=verbose
+                                                       , verbose=global_options.verbose
                                                        , app_name=app_name
                                                        , project_name=project_name
-                                                       )      
+                                                       )
+    app_name = template_parameters['app_name']
+    if not global_options.quiet:
+        msg = f"Are you sure to add application '{app_name}' to project '{project_name}'"
+        if not click.confirm(msg,default=False):
+            click.echo(f"Canceled: 'micc app {app_name}'")
+            return CANCEL
+        else:
+            click.echo("Proceeding...")
+    
     with in_directory(project_path):
         # write a cookiecutter.json file in the cookiecutter template directory
         cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
@@ -109,25 +144,29 @@ def micc_app( app_name
             json.dump(template_parameters, f, indent=2)
         
         # run cookiecutter 
-        click.echo(f"Adding app '{template_parameters['app_name']}' to project '{template_parameters['project_name']}'")
+        click.echo(f"Adding app '{app_name}' to project '{project_name}'")
         with in_directory('..'):
             cookiecutter( template
                         , no_input=True
                         , overwrite_if_exists=True
                         )
-            
-        cli_app_name = 'cli_' + template_parameters['app_name'    ].lower().replace('-', '_')
-        package_name =          template_parameters['project_name'].lower().replace('-', '_')
+        cli_app_name = 'cli_' + utils.python_name(app_name)
+        package_name =          utils.python_name(project_name)
+        
         # docs
-        with open('docs/apps.rst',"w") as f:
-            f.write(".. include:: ../APPS.rst\n")
-        if not os.path.exists("APPS.rst"):
-            with open("APPS.rst","w") as f:
-                f.write( "Apps\n")
-                f.write( "====\n\n")
+        with open('docs/api.rst',"r") as f:
+            lines = f.readlines()
+        has_already_apps = False
+        for line in lines:
+            has_already_apps = has_already_apps or line.startswith(".. include:: ../APPS.rst")
+        if not has_already_apps:        
+            with open('docs/api.rst',"w") as f:
+                f.write(".. include:: ../APPS.rst\n\n")
+                f.write(".. include:: ../API.rst\n\n")
         with open("APPS.rst","a") as f:
             f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
             f.write( "   :members:\n\n")
+        
         # pyproject.toml
         with open('pyproject.toml','r') as f:
             lines = f.readlines()
@@ -135,12 +174,12 @@ def micc_app( app_name
             for line in lines:
                 f.write(line)
                 if line.startswith('[tool.poetry.scripts]'):
-                    f.write(f"{template_parameters['app_name']} = '{package_name}:{cli_app_name}'\n")
+                    f.write(f'{app_name} = "{package_name}:{cli_app_name}"\n')
     return 0
 #===============================================================================
 def micc_module( module_name
                , project_path=''
-               , verbose=False
+               , global_options=_global_options
                , template='micc-module', micc_file='micc.json'
                ):
     """
@@ -153,12 +192,23 @@ def micc_module( module_name
 
     if not project_path:
         project_path = os.getcwd()
+    assert utils.is_project_directory(project_path)
+
     project_name = os.path.basename(project_path)
     template_parameters = utils.get_template_parameters( template, micc_file
-                                                       , verbose=verbose
+                                                       , verbose=global_options.verbose
                                                        , module_name=module_name
                                                        , project_name=project_name
-                                                       )              
+                                                       )   
+    module_name = template_parameters['module_name']
+    if not global_options.quiet:
+        msg = f"Are you sure to add module '{module_name}' to project '{project_name}'"
+        if not click.confirm(msg,default=False):
+            click.echo(f"Canceled: 'micc module {module_name}'")
+            return CANCEL
+        else:
+            click.echo("Proceeding...")
+           
     with in_directory(project_path):        
         # write a cookiecutter.json file in the cookiecutter template directory
         cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
@@ -172,6 +222,11 @@ def micc_module( module_name
                         , no_input=True
                         , overwrite_if_exists=True
                         )
+            # it is a pity that we have to specify overwrite=True, because 
+            # cookiecutter chokeson this if the directories exist, even if 
+            # all files are different. So, cookiecutter does not allow 
+            # additions.
+            
             
         package_name = template_parameters['project_name'].lower().replace('-', '_')
         # docs
@@ -180,16 +235,18 @@ def micc_module( module_name
             f.write( "\n   :members:\n\n")
     return 0
 #===============================================================================
-use_poetry = False
-def micc_version(path='.', rule=None, verbose=False):
+# use_poetry = False
+
+def micc_version(project_path='.', rule=None, global_options=_global_options):
     """
     Bump the version according to *rule*, and modify the pyproject.toml in 
     *project_path*.
     
-    :param str path: path to a pyproject.toml file or its parent directory. 
+    :param str project+path: path to a pyproject.toml file or its parent directory. 
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
     """
+    assert utils.is_project_directory(project_path)
 #     if use_poetry: # what a shame - cannot get this to work`; 
 #                    # I filed an issue https://github.com/sdispater/poetry/issues/1182
 #         with in_directory(???): 
@@ -202,29 +259,39 @@ def micc_version(path='.', rule=None, verbose=False):
     # We ara hacking around the problem https://github.com/sdispater/poetry/issues/1182:        
     
     # pyproject.toml
-    path_to_pyproject_toml = os.path.join(path,'pyproject.toml')
+    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
     pyproject_toml = toml.load(path_to_pyproject_toml)
     project_name    = pyproject_toml['tool']['poetry']['name']
     current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = project_name.replace('-','_').replace(' ','_')
     
     if rule is None:
-        print(f"Current version: {package_name} v{current_version}")
+        click.echo(f"Current version: {package_name} v{current_version}")
     else:
         new_version = VersionCommand().increment_version(current_version, rule)
-        print(f"{package_name} v{current_version} -> v{new_version}")
+        if not global_options.quiet:
+            msg = f"Package {package_name} v{current_version}\n"\
+                  f"Are you sure to move to v{new_version}'"
+            if not click.confirm(msg,default=False):
+                click.echo(f"Canceled: 'micc version {rule}'")
+                return CANCEL
+            else:
+                click.echo("Proceeding...")
+                
+        else:
+            click.echo(f"{package_name} v{current_version} -> v{new_version}")
         
         utils.replace_version_in_file( path_to_pyproject_toml
                                      , current_version, new_version)
         
-        utils.replace_version_in_file( os.path.join(path, package_name, '__init__.py')
-                                     , current_version, new_version)
-
-        utils.replace_version_in_file( os.path.join(path, package_name + '.py')
-                                     , current_version, new_version)
+        if not utils.replace_version_in_file( os.path.join(project_path, package_name, '__init__.py')
+                                            , current_version, new_version):
+            if not utils.replace_version_in_file( os.path.join(project_path, package_name + '.py')
+                                                , current_version, new_version):
+                click.echo(f"Warning: No package {package_name}/__init__.py and no modute {package_name}.py found.")
     return 0
 #===============================================================================
-def micc_tag(project_path, verbose=False):
+def micc_tag(project_path, global_options=_global_options):
     """
     Create and push a version tag ``vM.m.p`` for the current version.
     
@@ -232,9 +299,20 @@ def micc_tag(project_path, verbose=False):
     """
     if not project_path:
         project_path = os.getcwd()
+    assert utils.is_project_directory(project_path)
+    # There is not really a reason to be careful when creating a tag
+    # if not global_options.quiet:
+    #     project_name, version = utils.get_name_version(project_path)
+    #     msg = f"Are you sure to create tag 'v{version}' for project '{project_name}'"
+    #     if not click.confirm(msg,default=False):
+    #         click.echo("Canceled: 'micc tag'")
+    #         return -1
+    #     else:
+    #         click.echo("Proceeding...")
+        
     with utils.in_directory(project_path):
         cmd = ['git', 'tag', '-a', f'v{__version__}', '-m', f'"tag version {__version__}"']
-        if verbose:
+        if global_options.verbose:
             click.echo(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         click.echo(completed_process.stdout)
@@ -242,7 +320,7 @@ def micc_tag(project_path, verbose=False):
             click.echo(completed_process.stderr)
 
         cmd = ['git', 'push', 'origin', f'v{__version__}']
-        if verbose:
+        if global_options.verbose:
             click.echo(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         click.echo(completed_process.stdout)

@@ -159,13 +159,14 @@ from types import SimpleNamespace
 #===============================================================================
 @click.group()
 @click.option('-v', '--verbose', is_flag=True, default=False)
+@click.option('-q', '--quiet'  , is_flag=True, default=False
+             , help="Prompts the use for confirmation on most actions.")
 @click.pass_context
-def main(ctx,verbose):
+def main(ctx, verbose, quiet):
     """
     Micc command line interface. Type ``micc --help`` on the command line for details.
     """
-    sns = SimpleNamespace(verbose=verbose)
-    ctx.obj = sns
+    ctx.obj = SimpleNamespace(verbose=verbose, quiet=quiet)
 #===============================================================================
 @main.command()
 @click.argument('project_name',     default='')
@@ -191,7 +192,7 @@ def create( ctx
                       , output_dir=output_dir
                       , template=template
                       , micc_file=micc_file
-                      , verbose=ctx.obj.verbose
+                      , global_options=ctx.obj
                       )
 #===============================================================================
 @main.command()
@@ -216,7 +217,7 @@ def app( ctx
                    , project_path
                    , template=template
                    , micc_file=micc_file
-                   , verbose=ctx.obj.verbose
+                   , global_options=ctx.obj
                    )
 #===============================================================================
 @main.command()
@@ -241,7 +242,7 @@ def module( ctx
                       , project_path
                       , template=template
                       , micc_file=micc_file
-                      , verbose=ctx.obj.verbose
+                      , global_options=ctx.obj
                       )
 #===============================================================================
 @main.command()
@@ -274,9 +275,9 @@ def version(ctx, project_path, major, minor, patch, poetry_version_rule, tag):
         rule = 'minor'
     if major:
         rule = 'major'
-    return_code = micc_version(project_path, rule, ctx.obj.verbose)
+    return_code = micc_version(project_path, rule, global_options=ctx.obj)
     if return_code==0 and tag:
-        return micc_tag(project_path, ctx.obj.verbose)
+        return micc_tag(project_path, global_options=ctx.obj)
 #===============================================================================
 @main.command()
 @click.argument('project_path', default='')
@@ -285,7 +286,7 @@ def tag(ctx, project_path):
     """
     ``micc tag`` subcommand, create a git tag for the current version. 
     """
-    return micc_tag(project_path, ctx.obj.verbose)
+    return micc_tag(project_path, global_options=ctx.obj)
 #===============================================================================
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover

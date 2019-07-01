@@ -7,7 +7,6 @@ Welcome to {{ cookiecutter.project_name }}'s documentation!
 
    readme
    installation
-   apps
    api
    authors
    history
