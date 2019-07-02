@@ -11,7 +11,7 @@ import click
 from cookiecutter.main import cookiecutter
 from micc.exceptions import NotAProjectDirectory
 
-use_poetry = True
+use_poetry = False
 if use_poetry:
     from poetry.console.application import Application
     from cleo.inputs.argv_input import ArgvInput
