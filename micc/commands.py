@@ -108,8 +108,8 @@ def micc_create( project_name=''
                , ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
                , ['git', 'push', '-u', 'origin', 'master']
                ]
-        print(cmds)
         for cmd in cmds:
+            click.echo('(micc create) > ' + ' '.join(cmd))
             completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             click.echo(completed_process.stdout)
         if completed_process.stderr:
