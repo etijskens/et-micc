@@ -1,18 +1,46 @@
+TODO
+====
+
+* add cookiecutter templates for 
+   * fortran modules with f2py
+   * c++ modules
+
+* pypi publishing
+* virtual environments
+* requirements
+* tox stuff
+
+Hmm... Discovered that poetry_ supports plugins. Should micc be a poetry plugin?
+
+What are we using poetry for so far?
+
+* building wheels (which are used for installing and publishing): 
+  ``poetry build``, typically inside the ``Makefile``.
+* ``poetry.console.commands.VersionCommand`` for updating version strings,
+  but (sofar) not for updating ``pyproject.toml`` (because of issue #1182.
+* we are not using 
+   * ``poetry install`` to create a virtual environment
+   * ``poetry run ...`` to run code in that virtual environment
+* We could use ``poetry install`` to create a virtual environment and 
+  point to it in eclipse/pydev so that we will always run our code in that
+  environment
+* tests should b
+
+   
+
 History
 =======
-
-
 
 v0.4.0 (2019-06-11)
 *******************
 
 * First functional working version with
    
-  * micc create 
-  * micc app 
-  * micc module
-  * micc version
-  * micc tag
+  * ``micc create`` 
+  * ``micc app``
+  * ``micc module``
+  * ``micc version``
+  * ``micc tag``
   
 
 v0.2.5 (2019-06-11)

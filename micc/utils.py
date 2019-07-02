@@ -114,7 +114,6 @@ def is_project_directory(path):
     
     try:
         project_name = toml.load(path_to_pyproject_toml)['tool']['poetry']['name']
-        
     except:
         return False
     

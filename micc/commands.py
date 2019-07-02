@@ -9,10 +9,15 @@ import subprocess
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
-from poetry.console.commands import VersionCommand 
-# from poetry.utils.toml_file import TomlFile
-# from poetry.console.application import Application
-# from cleo.inputs.argv_input import ArgvInput
+from micc.exceptions import NotAProjectDirectory
+
+use_poetry = True
+if use_poetry:
+    from poetry.console.application import Application
+    from cleo.inputs.argv_input import ArgvInput
+    # from poetry.utils.toml_file import TomlFile
+else:
+    from poetry.console.commands import VersionCommand 
 import toml
 #===============================================================================
 from micc import utils
@@ -60,7 +65,7 @@ def micc_create( project_name=''
                 click.echo("Proceeding...")
             else:
                 click.echo(f"Canceled 'micc create ...'")
-                return CANCEL
+                return CANCEL            
                 
     template = _resolve_template(template)
     template_parameters = utils.get_template_parameters( template, micc_file
@@ -121,7 +126,9 @@ def micc_app( app_name
 
     if not project_path:
         project_path = os.getcwd()
-    assert utils.is_project_directory(project_path)
+        
+    if not utils.is_project_directory(project_path):
+        raise NotAProjectDirectory(project_path)
     
     project_name = os.path.basename(project_path)
     template_parameters = utils.get_template_parameters( template, micc_file
@@ -193,7 +200,8 @@ def micc_module( module_name
 
     if not project_path:
         project_path = os.getcwd()
-    assert utils.is_project_directory(project_path)
+    if not utils.is_project_directory(project_path):
+        raise NotAProjectDirectory(project_path)
 
     project_name = os.path.basename(project_path)        
     template_parameters = utils.get_template_parameters( template, micc_file
@@ -248,8 +256,6 @@ def micc_module( module_name
             f.write( "\n   :members:\n\n")
     return 0
 #===============================================================================
-# use_poetry = False
-
 def micc_version(project_path='.', rule=None, global_options=_global_options):
     """
     Bump the version according to *rule*, and modify the pyproject.toml in 
@@ -259,50 +265,52 @@ def micc_version(project_path='.', rule=None, global_options=_global_options):
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
     """
-    assert utils.is_project_directory(project_path)
-#     if use_poetry: # what a shame - cannot get this to work`; 
-#                    # I filed an issue https://github.com/sdispater/poetry/issues/1182
-#         with in_directory(???): 
-#             print(1,os.getcwd())
-#             i = ArgvInput(['poetry','version',rule])
-#             Application().run(i)
-#             print(2,os.getcwd())
-#             
-#     else:
-    # We ara hacking around the problem https://github.com/sdispater/poetry/issues/1182:        
-    
-    # pyproject.toml
-    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
-    pyproject_toml = toml.load(path_to_pyproject_toml)
-    project_name    = pyproject_toml['tool']['poetry']['name']
-    current_version = pyproject_toml['tool']['poetry']['version']
-    package_name    = project_name.replace('-','_').replace(' ','_')
-    
-    if rule is None:
-        click.echo(f"Current version: {package_name} v{current_version}")
+    if not utils.is_project_directory(project_path):
+        raise NotAProjectDirectory(project_path)
+
+    if use_poetry:
+        # what a shame - cannot get this to work`; 
+        # I filed an issue https://github.com/sdispater/poetry/issues/1182
+        with utils.in_directory(project_path): 
+            print(1,os.getcwd())
+            i = ArgvInput(['poetry','version',rule])
+            Application().run(i)
+            print(2,os.getcwd())
+             
     else:
-        new_version = VersionCommand().increment_version(current_version, rule)
-        if not global_options.quiet:
-            msg = f"Package {package_name} v{current_version}\n"\
-                  f"Are you sure to move to v{new_version}'?"
-            if not click.confirm(msg,default=False):
-                click.echo(f"Canceled: 'micc version {rule}'")
-                return CANCEL
-            else:
-                click.echo("Proceeding...")
-                
+        # We are hacking around the problem https://github.com/sdispater/poetry/issues/1182:        
+        path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
+        pyproject_toml = toml.load(path_to_pyproject_toml)
+        project_name    = pyproject_toml['tool']['poetry']['name']
+        current_version = pyproject_toml['tool']['poetry']['version']
+        package_name    = project_name.replace('-','_').replace(' ','_')
+        
+        if rule is None:
+            click.echo(f"Current version: {package_name} v{current_version}")
         else:
-            click.echo(f"{package_name} v{current_version} -> v{new_version}")
-        
-        utils.replace_version_in_file( path_to_pyproject_toml
-                                     , current_version, new_version)
-        
-        if not utils.replace_version_in_file( os.path.join(project_path, package_name, '__init__.py')
-                                            , current_version, new_version):
-            if not utils.replace_version_in_file( os.path.join(project_path, package_name + '.py')
+            new_version = VersionCommand().increment_version(current_version, rule)
+            if not global_options.quiet:
+                msg = f"Package {package_name} v{current_version}\n"\
+                      f"Are you sure to move to v{new_version}'?"
+                if not click.confirm(msg,default=False):
+                    click.echo(f"Canceled: 'micc version {rule}'")
+                    return CANCEL
+                else:
+                    click.echo("Proceeding...")
+                    
+            else:
+                click.echo(f"{package_name} v{current_version} -> v{new_version}")
+            
+            # update version in pyproject.toml
+            utils.replace_version_in_file( path_to_pyproject_toml
+                                         , current_version, new_version)
+            # update version in package
+            if not utils.replace_version_in_file( os.path.join(project_path, package_name, '__init__.py')
                                                 , current_version, new_version):
-                click.echo(f"Warning: No package {package_name}/__init__.py and no modute {package_name}.py found.")
-    return 0
+                if not utils.replace_version_in_file( os.path.join(project_path, package_name + '.py')
+                                                    , current_version, new_version):
+                    click.echo(f"Warning: No package {package_name}/__init__.py and no modute {package_name}.py found.")
+        return 0
 #===============================================================================
 def micc_tag(project_path, global_options=_global_options):
     """
@@ -312,7 +320,9 @@ def micc_tag(project_path, global_options=_global_options):
     """
     if not project_path:
         project_path = os.getcwd()
-    assert utils.is_project_directory(project_path)
+        
+    if not utils.is_project_directory(project_path):
+        raise NotAProjectDirectory(project_path)
     # There is not really a reason to be careful when creating a tag
     # if not global_options.quiet:
     #     project_name, version = utils.get_name_version(project_path)
