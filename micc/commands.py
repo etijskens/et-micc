@@ -98,10 +98,20 @@ def micc_create( project_name=''
                 , output_dir=output_dir
                 )
     
+    
     with utils.in_directory(os.path.join(output_dir,project_name)):
-        cmd = ['git','init']
-        completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        click.echo(completed_process.stdout)
+        cmds = [ ['git', 'init']
+               , ['git', 'add', '*']
+               , ['git', 'add', '.gitignore']
+               , ['git', 'add', '.flake8']
+               , ['git', 'commit', '-m', '"first commit"']
+               , ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
+               , ['git', 'push', '-u', 'origin', 'master']
+               ]
+        print(cmds)
+        for cmd in cmds:
+            completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            click.echo(completed_process.stdout)
         if completed_process.stderr:
             click.echo(completed_process.stderr)
     return 0

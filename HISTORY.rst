@@ -4,11 +4,14 @@ TODO
 * add cookiecutter templates for 
    * fortran modules with f2py
    * c++ modules
+   * cluster support?
 
 * pypi publishing
 * virtual environments
 * requirements
 * tox stuff
+* regression tests
+
 
 Hmm... Discovered that poetry_ supports plugins. Should micc be a poetry plugin?
 
@@ -24,7 +27,9 @@ What are we using poetry for so far?
 * We could use ``poetry install`` to create a virtual environment and 
   point to it in eclipse/pydev so that we will always run our code in that
   environment
-* tests should b
+* tests should probably be run as::
+
+   > poetry run pytest tests/test*
 
    
 

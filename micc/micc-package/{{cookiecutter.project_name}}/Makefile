@@ -70,7 +70,7 @@ lint: ## check style with flake8
 	flake8 {{ cookiecutter.project_name }} tests
 
 test: ## run tests quickly with the default Python
-	py.test tests/test*
+	poetry run py.test tests/test*
 
 test-all: ## run tests on every Python version with tox
 	tox
@@ -81,12 +81,8 @@ coverage: ## check code coverage quickly with the default Python
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
-docs: ## generate Sphinx HTML documentation, including API docs
-#	rm -f docs/{{ cookiecutter.project_name }}.rst
-#	rm -f docs/modules.rst
-#	sphinx-apidoc -o docs/ {{ cookiecutter.package_name }}
-#	$(MAKE) -C docs clean
-#	$(MAKE) -C docs html
+# Generate Sphinx HTML documentation, including API docs
+docs: 
 	cd docs && make html
 	$(BROWSER) docs/_build/html/index.html
 
