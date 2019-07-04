@@ -83,7 +83,7 @@ def in_directory(path):
 #===============================================================================
 def replace_version_in_file(filepath,current_version,new_version):
     if os.path.exists(filepath):
-        print('    Updating :',filepath)
+        click.echo('    Updating : ' + filepath)
         if os.path.basename(filepath) == "pyproject.toml":
             fmt = 'version = "{}"'
         else:

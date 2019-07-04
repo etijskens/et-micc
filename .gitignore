@@ -113,7 +113,7 @@ venv*/
 # Cookiecutter
 cookiecutter*.json
 
-# test projectdirectories
+# test project directories
 tests/output/
 sandbox/
 issue*/
@@ -128,3 +128,4 @@ setup.*
 tox.ini
 requirements_dev.txt
 
++tests/data/

@@ -246,7 +246,7 @@ def module( ctx
                       )
 #===============================================================================
 @main.command()
-@click.argument('project_path', default='')
+@click.argument('project_path', default='.')
 @click.option('-M','--major', is_flag=True, default=False
              , help='increment major version number component')
 @click.option('-m','--minor', is_flag=True, default=False
@@ -280,7 +280,7 @@ def version(ctx, project_path, major, minor, patch, poetry_version_rule, tag):
         return micc_tag(project_path, global_options=ctx.obj)
 #===============================================================================
 @main.command()
-@click.argument('project_path', default='')
+@click.argument('project_path', default='.')
 @click.pass_context
 def tag(ctx, project_path):
     """

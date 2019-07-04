@@ -11,6 +11,7 @@ import sys
 from shutil import rmtree
 import uuid
 import logging
+from types import SimpleNamespace
 #===============================================================================
 # import pytest
 from click import echo
@@ -21,9 +22,8 @@ logfile = logging.FileHandler("log.txt")
 logfile.setLevel(logging.DEBUG)
 logger.addHandler(logfile)
 
-
 import toml
-from importlib import import_module
+# from importlib import import_module
 #===============================================================================
 # Make sure that the current directory is the project directory.
 # 'make test" and 'pytest' are generally run from the project directory.
@@ -51,6 +51,9 @@ from micc.utils import in_directory
 from micc import cli
 from micc.commands import _global_options
 _global_options.quiet = True
+import micc.commands
+import micc.utils
+# micc.commands.use_poetry = False
 #===============================================================================
 uuid_ = True
 def micc_test_project_uuid(uuid_=uuid_):
@@ -122,7 +125,65 @@ def test_micc_help():
     assert 'Show this message and exit.' in result.output
 
 #===============================================================================
-def test_micc_create_and_version():
+# def test_micc_version():
+#     """
+#     this test assumes the existence of project
+#     "/tests/data/prj_version_test"
+#     """
+#     project_path = "/Users/etijskens/software/dev/workspace/micc/tests/data/prj_version_test"
+#     path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
+#     pyproject_toml = toml.load(path_to_pyproject_toml)
+#     current_version = pyproject_toml['tool']['poetry']['version']
+#     micc.utils.replace_version_in_file( path_to_pyproject_toml
+#                                       , current_version, '0.0.0')
+#     micc.utils.replace_version_in_file( os.path.join(project_path, 'oops', '__init__.py')
+#                                       , current_version, '0.0.0')
+#     
+#     pyproject_toml = toml.load(path_to_pyproject_toml)
+#     project_name    = pyproject_toml['tool']['poetry']['name']
+#     current_version = pyproject_toml['tool']['poetry']['version']
+#     print(project_name, current_version)
+# 
+#     micc.commands.micc_version(project_path, rule='patch', global_options=SimpleNamespace(verbose=False, quiet=True))
+# 
+#     pyproject_toml = toml.load(path_to_pyproject_toml)
+#     project_name    = pyproject_toml['tool']['poetry']['name']
+#     current_version = pyproject_toml['tool']['poetry']['version']
+#     print(project_name, current_version)
+#     assert current_version=="0.0.1"
+#===============================================================================
+def test_micc_version():
+    """
+    this test is not working 
+    """
+    runner = CliRunner()
+    project_name = micc_test_project_uuid()
+    output_dir = os.path.join(os.getcwd(),'tests','output')
+    input_ = f'{project_name}\ntest_cli()'
+    result = runner.invoke(cli.main, ['-v','-q','create','-o',output_dir], input=input_)
+    report(result)
+    project_dir = os.path.join(output_dir, project_name)
+    assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
+    pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
+    current_version = pyproject_toml['tool']['poetry']['version']
+    assert current_version == "0.0.0"
+    
+    path_to_pyproject_toml = os.path.join(project_dir,'pyproject.toml')
+    pyproject_toml = toml.load(path_to_pyproject_toml)
+    project_name    = pyproject_toml['tool']['poetry']['name']
+    current_version = pyproject_toml['tool']['poetry']['version']
+    print(project_name, current_version)
+
+    micc.commands.micc_version(project_dir, rule='patch', global_options=SimpleNamespace(verbose=False, quiet=True))
+
+    pyproject_toml = toml.load(path_to_pyproject_toml)
+    project_name    = pyproject_toml['tool']['poetry']['name']
+    current_version = pyproject_toml['tool']['poetry']['version']
+    print(project_name, current_version)
+    assert current_version=="0.0.1"
+    
+#===============================================================================
+def test_micc():
     """
     Test for creating a project skeleton and bump the version.
     """
@@ -137,14 +198,6 @@ def test_micc_create_and_version():
     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
     current_version = pyproject_toml['tool']['poetry']['version']
     assert current_version == "0.0.0"
-    print('current_version',current_version)
-
-    result = runner.invoke(cli.main, ['-q','version', project_dir, '--patch'])
-    report(result)
-    pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
-    current_version = pyproject_toml['tool']['poetry']['version']
-    print('current_version',current_version)
-    assert current_version == "0.0.1"    
     
     # clean up the project if required
     if clean_up:
@@ -154,7 +207,7 @@ def test_micc_create_and_version():
         echo(f"Project directory left: {project_dir}")
     
 #===============================================================================
-def test_micc_create_with_project_name_and_version():
+def test_micc_create_with_project_name():
     """
     Test for creating a project skeleton, with a project name provided on the 
     command line and bump the version.
@@ -171,18 +224,6 @@ def test_micc_create_with_project_name_and_version():
     current_version = pyproject_toml['tool']['poetry']['version']
     print('current_version',current_version)
     assert current_version == "0.0.0"
-
-    result = runner.invoke(cli.main, ['-q','version', project_dir, '--minor'])
-    report(result)
-    pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
-    current_version = pyproject_toml['tool']['poetry']['version']
-    print('current_version',current_version)
-    assert current_version == "0.1.0"
-
-    # verify that the project exports the new version    
-    sys.path.insert(0, project_dir)
-    package = import_module(project_name.replace(' ','_').replace('-','_'))
-    assert package.__version__=="0.1.0"
     
     # clean up the project if required
     if clean_up:
@@ -200,6 +241,7 @@ def test_micc_app():
     runner = CliRunner()
     project_name = micc_test_project_uuid()
     output_dir = os.path.join(os.getcwd(),'tests','output')
+    
     input_ = f'{project_name}\ntest_micc_app()'
     result = runner.invoke(cli.main, ['-v','-q','create','-o',output_dir], input=input_)
     report(result)
@@ -236,7 +278,7 @@ def test_micc_module():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_micc_module
+    the_test_you_want_to_debug = test_micc_version
 
     from execution_trace import trace
     with trace(f"__main__ running {the_test_you_want_to_debug}",
