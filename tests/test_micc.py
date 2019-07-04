@@ -44,7 +44,8 @@ if not ('.' in sys.path or os.getcwd() in sys.path):
 echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 clean_up = False
-"""remove projects created during testing"""
+clean_up = True
+"""remove projects created during testing if True"""
 #===============================================================================    
 # from micc import micc
 from micc.utils import in_directory
@@ -52,8 +53,6 @@ from micc import cli
 from micc.commands import _global_options
 _global_options.quiet = True
 import micc.commands
-import micc.utils
-# micc.commands.use_poetry = False
 #===============================================================================
 uuid_ = True
 def micc_test_project_uuid(uuid_=uuid_):
@@ -182,6 +181,13 @@ def test_micc_version():
     print(project_name, current_version)
     assert current_version=="0.0.1"
     
+    # clean up the project if required
+    if clean_up:
+        echo(f"cleaning up {project_dir}")
+        rmtree(project_dir)
+    else:
+        echo(f"Project directory left: {project_dir}")
+
 #===============================================================================
 def test_micc():
     """
@@ -252,7 +258,14 @@ def test_micc_app():
         input_ = 'my-app'
         result = runner.invoke(cli.main, ['-q','app'], input=input_)
         report(result)
-        
+    
+    # clean up the project if required
+    if clean_up:
+        echo(f"cleaning up {project_dir}")
+        rmtree(project_dir)
+    else:
+        echo(f"Project directory left: {project_dir}")
+
 # ==============================================================================
 def test_micc_module():
     """
@@ -272,7 +285,14 @@ def test_micc_module():
         input_ = 'my_module'
         result = runner.invoke(cli.main, ['-q','module'], input=input_)
         report(result)
-        
+    
+    # clean up the project if required
+    if clean_up:
+        echo(f"cleaning up {project_dir}")
+        rmtree(project_dir)
+    else:
+        echo(f"Project directory left: {project_dir}")
+
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
