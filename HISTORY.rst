@@ -1,10 +1,22 @@
 TODO
 ====
 
-* add cookiecutter templates for 
-   * fortran modules with f2py
-   * c++ modules
-   * cluster support?
+* undo ``micc app ...``
+* undo ``micc module ...``
+* check if project_name exists already on `readthedocs.io`_, and prompt for a 
+  different name. (My ``utils`` project works fine, but it was to be expected 
+  that the name was already used on `readthedocs.io`_.
+* micc feature rename project, in case one forgot to check if that project name 
+  does not already exist on `readthedocs.io`_ 
+      
+* add cookiecutter template for C++ modules. We need
+   * boost.python (this is compiled and tied to the current Python
+     environment
+   * Numpy
+   * boost.MultiArray (header only)
+   * numpy_boost.hpp and numpy_boost_python.hpp 
+   * a C++ compiler
+   * support for this on on the clusters
 
 * pypi publishing
 * virtual environments
@@ -12,15 +24,17 @@ TODO
 * tox stuff
 * regression tests
 
-
-Hmm... Discovered that poetry_ supports plugins. Should micc be a poetry plugin?
-
 What are we using poetry for so far?
+************************************
+
+There is a poetry issue on poetry+anaconda python 
+`Any plans to make it work with anaconda python? <https://github.com/sdispater/poetry/issues/190>`_.
+Locally, we are completely relying on Anaconda Python.
+We might have to 
 
 * building wheels (which are used for installing and publishing): 
   ``poetry build``, typically inside the ``Makefile``.
 * ``poetry.console.commands.VersionCommand`` for updating version strings,
-  but (sofar) not for updating ``pyproject.toml`` (because of issue #1182.
 * we are not using 
    * ``poetry install`` to create a virtual environment
    * ``poetry run ...`` to run code in that virtual environment
@@ -31,10 +45,66 @@ What are we using poetry for so far?
 
    > poetry run pytest tests/test*
 
-   
-
+  in which case we also rely 
+  
 History
 =======
+
+* add cookiecutter template for fortran modules with f2py. We need:
+   * f2py, comes with Numpy
+   * a fortran compiler
+   * a C compiler
+   * what can be provided out of the box by conda?
+   * support for this on on the clusters
+
+I followed this advice: 
+`f2py-running-fortran-code-in-python <https://www.scivision.dev/f2py-running-fortran-code-in-python-on-windows/>`_
+and installed gcc from homebrew ``brew install gcc``. Inside the Conda 
+environment I created soft links to gcc, g++ and gfortran.
+
+There is an issue with Fortran arguments of type real*16, which become 
+``long_double`` instead of ``long double`` in the ``<modulename>module.c`` 
+wrapper file. The issue is circumvented by editing that file and running 
+f2py_local.sh a second time. The issue occurred in gcc 7.4.0, 8.3.0 and 
+9.1.0. Switching to gcc provided by XCode does not help either. However, 
+adding ``-Dlong_double="long double"`` to the f2py command line options 
+solves the problem nicely. :)
+
+I, typically, had different bash scripts for running f2py, one for building 
+locally and one for each cluster. It would be nice if a single script would
+do and pickup the right compiler from the environment where it is run, as 
+well as set the correct compiler options. There may be different f2py modules,
+so there will be a different script for every f2py module: ``f2py_<module_name>.sh``.
+Preferentially ``<module_name>`` ends with ``f90``. The module name appears 
+also inside the script. The script looks for a ifort, and if absent for 
+gfortran in the environment. It uses gcc for compiling the C-wrappers and 
+for f2py. If one of the components is missing, the script exits with a non-
+zero error code and an error message. The makefile can call::
+
+   for s in f2py_*.sh; do ./${s}; done
+
+Do we want a fortran module or not? the fortran module complicates stuff, as
+it appears as a namespace inside the python module::
+
+   # a) with a fortran module:
+   # import the python module (built from compute_f90_a.f90) which lives
+   # in the proj_f2py package: 
+   import proj_f2py.compute_f90_a as python_module_a
+   # create an alias for the fortran module inside that python module, which
+   # is called 'f90_module'. The fortran module  behaves as any other member
+   # in the python module.
+   f90 = python_module.f90_module
+   
+   # b) without a fortran module:
+   # import the python module (built from compute_f90_b.f90) 
+   # this doesn not have a fortran module inside. 
+   import proj_f2py.compute_f90_b as python_module_b
+
+
+v0.5.0 (2019-07-04)
+*******************
+
+* Fixed poetry issue #1182
 
 v0.4.0 (2019-06-11)
 *******************

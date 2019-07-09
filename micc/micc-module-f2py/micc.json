@@ -1,0 +1,14 @@
+{
+  "f2py_module_name": {"default":""
+                  	  ,"text"   :"name of the module you want to add to this package"
+                  	  }
+, "suffix"          : {"default":"_f2py"
+                  	  ,"text"   :"suffix to identify f2py modules"
+                  	  }
+, "project_name"	: {"default":""
+  					  ,"text"   :"the name of the project to be created"
+  					  }
+, "package_name"    : {"default":"{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}"
+  					  ,"text"   :"the name of the project to be created"
+  					  }
+}

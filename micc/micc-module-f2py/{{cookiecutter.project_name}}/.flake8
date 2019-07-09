@@ -1,0 +1,30 @@
+[flake8]
+ignore =
+    # 1 blank line required before class docstring (D203)
+    D203,
+    #Block comment should start with '# ' (E265)
+    E265,
+    # Expected 2 blank lines, found 0 (E302)
+    # E305 expected 2 blank lines after class or function definition, found 0
+    E302,E305,
+    # Trailing whitespace (W291)
+    W291,
+    # Blank line contains whitespace (W293)
+    W293,
+    # whitespace after '(' (E201)
+    # whitespace before ')' (E201)
+    # whitespace before ',' (E203)
+    E201,E202,E203
+    # continuation line under-indented for visual indent (E128)
+    # closing bracket does not match visual indentation (E124)
+    E128,E124,
+    # E231 missing whitespace after ','
+    E231,
+    # W504 line break after binary operator
+    W504,
+    # E221 multiple spaces before operator
+    E221
+
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist
+max-complexity = 10
+max-line-length = 100

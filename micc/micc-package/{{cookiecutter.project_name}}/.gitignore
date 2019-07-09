@@ -108,3 +108,9 @@ ENV/
 
 # apple
 .DS_Store
+
+# f2py, fortran, C/C++
+_f2py_build/
+*.o
+*.so
+*.DSYM/
