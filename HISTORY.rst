@@ -101,6 +101,12 @@ it appears as a namespace inside the python module::
    import proj_f2py.compute_f90_b as python_module_b
 
 
+v0.5.1 (2019-07-09)
+*******************
+
+* ``micc create ...`` must write a .gitignore file and other configuration
+  files. Addition of modules, apps do not change these.
+
 v0.5.0 (2019-07-04)
 *******************
 
