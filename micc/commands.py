@@ -262,6 +262,76 @@ def micc_module( module_name
             f.write( "\n   :members:\n\n")
     return 0
 #===============================================================================
+def micc_module_f2py( module_name
+                    , project_path=''
+                    , global_options=_global_options
+                    , template='micc-module-f2py', micc_file='micc.json'
+                    ):
+    """
+    Micc module subcommand, add a f2py module to the package. 
+    
+    :param str module_name: name of the module.
+    :param str project_path: if empty, use the current working directory
+    """
+    template = _resolve_template(template)
+
+    if not project_path:
+        project_path = os.getcwd()
+    if not utils.is_project_directory(project_path):
+        raise NotAProjectDirectory(project_path)
+
+    project_name = os.path.basename(project_path)        
+    template_parameters = utils.get_template_parameters( template, micc_file
+                                                       , verbose=global_options.verbose
+                                                       , module_name=module_name
+                                                       , project_name=project_name
+                                                       )   
+    f2py_suffix = template_parameters['f2py_suffix']
+    module_name = template_parameters['module_name'] + f2py_suffix
+    if not global_options.quiet:
+        msg = f"Are you sure to add f2py module '{module_name}' to project '{project_name}'?"
+        if not click.confirm(msg,default=False):
+            click.echo(f"Canceled: 'micc module {module_name}'")
+            return CANCEL
+        else:
+            click.echo("Proceeding...")
+            
+    py_name = utils.python_name(module_name)
+    if not py_name==module_name:
+        msg  = f"Not a valid module name: {module_name}\n"
+        msg += f"Use {py_name} instead?"
+        if not click.confirm(msg):
+            click.echo(f"Canceled: 'micc module {module_name}'")
+            return CANCEL
+        else:
+            module_name = py_name
+            template_parameters['module_name'] = py_name
+
+    with in_directory(project_path):        
+        # write a cookiecutter.json file in the cookiecutter template directory
+        cookiecutter_json = os.path.join(template, 'cookiecutter.json')
+        with open(cookiecutter_json,'w') as f:
+            json.dump(template_parameters, f, indent=2)
+        
+        # run cookiecutter 
+        click.echo(f"Adding module '{module_name}' to project '{project_name}'")
+        with in_directory('..'):
+            cookiecutter( template
+                        , no_input=True
+                        , overwrite_if_exists=True
+                        )
+            # it is a pity that we have to specify overwrite=True, because 
+            # cookiecutter chokeson this if the directories exist, even if 
+            # all files are different. So, cookiecutter does not allow 
+            # additions.
+                        
+        # docs
+#         package_name = template_parameters['project_name'].lower().replace('-', '_')
+#         with open("API.rst","a") as f:
+#             f.write(f"\n.. automodule:: {package_name}.{module_name}")
+#             f.write( "\n   :members:\n\n")
+    return 0
+#===============================================================================
 def micc_version(project_path='.', rule=None, global_options=_global_options):
     """
     Bump the version according to *rule*, and modify the pyproject.toml in 

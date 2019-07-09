@@ -1,13 +1,20 @@
 TODO
 ====
 
-* undo ``micc app ...``
-* undo ``micc module ...``
+* undo ``micc app ...``?
+* undo ``micc module ...``?
 * check if project_name exists already on `readthedocs.io`_, and prompt for a 
   different name. (My ``utils`` project works fine, but it was to be expected 
   that the name was already used on `readthedocs.io`_.
 * micc feature rename project, in case one forgot to check if that project name 
   does not already exist on `readthedocs.io`_ 
+  
+* check for overwriting files (we must specify ``overwrite_if_exists`` for 
+  cookiecutter because it will already report an error if just the directories
+  exist. Adding files to existing directories is not supported out of the box.)
+  Maybe, we can monkey patch this problem. We propose that ``micc`` should fail
+  when files are overwritten, and that the command be run again with a ``--force``
+  option.
       
 * add cookiecutter template for C++ modules. We need
    * boost.python (this is compiled and tied to the current Python
@@ -23,21 +30,29 @@ TODO
 * requirements
 * tox stuff
 * regression tests
+*
 
 What are we using poetry for so far?
 ************************************
 
+(... and do we really need it?)
+
 There is a poetry issue on poetry+anaconda python 
 `Any plans to make it work with anaconda python? <https://github.com/sdispater/poetry/issues/190>`_.
-Locally, we are completely relying on Anaconda Python.
-We might have to 
+Locally, we are completely relying on Anaconda Python. 
+Consequentially, I am not completely feeling comfortable with it - but it is
+young and very actively developed.
 
 * building wheels (which are used for installing and publishing): 
-  ``poetry build``, typically inside the ``Makefile``.
+  ``poetry build``, typically inside the ``Makefile``. However, I haven't
+  figured out how to go with e.g. f2py modules and C++ modules. 
+  
 * ``poetry.console.commands.VersionCommand`` for updating version strings,
+
 * we are not using 
    * ``poetry install`` to create a virtual environment
    * ``poetry run ...`` to run code in that virtual environment
+   
 * We could use ``poetry install`` to create a virtual environment and 
   point to it in eclipse/pydev so that we will always run our code in that
   environment
@@ -45,7 +60,6 @@ We might have to
 
    > poetry run pytest tests/test*
 
-  in which case we also rely 
   
 History
 =======
@@ -100,12 +114,17 @@ it appears as a namespace inside the python module::
    # this doesn not have a fortran module inside. 
    import proj_f2py.compute_f90_b as python_module_b
 
+v0.5.2 (2019-07-09)
+*******************
+
+* add option ``--f2py`` to ``micc module ...``
 
 v0.5.1 (2019-07-09)
 *******************
 
 * ``micc create ...`` must write a .gitignore file and other configuration
   files. Addition of modules, apps do not change these.
+* Cookiecutter template micc-module-f2py added, no code to use it yet
 
 v0.5.0 (2019-07-04)
 *******************

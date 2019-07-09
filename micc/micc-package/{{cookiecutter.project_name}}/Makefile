@@ -14,7 +14,7 @@ site_packages := $(shell python -c "import site; print(site.getsitepackages()[0]
 
 cwd := $(shell pwd)
 
-.PHONY: clean clean-test clean-pyc clean-build docs help uninstall
+.PHONY: clean clean-test clean-pyc clean-build docs help uninstall f2py
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -91,6 +91,14 @@ servedocs: docs ## compile the docs watching for changes
 
 release: dist ## package and upload a release
 	twine upload dist/*
+
+#-------------------------------------------------------------------------------
+# Build TARGETS
+#-------------------------------------------------------------------------------
+# build all f2py modules
+# (two $$ are necessary for a bash variable in a makfile)
+f2py:
+	cd $(module_name); for sh in build_*_f2py.sh; do echo $${sh}; ./$${sh}; done
 
 #-------------------------------------------------------------------------------
 # INSTALLATION TARGETS

@@ -107,6 +107,7 @@ The name of the module ``MODULE_NAME`` is prompted for if omitted.
 
 Options:
   -P, --project_path location of the project to add an app to (current directory by default).
+  -f, --f2py         add an f2py module, rather than a python module to the package.
   -T, --template     specify a non-default Python package cookiecutter template.
   -m, --micc-file    specify a non-default micc-file for the cookiecutter template.
   --help             Show help
@@ -117,6 +118,14 @@ This command adds the following files to the project tree::
     │   └── my_module.py
     └── tests
         └── test_my_module.py
+
+If the ``--f2py`` flag is added the added files are:: 
+
+    ├── my_pacakage
+    │   ├── build_my_module_f2py.sh
+    │   └── my_module_f2py.f90
+    └── tests
+        └── test_my_module_f2py.py
 
 version
 +++++++
@@ -154,7 +163,7 @@ Options:
 #===============================================================================
 import sys
 import click
-from micc.commands import micc_create, micc_version, micc_tag, micc_app, micc_module
+from micc.commands import micc_create, micc_version, micc_tag, micc_app, micc_module, micc_module_f2py
 from types import SimpleNamespace
 #===============================================================================
 @click.group()
@@ -222,15 +231,18 @@ def app( ctx
 #===============================================================================
 @main.command()
 @click.argument('module_name', default='')
-@click.option('-P', '--project_path', default='')
-@click.option('-T', '--template',   default='micc-module'
-              , help="a Python package cookiecutter template")
-@click.option('-m', '--micc-file',  default='micc.json'
-              , help="the micc-file for the cookiecutter template")
+@click.option( '-P', '--project_path', default='')
+@click.option( '--f2py', is_flag=True, default=False
+             , help='create an f2py module.')
+@click.option( '-T', '--template',   default='micc-module'
+            , help="a Python package cookiecutter template")
+@click.option( '-m', '--micc-file',  default='micc.json'
+             , help="the micc-file for the cookiecutter template")
 @click.pass_context
 def module( ctx
           , module_name
           , project_path
+          , f2py
           , template, micc_file
           ):
     """
@@ -238,12 +250,20 @@ def module( ctx
     
     :param str module_name: name of the module to be added to the package.
     """
-    return micc_module( module_name
-                      , project_path
-                      , template=template
-                      , micc_file=micc_file
-                      , global_options=ctx.obj
-                      )
+    if f2py:
+        return micc_module_f2py( module_name
+                               , project_path
+                               , template=template + '-f2py'
+                               , micc_file=micc_file
+                               , global_options=ctx.obj
+                               )
+    else:
+        return micc_module( module_name
+                          , project_path
+                          , template=template
+                          , micc_file=micc_file
+                          , global_options=ctx.obj
+                          )
 #===============================================================================
 @main.command()
 @click.argument('project_path', default='.')
