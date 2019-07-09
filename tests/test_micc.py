@@ -300,8 +300,8 @@ def test_micc_module():
 if __name__ == "__main__":
     the_test_you_want_to_debug = test_micc_version
 
-    from execution_trace import trace
-    with trace(f"__main__ running {the_test_you_want_to_debug}",
+    from utils import taskcm
+    with taskcm(f"__main__ running {the_test_you_want_to_debug}",
                '-*# finished #*-', singleline=False, combine=False):
         the_test_you_want_to_debug()
 # ==============================================================================
