@@ -9,13 +9,6 @@ TODO
 * micc feature rename project, in case one forgot to check if that project name 
   does not already exist on `readthedocs.io`_ 
   
-* check for overwriting files (we must specify ``overwrite_if_exists`` for 
-  cookiecutter because it will already report an error if just the directories
-  exist. Adding files to existing directories is not supported out of the box.)
-  Maybe, we can monkey patch this problem. We propose that ``micc`` should fail
-  when files are overwritten, and that the command be run again with a ``--force``
-  option.
-      
 * add cookiecutter template for C++ modules. We need
    * boost.python (this is compiled and tied to the current Python
      environment
@@ -30,7 +23,7 @@ TODO
 * requirements
 * tox stuff
 * regression tests
-*
+
 
 What are we using poetry for so far?
 ************************************
@@ -114,6 +107,23 @@ it appears as a namespace inside the python module::
    # this doesn not have a fortran module inside. 
    import proj_f2py.compute_f90_b as python_module_b
 
+v0.5.3 (2019-07-09)
+*******************
+
+* check for overwriting files (we must specify ``overwrite_if_exists`` for 
+  cookiecutter because it will already report an error if just the directories
+  exist. Adding files to existing directories is not supported out of the box.)
+  The more components one can add, the higher the chance that there is going to 
+  be a name clash and files are going to be overwritten. We do not want this to
+  happen.
+  We propose that ``micc`` should fail when files are overwritten, and that the 
+  command be run again with a ``--force`` option.
+  * Maybe, we can monkey patch this problem in cookiecutter. No success.
+  * Create a tree of directories and files to be created and check against the 
+    pre-existing tree. Seems complicated.
+  * Create the tree to be added in a temporary dir which does not yet exist, and
+    than check for collisions. That seems feasible.
+      
 v0.5.2 (2019-07-09)
 *******************
 

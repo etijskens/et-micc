@@ -231,11 +231,14 @@ def app( ctx
 #===============================================================================
 @main.command()
 @click.argument('module_name', default='')
-@click.option( '-P', '--project_path', default='')
+@click.option( '-P', '--project_path', default='.'
+             , help="path to project." )
 @click.option( '--f2py', is_flag=True, default=False
              , help='create an f2py module.')
+@click.option( '--overwrite', is_flag=True, default=False
+             , help='overwrite existing files.')
 @click.option( '-T', '--template',   default='micc-module'
-            , help="a Python package cookiecutter template")
+             , help="a Python package cookiecutter template")
 @click.option( '-m', '--micc-file',  default='micc.json'
              , help="the micc-file for the cookiecutter template")
 @click.pass_context
@@ -243,6 +246,7 @@ def module( ctx
           , module_name
           , project_path
           , f2py
+          , overwrite
           , template, micc_file
           ):
     """
@@ -253,6 +257,7 @@ def module( ctx
     if f2py:
         return micc_module_f2py( module_name
                                , project_path
+                               , overwrite=overwrite
                                , template=template + '-f2py'
                                , micc_file=micc_file
                                , global_options=ctx.obj
