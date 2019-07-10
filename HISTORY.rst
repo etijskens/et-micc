@@ -57,6 +57,33 @@ young and very actively developed.
 History
 =======
 
+v0.5.5 (2019-07-10)
+*******************
+
+* add cookiecutter template for C++ modules. We need:
+   * a C++ compiler (icpc or g++). On my mac i'd like to use GCC installed
+     with ``brew install gcc``. On the cluster i prefer ``icpc`` 
+   * a boost.python library for the python in the environment. Anaconda 
+     cloud provides `boost-cpp v1.70 <https://anaconda.org/conda-forge/boost-cpp>`_,
+     which has 1.76M downloads, so it is certainly worth trying. On the cluster
+     there are boost modules for the Intel Python distribution.
+   * My own ``numpy_boost.hpp`` and ``numpy_boost_python.hpp`` include files can
+     be copied to the package directory.
+     
+* For compiling the module we have several options: 
+   * a build script, as for the f2pymodules, 
+   * a separate makefile, or
+   * suitable targets in the project makefile.
+ 
+* checking on `boost-cpp v1.70 <https://anaconda.org/conda-forge/boost-cpp>`_:
+  bad luck: does not provide boost.python. A pity, I always like to have the latest 
+  version.
+* checking on `libboost <https://anaconda.org/anaconda/libboost>`_: boost v1.67, 
+  not the most recent but certainly ok, unfortunately also no boost.python.
+* checking on `py-boost <https://anaconda.org/anaconda/py-boost>: boost v1.67 and
+  ``libboost_python.dylib`` and ``libboost_python37.dylib``. We used this before.
+  
+
 v0.5.4 (2019-07-10)
 *******************
 
