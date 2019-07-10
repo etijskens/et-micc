@@ -168,18 +168,7 @@ def micc_app( app_name
                               )
     if exit_code:
         return exit_code
-#     with in_directory(project_path):
-#         # write a cookiecutter.json file in the cookiecutter template directory
-#         cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
-#         with open(cookiecutter_json,'w') as f:
-#             json.dump(template_parameters, f, indent=2)
-#         
-#         # run cookiecutter 
-#         with in_directory('..'):
-#             cookiecutter( template
-#                         , no_input=True
-#                         , overwrite_if_exists=True
-#                         )
+
     with in_directory(project_path):
         cli_app_name = 'cli_' + utils.python_name(app_name)
         package_name =          utils.python_name(project_name)
@@ -271,8 +260,9 @@ def micc_module( module_name
         # docs
         package_name = template_parameters['project_name'].lower().replace('-', '_')
         with open("API.rst","a") as f:
-            f.write(f"\n.. automodule:: {package_name}.{module_name}")
-            f.write( "\n   :members:\n\n")
+            f.write(f"\n.. automodule:: {package_name}.{module_name}"
+                     "\n   :members:\n\n"
+                   )
         if global_options.verbose:
             utils.info(f"INFO: documentation for Python module '{module_name}' added.")
     return 0
@@ -334,12 +324,16 @@ def micc_module_f2py( module_name
     
     with in_directory(project_path):
         # docs
-#         package_name = template_parameters['project_name'].lower().replace('-', '_')
-#         with open("API.rst","a") as f:
-#             f.write(f"\n.. automodule:: {package_name}.{module_name}")
-#             f.write( "\n   :members:\n\n")
+        package_name = template_parameters['project_name'].lower().replace('-', '_')
+        with open("API.rst","a") as f:
+            f.write(f"\n.. include:: ../{package_name}/{module_name}.rst\n")
         if global_options.verbose:
-            info(f"INFO: documentation for f2py module '{module_name}' added.")
+            utils.info(f"INFO: Documentation template for f2py module '{module_name}' added.\n"
+                       f"      Because recent versions of sphinx are incompatible with sphinxfortran,\n"
+                       f"      you are required to enter the documentation manually in file\n"
+                       f"      '{project_name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
+                       f"      A suitable example is pasted.\n"
+                      )
     return 0
 #===============================================================================
 def micc_module_cpp( module_name
@@ -362,7 +356,7 @@ def micc_module_cpp( module_name
 #             f.write(f"\n.. automodule:: {package_name}.{module_name}")
 #             f.write( "\n   :members:\n\n")
         if global_options.verbose:
-            info(f"INFO: documentation for C++ module '{module_name}' added.")
+            utils.info(f"INFO: documentation for C++ module '{module_name}' added.")
     return 0
 #===============================================================================
 def micc_version(project_path='.', rule=None, global_options=_global_options):

@@ -126,7 +126,8 @@ If the ``--f2py`` flag is added the added files are::
 
     ├── my_pacakage
     │   ├── build_my_module_f2py.sh
-    │   └── my_module_f2py.f90
+    │   ├── my_module_f2py.f90
+    │   └── my_module_f2py.rst
     └── tests
         └── test_my_module_f2py.py
 

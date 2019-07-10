@@ -215,8 +215,8 @@ def generate( project_path
                     error("ERROR  : The following files exist already and would be overwritten:")
                     for f in existing_files:
                         error(f"         - {f}")
-                    warning("WARNING: No files were added!")
-                    warning("         Add '--overwrite' on the command line to overwrite existing files.")
+                    warning("WARNING: No files were added!\n"
+                            "         Add '--overwrite' on the command line to overwrite existing files.\n")
                     return 1
             else:
                 info("INFO : The following files are created:")

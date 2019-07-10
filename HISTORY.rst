@@ -57,6 +57,9 @@ young and very actively developed.
 History
 =======
 
+v0.5.4 (2019-07-10)
+*******************
+
 * add cookiecutter template for fortran modules with f2py. We need:
    * f2py, comes with Numpy
    * a fortran compiler
@@ -106,6 +109,19 @@ it appears as a namespace inside the python module::
    # import the python module (built from compute_f90_b.f90) 
    # this doesn not have a fortran module inside. 
    import proj_f2py.compute_f90_b as python_module_b
+
+Documenting fortran modules with sphinx is problematic. There exists a sphinx
+extension `sphinx-fortran <https://sphinx-fortran.readthedocs.io/en/latest/index.html>`_,
+but this works presumably only with `sphinx <http://www.sphinx-doc.org/en/master/>`_ 
+versions older than 1.8, and it is not avtively maintained/developed, which is a 
+pity imho. As an alternative we include a file ``<project_name>/<package_name>/<module_f2py>.rst``
+which has a suitable template for adding the documentation. As we actually want to
+document a python module (built from Fortran code with f2py), we expect the user to 
+enter documentation for the wrapper functions, not for the pure Fortran functions. 
+That goes in the ``<project_name>/<package_name>/<module_f2py>.f90`` file but is 
+not exposed in the project documentation. 
+
+
 
 v0.5.3 (2019-07-09)
 *******************
