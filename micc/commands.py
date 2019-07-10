@@ -6,9 +6,6 @@ Main module.
 import os
 import json
 import subprocess
-import logging,sys
-import shutil
-import platform
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
@@ -23,6 +20,16 @@ import toml
 from micc import utils
 from micc.utils import in_directory
 from types import SimpleNamespace
+#===============================================================================
+# logging commmands to follow cookiecutter.generate
+dbgcc = False 
+if dbgcc:
+    import logging,sys
+    logger = logging.getLogger('cookiecutter.generate')
+    logger.setLevel(9)
+    stderr_hand = logging.StreamHandler(sys.stderr)
+    stderr_hand.setLevel(9) 
+    logger.addHandler(stderr_hand)    
 #===============================================================================
 def _resolve_template(template):
     """
@@ -195,7 +202,8 @@ def micc_app( app_name
     return 0
 #===============================================================================
 def micc_module( module_name
-               , project_path=''
+               , project_path='.'
+               , overwrite=False
                , global_options=_global_options
                , template='micc-module', micc_file='micc.json'
                ):
@@ -207,8 +215,8 @@ def micc_module( module_name
     """
     template = _resolve_template(template)
 
-    if not project_path:
-        project_path = os.getcwd()
+    project_path = os.path.abspath(project_path)
+
     if not utils.is_project_directory(project_path):
         raise NotAProjectDirectory(project_path)
 
@@ -239,25 +247,29 @@ def micc_module( module_name
             template_parameters['module_name'] = py_name
 
            
+    click.echo(f"Adding Python module '{module_name}' to project '{project_name}'")
+    utils.generate( project_path
+                  , template
+                  , template_parameters
+                  , overwrite
+                  )
+    
     with in_directory(project_path):        
-        # write a cookiecutter.json file in the cookiecutter template directory
-        cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
-        with open(cookiecutter_json,'w') as f:
-            json.dump(template_parameters, f, indent=2)
-        
-        # run cookiecutter 
-        click.echo(f"Adding module '{module_name}' to project '{project_name}'")
-        with in_directory('..'):
-            cookiecutter( template
-                        , no_input=True
-                        , overwrite_if_exists=True
-                        )
-            # it is a pity that we have to specify overwrite=True, because 
-            # cookiecutter chokeson this if the directories exist, even if 
-            # all files are different. So, cookiecutter does not allow 
-            # additions.
-            
-            
+#         # write a cookiecutter.json file in the cookiecutter template directory
+#         cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
+#         with open(cookiecutter_json,'w') as f:
+#             json.dump(template_parameters, f, indent=2)
+#         
+#         # run cookiecutter 
+#         with in_directory('..'):
+#             cookiecutter( template
+#                         , no_input=True
+#                         , overwrite_if_exists=True
+#                         )
+#             # it is a pity that we have to specify overwrite=True, because 
+#             # cookiecutter chokeson this if the directories exist, even if 
+#             # all files are different. So, cookiecutter does not allow 
+#             # additions.
         package_name = template_parameters['project_name'].lower().replace('-', '_')
         # docs
         with open("API.rst","a") as f:
@@ -265,7 +277,6 @@ def micc_module( module_name
             f.write( "\n   :members:\n\n")
     return 0
 #===============================================================================
-dbgcc = True
 def micc_module_f2py( module_name
                     , project_path='.'
                     , overwrite=False
@@ -293,6 +304,7 @@ def micc_module_f2py( module_name
                                                        )
     f2py_suffix = template_parameters['f2py_suffix']
     module_name = template_parameters['module_name'] + f2py_suffix
+    
     if not global_options.quiet:
         msg = f"Are you sure to add f2py module '{module_name}' to project '{project_name}'?"
         if not click.confirm(msg,default=False):
@@ -312,77 +324,15 @@ def micc_module_f2py( module_name
             module_name = py_name
             template_parameters['module_name'] = py_name
 
-    with in_directory(project_path):        
-        # write a cookiecutter.json file in the cookiecutter template directory
-        cookiecutter_json = os.path.join(template, 'cookiecutter.json')
-        with open(cookiecutter_json,'w') as f:
-            json.dump(template_parameters, f, indent=2)
-        
-        # run cookiecutter 
-        click.echo(f"Adding module '{module_name}' to project '{project_name}'")
-        with in_directory('..'):
-#             if dbgcc:
-#                 logger = logging.getLogger('cookiecutter.generate')
-#                 logger.setLevel(9)
-#                 stderr_hand = logging.StreamHandler(sys.stderr)
-#                 stderr_hand.setLevel(9) 
-#                 logger.addHandler(stderr_hand)    
-#             logger.debug('debug')
-#             logger.info('info')
-#             logger.warning('warning')
-#             logger.error('error')
-#             logger.critical('critical')
-            
-            tmp = '_cookiecutter_tmp_'
-            if os.path.exists(tmp):
-                shutil.rmtree(tmp)
-            os.makedirs(tmp, exist_ok=True)
-            cookiecutter( template
-                        , no_input=True
-                        , overwrite_if_exists=True
-                        , output_dir=tmp
-                        )
-            os_name = platform.system()
-            existing_files = []
-            new_files = []
-            for root, dirs, files in os.walk(tmp):
-                if root==tmp:
-                    continue
-                else:
-                    root2 = os.path.join(*root.split(os.sep)[1:])
-                for f in files:
-                    if os_name=="Darwin" and f==".DS_Store":
-                        continue
-                    file = os.path.join(root2,f)
-#                     print('FILE',file, 'exists =', os.path.exists(file))
-                    if os.path.exists(file):                            
-                        existing_files.append(file)
-                    else:
-                        new_files.append(file)
-            if existing_files:
-                if overwrite:
-                    click.echo("INFO   : The following files are created:")
-                    for f in new_files:
-                        click.echo(f"       - {f}")
-                        shutil.move(os.path.join(tmp,f),f)
-                    click.echo("WARNING: The following files exist already and are overwritten:")
-                    for f in existing_files:
-                        click.echo(f"       - {f}")
-                        os.remove(f)
-                        shutil.move(os.path.join(tmp,f),f)                    
-                else:
-                    click.echo("ERROR: The following files exist already and would be overwritten:")
-                    for f in existing_files:
-                        click.echo(f"     - {f}")
-                    click.echo("       No files were added.")
-                    click.echo("Add '--overwrite' on the command line to overwrite existing files.")
-                    return 1
-            else:
-                click.echo("INFO   : The following files are created:")
-                for f in new_files:
-                    click.echo(f"     - {f}")
-                    shutil.move(os.path.join(tmp,f),f)
-                     
+    click.echo(f"Adding f2py module '{module_name}' to project '{project_name}'")
+    utils.generate( project_path
+                  , template
+                  , template_parameters
+                  , overwrite
+                  )
+    
+    with in_directory(project_path):
+        pass
         # docs
 #         package_name = template_parameters['project_name'].lower().replace('-', '_')
 #         with open("API.rst","a") as f:

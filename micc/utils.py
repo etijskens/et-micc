@@ -5,9 +5,11 @@ Utility functions for micc.py
 #===============================================================================
 import os
 import json
-import click
+import shutil, platform
 from contextlib import contextmanager
 #===============================================================================
+import click
+from cookiecutter.main import cookiecutter
 import toml
 #===============================================================================
 from micc import __version__
@@ -146,4 +148,79 @@ def python_name(filename):
     """
     python_name = filename.lower().replace('-', '_')
     return python_name
+#===============================================================================
+def generate( project_path
+            , template
+            , template_parameters
+            , overwrite=False
+            ):
+    """
+    Generate directory tree according to Cookiecutter template.
+    """
+    with in_directory(project_path):        
+        # write a cookiecutter.json file in the cookiecutter template directory
+        cookiecutter_json = os.path.join(template, 'cookiecutter.json')
+        with open(cookiecutter_json,'w') as f:
+            json.dump(template_parameters, f, indent=2)
+        
+        # run cookiecutter 
+        with in_directory(os.path.join(project_path,'..')):
+            # expand the Cookiecutte4r template in a temporary directory,
+            tmp = '_cookiecutter_tmp_'
+            if os.path.exists(tmp):
+                shutil.rmtree(tmp)
+            os.makedirs(tmp, exist_ok=True)
+            cookiecutter( template
+                        , no_input=True
+                        , overwrite_if_exists=True
+                        , output_dir=tmp
+                        )
+            # find out if there are any files that would be overwritten.
+            os_name = platform.system()
+            existing_files = []
+            new_files = []
+            for root, _, files in os.walk(tmp):
+                if root==tmp:
+                    continue
+                else:
+                    root2 = os.path.join(*root.split(os.sep)[1:])
+                for f in files:
+                    if os_name=="Darwin" and f==".DS_Store":
+                        continue
+                    file = os.path.join(root2,f)
+#                     print('FILE',file, 'exists =', os.path.exists(file))
+                    if os.path.exists(file):                            
+                        existing_files.append(file)
+                    else:
+                        new_files.append(file)
+            # Move the generated files from the tmp directory to their
+            # destination if and only if
+            #   - there are no files to be overwritten, or
+            #   - there are files to be overwritten and overwrite is True.
+            # Tell the user what is going on.
+            if existing_files:
+                if overwrite:
+                    click.echo("INFO   : The following files are created:")
+                    for f in new_files:
+                        click.echo(f"       - {f}")
+                        shutil.move(os.path.join(tmp,f),f)
+                    click.echo("WARNING: The following files exist already and are overwritten:")
+                    for f in existing_files:
+                        click.echo(f"         - {f}")
+                        os.remove(f)
+                        shutil.move(os.path.join(tmp,f),f)                    
+                else:
+                    click.echo("ERROR: The following files exist already and would be overwritten:")
+                    for f in existing_files:
+                        click.echo(f"       - {f}")
+                    click.echo("       (No files were added.)")
+                    click.echo("Add '--overwrite' on the command line to overwrite existing files.")
+                    return 1
+            else:
+                click.echo("INFO : The following files are created:")
+                for f in new_files:
+                    click.echo(f"     - {f}")
+                    shutil.move(os.path.join(tmp,f),f)
+            # clean up tmp dir
+            shutil.rmtree(tmp)
 #===============================================================================

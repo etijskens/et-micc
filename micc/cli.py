@@ -265,6 +265,7 @@ def module( ctx
     else:
         return micc_module( module_name
                           , project_path
+                          , overwrite=overwrite
                           , template=template
                           , micc_file=micc_file
                           , global_options=ctx.obj
