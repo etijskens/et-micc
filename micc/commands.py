@@ -274,7 +274,7 @@ def micc_module( module_name
             f.write(f"\n.. automodule:: {package_name}.{module_name}")
             f.write( "\n   :members:\n\n")
         if global_options.verbose:
-            utils.info(f"INFO: documentation for Python module '{module_name}' added.",**INFO))
+            utils.info(f"INFO: documentation for Python module '{module_name}' added.")
     return 0
 #===============================================================================
 def micc_module_f2py( module_name

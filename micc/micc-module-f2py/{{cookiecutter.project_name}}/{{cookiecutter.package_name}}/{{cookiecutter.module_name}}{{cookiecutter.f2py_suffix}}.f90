@@ -1,5 +1,8 @@
+! Enter documentation for this module in ``{{ cookiecutter.module_name }}{{ cookiecutter.f2py_suffix }}.rst``
+
 subroutine mean_and_stddev(avgstd,x,nx)
   ! Compute average and stddev of all elements of x
+  !
   ! Python use:
   !    import {{ cookiecutter.project_name }}.{{ cookiecutter.module_name }}{{ cookiecutter.f2py_suffix }} as f90
   !    a      = np.array([1,2,3],dtype=np.float64)
