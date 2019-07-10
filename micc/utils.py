@@ -14,6 +14,8 @@ import toml
 #===============================================================================
 from micc import __version__
 #===============================================================================
+DEBUG = False
+#===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
     This function constructs an error message for when a file is not found. 
@@ -31,7 +33,7 @@ def file_not_found_msg(path, looking_for='File'):
     return msg
 
 #===============================================================================
-def get_template_parameters(path_to_template, micc_file, verbose, **kwargs):
+def get_template_parameters(path_to_template, micc_file, **kwargs):
     """
     Read the template parameter descriptions from the micc file, and
     prompt the user for supplying the values for the parameters with an
@@ -63,7 +65,7 @@ def get_template_parameters(path_to_template, micc_file, verbose, **kwargs):
                 value = click.prompt(**kwargs,show_default=False)
         template_parameters[key] = value
 
-    if verbose:
+    if DEBUG:
         click.echo(f'Micc v{__version__}')
         click.echo( '  Cookiecutter: ' + path_to_template)
         click.echo( '  Micc file   : ' + micc_file)
@@ -210,11 +212,11 @@ def generate( project_path
                         os.remove(f)
                         shutil.move(os.path.join(tmp,f),f)                    
                 else:
-                    click.echo("ERROR: The following files exist already and would be overwritten:")
+                    click.echo("ERROR  : The following files exist already and would be overwritten:")
                     for f in existing_files:
-                        click.echo(f"       - {f}")
-                    click.echo("       (No files were added.)")
-                    click.echo("Add '--overwrite' on the command line to overwrite existing files.")
+                        click.echo(f"         - {f}")
+                    click.echo("WARNING: No files were added!")
+                    click.echo("         Add '--overwrite' on the command line to overwrite existing files.")
                     return 1
             else:
                 click.echo("INFO : The following files are created:")
@@ -223,4 +225,18 @@ def generate( project_path
                     shutil.move(os.path.join(tmp,f),f)
             # clean up tmp dir
             shutil.rmtree(tmp)
+    return 0
+#===============================================================================
+INFO    = {'fg':'black'}
+WARNING = {'fg':'green'}
+ERROR   = {'fg':'read' }
+#===============================================================================
+def info(text):
+    click.echo(click.style(text,**INFO))
+#===============================================================================
+def warning(text):
+    click.echo(click.style(text,**WARNING))
+#===============================================================================
+def error(text):
+    click.echo(click.style(text,**ERROR))
 #===============================================================================

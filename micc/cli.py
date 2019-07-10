@@ -97,7 +97,9 @@ This command adds the following files to the project tree::
 module
 ++++++
 
-Adds a module to the package, as well as a test script for it.
+Adds a module to the package, as well as a test script for it. By default a Python
+module is created, but a f2py or C++ module can be created by specifying ``--f2py``
+or ``--cpp`` as a command line option.
 
 .. code-block:: bash
    
@@ -107,8 +109,9 @@ The name of the module ``MODULE_NAME`` is prompted for if omitted.
 
 Options:
   -P, --project_path location of the project to add an app to (current directory by default).
-  -f, --f2py         add an f2py module, rather than a python module to the package.
-  -T, --template     specify a non-default Python package cookiecutter template.
+  --f2py             add an f2py module, rather than a Python module to the package.
+  --cpp              add a C++ module, rather than a Python module to the package.
+  -T, --template     specify a non-default cookiecutter template.
   -m, --micc-file    specify a non-default micc-file for the cookiecutter template.
   --help             Show help
 
@@ -126,6 +129,10 @@ If the ``--f2py`` flag is added the added files are::
     │   └── my_module_f2py.f90
     └── tests
         └── test_my_module_f2py.py
+
+If the ``--cpp`` flag is added the added files are:: 
+
+    todo
 
 version
 +++++++
@@ -163,7 +170,8 @@ Options:
 #===============================================================================
 import sys
 import click
-from micc.commands import micc_create, micc_version, micc_tag, micc_app, micc_module, micc_module_f2py
+from micc.commands import micc_create, micc_version, micc_tag, micc_app, \
+                          micc_module, micc_module_f2py, micc_module_cpp
 from types import SimpleNamespace
 #===============================================================================
 @click.group()
@@ -207,6 +215,8 @@ def create( ctx
 @main.command()
 @click.argument('app_name', default='')
 @click.option('-P', '--project_path', default='')
+@click.option( '--overwrite', is_flag=True, default=False
+             , help='overwrite existing files.')
 @click.option('-T', '--template',   default='micc-app'
               , help="a Python package cookiecutter template")
 @click.option('-m', '--micc-file',  default='micc.json'
@@ -215,6 +225,7 @@ def create( ctx
 def app( ctx
        , app_name
        , project_path
+       , overwrite
        , template, micc_file
        ):
     """
@@ -224,6 +235,7 @@ def app( ctx
     """
     return micc_app( app_name
                    , project_path
+                   , overwrite=overwrite
                    , template=template
                    , micc_file=micc_file
                    , global_options=ctx.obj
@@ -234,7 +246,9 @@ def app( ctx
 @click.option( '-P', '--project_path', default='.'
              , help="path to project." )
 @click.option( '--f2py', is_flag=True, default=False
-             , help='create an f2py module.')
+             , help='create a f2py module.')
+@click.option( '--cpp', is_flag=True, default=False
+             , help='create a C++ module.')
 @click.option( '--overwrite', is_flag=True, default=False
              , help='overwrite existing files.')
 @click.option( '-T', '--template',   default='micc-module'
@@ -245,7 +259,7 @@ def app( ctx
 def module( ctx
           , module_name
           , project_path
-          , f2py
+          , f2py, cpp
           , overwrite
           , template, micc_file
           ):
@@ -255,6 +269,7 @@ def module( ctx
     :param str module_name: name of the module to be added to the package.
     """
     if f2py:
+        assert not cpp, "'--f2py' and '--cpp' cannot be specified simultaneously."
         return micc_module_f2py( module_name
                                , project_path
                                , overwrite=overwrite
@@ -262,6 +277,15 @@ def module( ctx
                                , micc_file=micc_file
                                , global_options=ctx.obj
                                )
+    elif cpp:
+        assert not f2py, "'--f2py' and '--cpp' cannot be specified simultaneously."
+        return micc_module_cpp( module_name
+                              , project_path
+                              , overwrite=overwrite
+                              , template=template + '-cpp'
+                              , micc_file=micc_file
+                              , global_options=ctx.obj
+                              )
     else:
         return micc_module( module_name
                           , project_path

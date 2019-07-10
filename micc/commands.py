@@ -75,7 +75,6 @@ def micc_create( project_name=''
                 
     template = _resolve_template(template)
     template_parameters = utils.get_template_parameters( template, micc_file
-                                                       , verbose=global_options.verbose
                                                        , project_name=project_name
                                                        )  
         
@@ -124,6 +123,7 @@ def micc_create( project_name=''
 #===============================================================================
 def micc_app( app_name
             , project_path=''
+            , overwrite=False
             , global_options=_global_options
             , template='micc-app', micc_file='micc.json'
             ):
@@ -148,7 +148,6 @@ def micc_app( app_name
     
     project_name = os.path.basename(project_path)
     template_parameters = utils.get_template_parameters( template, micc_file
-                                                       , verbose=global_options.verbose
                                                        , app_name=app_name
                                                        , project_name=project_name
                                                        )
@@ -161,23 +160,31 @@ def micc_app( app_name
         else:
             click.echo("Proceeding...")
     
+    click.echo(f"Adding app '{app_name}' to project '{project_name}'")
+    exit_code = utils.generate( project_path
+                              , template
+                              , template_parameters
+                              , overwrite
+                              )
+    if exit_code:
+        return exit_code
+#     with in_directory(project_path):
+#         # write a cookiecutter.json file in the cookiecutter template directory
+#         cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
+#         with open(cookiecutter_json,'w') as f:
+#             json.dump(template_parameters, f, indent=2)
+#         
+#         # run cookiecutter 
+#         with in_directory('..'):
+#             cookiecutter( template
+#                         , no_input=True
+#                         , overwrite_if_exists=True
+#                         )
     with in_directory(project_path):
-        # write a cookiecutter.json file in the cookiecutter template directory
-        cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
-        with open(cookiecutter_json,'w') as f:
-            json.dump(template_parameters, f, indent=2)
-        
-        # run cookiecutter 
-        click.echo(f"Adding app '{app_name}' to project '{project_name}'")
-        with in_directory('..'):
-            cookiecutter( template
-                        , no_input=True
-                        , overwrite_if_exists=True
-                        )
         cli_app_name = 'cli_' + utils.python_name(app_name)
         package_name =          utils.python_name(project_name)
         
-        # docs
+        # docs 
         with open('docs/api.rst',"r") as f:
             lines = f.readlines()
         has_already_apps = False
@@ -190,8 +197,9 @@ def micc_app( app_name
         with open("APPS.rst","a") as f:
             f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
             f.write( "   :members:\n\n")
+        if global_options.verbose:
+            click.echo(f"INFO: documentation for application '{app_name}' added.")
         
-        # pyproject.toml
         # pyproject.toml
         # in the [toolpoetry.scripts] add a line 
         #    {app_name} = "{package_name}:{cli_app_name}"
@@ -199,7 +207,11 @@ def micc_app( app_name
         content = tomlfile.read()
         content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
         tomlfile.write(content)
+        if global_options.verbose:
+            click.echo(f"INFO: application '{app_name}' added to pyproject.toml.")
     return 0
+#===============================================================================
+INFO = {'fg':'green'}
 #===============================================================================
 def micc_module( module_name
                , project_path='.'
@@ -222,7 +234,6 @@ def micc_module( module_name
 
     project_name = os.path.basename(project_path)        
     template_parameters = utils.get_template_parameters( template, micc_file
-                                                       , verbose=global_options.verbose
                                                        , module_name=module_name
                                                        , project_name=project_name
                                                        )   
@@ -247,34 +258,23 @@ def micc_module( module_name
             template_parameters['module_name'] = py_name
 
            
-    click.echo(f"Adding Python module '{module_name}' to project '{project_name}'")
-    utils.generate( project_path
-                  , template
-                  , template_parameters
-                  , overwrite
-                  )
+    click.echo(f"Adding Python module '{module_name}' to project '{project_name}':")
+    exit_code = utils.generate( project_path
+                              , template
+                              , template_parameters
+                              , overwrite
+                              )
+    if exit_code:
+        return exit_code
     
     with in_directory(project_path):        
-#         # write a cookiecutter.json file in the cookiecutter template directory
-#         cookiecutter_json = os.path.join(template, 'cookiecutter.json')        
-#         with open(cookiecutter_json,'w') as f:
-#             json.dump(template_parameters, f, indent=2)
-#         
-#         # run cookiecutter 
-#         with in_directory('..'):
-#             cookiecutter( template
-#                         , no_input=True
-#                         , overwrite_if_exists=True
-#                         )
-#             # it is a pity that we have to specify overwrite=True, because 
-#             # cookiecutter chokeson this if the directories exist, even if 
-#             # all files are different. So, cookiecutter does not allow 
-#             # additions.
-        package_name = template_parameters['project_name'].lower().replace('-', '_')
         # docs
+        package_name = template_parameters['project_name'].lower().replace('-', '_')
         with open("API.rst","a") as f:
             f.write(f"\n.. automodule:: {package_name}.{module_name}")
             f.write( "\n   :members:\n\n")
+        if global_options.verbose:
+            click.echo(click.style(f"INFO: documentation for Python module '{module_name}' added.",**INFO))
     return 0
 #===============================================================================
 def micc_module_f2py( module_name
@@ -298,7 +298,6 @@ def micc_module_f2py( module_name
 
     project_name = os.path.basename(project_path)        
     template_parameters = utils.get_template_parameters( template, micc_file
-                                                       , verbose=global_options.verbose
                                                        , module_name=module_name
                                                        , project_name=project_name
                                                        )
@@ -325,12 +324,36 @@ def micc_module_f2py( module_name
             template_parameters['module_name'] = py_name
 
     click.echo(f"Adding f2py module '{module_name}' to project '{project_name}'")
-    utils.generate( project_path
-                  , template
-                  , template_parameters
-                  , overwrite
-                  )
+    exit_code = utils.generate( project_path
+                              , template
+                              , template_parameters
+                              , overwrite
+                              )
+    if exit_code:
+        return exit_code
     
+    with in_directory(project_path):
+        # docs
+#         package_name = template_parameters['project_name'].lower().replace('-', '_')
+#         with open("API.rst","a") as f:
+#             f.write(f"\n.. automodule:: {package_name}.{module_name}")
+#             f.write( "\n   :members:\n\n")
+        if global_options.verbose:
+            click.echo(f"INFO: documentation for f2py module '{module_name}' added.")
+    return 0
+#===============================================================================
+def micc_module_cpp( module_name
+                   , project_path='.'
+                   , overwrite=False
+                   , global_options=_global_options
+                   , template='micc-module-cpp', micc_file='micc.json'
+                   ):
+    """
+    Micc module subcommand, add a C++ module to the package. 
+    
+    :param str module_name: name of the module.
+    :param str project_path: if empty, use the current working directory
+    """
     with in_directory(project_path):
         pass
         # docs
@@ -338,6 +361,8 @@ def micc_module_f2py( module_name
 #         with open("API.rst","a") as f:
 #             f.write(f"\n.. automodule:: {package_name}.{module_name}")
 #             f.write( "\n   :members:\n\n")
+        if global_options.verbose:
+            click.echo(f"INFO: documentation for C++ module '{module_name}' added.")
     return 0
 #===============================================================================
 def micc_version(project_path='.', rule=None, global_options=_global_options):
