@@ -198,7 +198,7 @@ def micc_app( app_name
             f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
             f.write( "   :members:\n\n")
         if global_options.verbose:
-            click.echo(f"INFO: documentation for application '{app_name}' added.")
+            utils.info(f"INFO: documentation for application '{app_name}' added.")
         
         # pyproject.toml
         # in the [toolpoetry.scripts] add a line 
@@ -208,7 +208,7 @@ def micc_app( app_name
         content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
         tomlfile.write(content)
         if global_options.verbose:
-            click.echo(f"INFO: application '{app_name}' added to pyproject.toml.")
+            utils.info(f"INFO: application '{app_name}' added to pyproject.toml.")
     return 0
 #===============================================================================
 INFO = {'fg':'green'}
@@ -274,7 +274,7 @@ def micc_module( module_name
             f.write(f"\n.. automodule:: {package_name}.{module_name}")
             f.write( "\n   :members:\n\n")
         if global_options.verbose:
-            click.echo(click.style(f"INFO: documentation for Python module '{module_name}' added.",**INFO))
+            utils.info(f"INFO: documentation for Python module '{module_name}' added.",**INFO))
     return 0
 #===============================================================================
 def micc_module_f2py( module_name
@@ -339,7 +339,7 @@ def micc_module_f2py( module_name
 #             f.write(f"\n.. automodule:: {package_name}.{module_name}")
 #             f.write( "\n   :members:\n\n")
         if global_options.verbose:
-            click.echo(f"INFO: documentation for f2py module '{module_name}' added.")
+            info(f"INFO: documentation for f2py module '{module_name}' added.")
     return 0
 #===============================================================================
 def micc_module_cpp( module_name
@@ -362,7 +362,7 @@ def micc_module_cpp( module_name
 #             f.write(f"\n.. automodule:: {package_name}.{module_name}")
 #             f.write( "\n   :members:\n\n")
         if global_options.verbose:
-            click.echo(f"INFO: documentation for C++ module '{module_name}' added.")
+            info(f"INFO: documentation for C++ module '{module_name}' added.")
     return 0
 #===============================================================================
 def micc_version(project_path='.', rule=None, global_options=_global_options):

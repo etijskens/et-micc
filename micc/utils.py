@@ -66,11 +66,11 @@ def get_template_parameters(path_to_template, micc_file, **kwargs):
         template_parameters[key] = value
 
     if DEBUG:
-        click.echo(f'Micc v{__version__}')
-        click.echo( '  Cookiecutter: ' + path_to_template)
-        click.echo( '  Micc file   : ' + micc_file)
-        click.echo('Template parameters:')
-        click.echo( json.dumps(template_parameters, indent=2) )
+        info(f'Micc v{__version__}')
+        info( '  Cookiecutter: ' + path_to_template)
+        info( '  Micc file   : ' + micc_file)
+        info('Template parameters:')
+        info( json.dumps(template_parameters, indent=2) )
         
     return template_parameters
 #===============================================================================
@@ -202,34 +202,35 @@ def generate( project_path
             # Tell the user what is going on.
             if existing_files:
                 if overwrite:
-                    click.echo("INFO   : The following files are created:")
+                    info("INFO   : The following files are created:")
                     for f in new_files:
-                        click.echo(f"       - {f}")
+                        info(f"       - {f}")
                         shutil.move(os.path.join(tmp,f),f)
-                    click.echo("WARNING: The following files exist already and are overwritten:")
+                    warning("WARNING: The following files exist already and are overwritten:")
                     for f in existing_files:
-                        click.echo(f"         - {f}")
+                        warning(f"         - {f}")
                         os.remove(f)
                         shutil.move(os.path.join(tmp,f),f)                    
                 else:
-                    click.echo("ERROR  : The following files exist already and would be overwritten:")
+                    error("ERROR  : The following files exist already and would be overwritten:")
                     for f in existing_files:
-                        click.echo(f"         - {f}")
-                    click.echo("WARNING: No files were added!")
-                    click.echo("         Add '--overwrite' on the command line to overwrite existing files.")
+                        error(f"         - {f}")
+                    warning("WARNING: No files were added!")
+                    warning("         Add '--overwrite' on the command line to overwrite existing files.")
                     return 1
             else:
-                click.echo("INFO : The following files are created:")
+                info("INFO : The following files are created:")
                 for f in new_files:
-                    click.echo(f"     - {f}")
+                    info(f"     - {f}")
                     shutil.move(os.path.join(tmp,f),f)
             # clean up tmp dir
             shutil.rmtree(tmp)
     return 0
 #===============================================================================
-INFO    = {'fg':'black'}
-WARNING = {'fg':'green'}
-ERROR   = {'fg':'read' }
+INFO    = { 'fg'  :'black'}
+WARNING = { 'fg'  :'blue' }
+ERROR   = { 'fg'  :'red'
+          , 'bold':True   }
 #===============================================================================
 def info(text):
     click.echo(click.style(text,**INFO))
