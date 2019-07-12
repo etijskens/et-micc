@@ -8,15 +8,10 @@ TODO
   that the name was already used on `readthedocs.io`_.
 * micc feature rename project, in case one forgot to check if that project name 
   does not already exist on `readthedocs.io`_ 
-  
-* add cookiecutter template for C++ modules. We need
-   * boost.python (this is compiled and tied to the current Python
-     environment
-   * Numpy
-   * boost.MultiArray (header only)
-   * numpy_boost.hpp and numpy_boost_python.hpp 
-   * a C++ compiler
-   * support for this on on the clusters
+
+* remove dependency on `toml <https://pypi.org/project/toml/>`_ in favor of
+  `tomlkit <https://pypi.org/project/tomlkit/>`_ which comes with poetry.
+  (now that we are fixed poetry issue #1182)
 
 * pypi publishing
 * virtual environments
@@ -60,28 +55,63 @@ History
 v0.5.5 (2019-07-10)
 *******************
 
-* add cookiecutter template for C++ modules. We need:
-   * a C++ compiler (icpc or g++). On my mac i'd like to use GCC installed
-     with ``brew install gcc``. On the cluster i prefer ``icpc`` 
-   * a boost.python library for the python in the environment. Anaconda 
-     cloud provides `boost-cpp v1.70 <https://anaconda.org/conda-forge/boost-cpp>`_,
-     which has 1.76M downloads, so it is certainly worth trying. On the cluster
-     there are boost modules for the Intel Python distribution.
-   * My own ``numpy_boost.hpp`` and ``numpy_boost_python.hpp`` include files can
-     be copied to the package directory.
+* add cookiecutter template for C++ modules. 
+
+We need:
+
+* a C++ compiler (icpc or g++). On my mac i'd like to use GCC installed
+  with ``brew install gcc``, or the g++ that comes with xcode. On the cluster
+  I prefer Intel's ``icpc``.
+* a Boost.Python library for the python in the environment. On the cluster
+  there are  modules with Boost.Python such as the Intel Python distribution. 
+  Building Boost with python isn't particulary easy, so, let's see what Anaconda
+  cloud provides.
+  
+  * `boost-cpp v1.70 <https://anaconda.org/conda-forge/boost-cpp>`_,
+    which has 1.76M downloads, so it is certainly worth trying. 
+    bad luck: does not provide Boost.Python. A pity, I always like to have the
+    latest Boost version.
+    
+  * `libboost <https://anaconda.org/anaconda/libboost>`_: boost v1.67, 
+    not the most recent but certainly ok, unfortunately also no Boost.Python.
+    
+  * `py-boost <https://anaconda.org/anaconda/py-boost>: boost v1.67 and
+    ``libboost_python.dylib`` and ``libboost_python37.dylib``. We used this before. 
      
-* For compiling the module we have several options: 
-   * a build script, as for the f2pymodules, 
-   * a separate makefile, or
-   * suitable targets in the project makefile.
+* The include files ``numpy_boost.hpp`` and ``numpy_boost_python.hpp`` are copied to
+  the ``<package_name>/numpy_boost`` directory. At some time they can be moved
+  to a fixed place in the micc distribution. The user will probably never touch 
+  these files anyway.
+     
+For compiling the module we have several options: 
+
+* a build script, as for the f2pymodules, 
+* a separate makefile, or
+* suitable targets in the project makefile.
  
-* checking on `boost-cpp v1.70 <https://anaconda.org/conda-forge/boost-cpp>`_:
-  bad luck: does not provide boost.python. A pity, I always like to have the latest 
-  version.
-* checking on `libboost <https://anaconda.org/anaconda/libboost>`_: boost v1.67, 
-  not the most recent but certainly ok, unfortunately also no boost.python.
-* checking on `py-boost <https://anaconda.org/anaconda/py-boost>: boost v1.67 and
-  ``libboost_python.dylib`` and ``libboost_python37.dylib``. We used this before.
+For building we use the make system from et/make. For the time being, we
+copy all makefiles into the ``<package_name>/make`` directory. In the end 
+they could be 
+distributed with micc, together with `numpy_boost.hpp`` and 
+``numpy_boost_python.hpp``. Note that the locations of the ``make`` and
+``numpy_boost`` directories are hardcoded as ``./make`` and ``./numpy_boost``
+so that ``make`` must be run in the package directory, for the time being.
+That went fine, however, the issue with py-boost MACOS is still there. See
+``et/numpy_boost/test_numpy_boost/macosx_anaconda_py-boost.md``.
+The problem could be fixed by reverting to python 3.6 using the conda 
+environment created as::
+
+   > conda create -n py-boost python=3.7 py-boost
+   > conda install py-boost python python-3.6.4 -c conda-forge
+
+as suggested `here <https://github.com/pybind/pybind11/issues/1579>`_.
+Make sure to rerun the last line after installing a package
+This fix doesn't seem to work anymore (2019.07.12). Python-3.6.4 is no longer
+available... Hence we look further:
+
+* `https://anaconda.org/anaconda/boost`_ has libboost-python, but not also
+  segfaults. 
+
   
 
 v0.5.4 (2019-07-10)
