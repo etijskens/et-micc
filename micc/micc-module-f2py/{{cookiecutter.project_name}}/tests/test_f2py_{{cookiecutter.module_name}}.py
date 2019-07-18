@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Tests for `{{ cookiecutter.project_name }}.{{ cookiecutter.module_name }}{{ cookiecutter.f2py_suffix }}` package."""
+"""Tests for f2py module `{{ cookiecutter.project_name }}.{{ cookiecutter.module_name }}`."""
 
 import os
 import sys
 import pytest
 
-import {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}{{ cookiecutter.f2py_suffix }} as f90
+import {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }} as f90
 
 # Make sure that the current directory is the project directory.
 # 'make test" and 'pytest' are generally run from the project directory.

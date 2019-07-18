@@ -16,6 +16,14 @@ from micc import __version__
 #===============================================================================
 DEBUG = False
 #===============================================================================
+def path_to_cmake_tools():
+    """
+    return the path to the folder with the CMake tools.
+    """
+    return os.path.join(os.path.dirname(__file__),'cmake_tools')
+#===============================================================================
+# print('path_to_cmake_tools', path_to_cmake_tools())
+#===============================================================================
 def file_not_found_msg(path, looking_for='File'):
     """
     This function constructs an error message for when a file is not found. 
@@ -181,11 +189,14 @@ def generate( project_path
             os_name = platform.system()
             existing_files = []
             new_files = []
-            for root, _, files in os.walk(tmp):
+            all_dirs = [] 
+            for root, dirs, files in os.walk(tmp):
                 if root==tmp:
                     continue
                 else:
                     root2 = os.path.join(*root.split(os.sep)[1:])
+                for d in dirs:
+                    all_dirs.append(os.path.join(root2,d))
                 for f in files:
                     if os_name=="Darwin" and f==".DS_Store":
                         continue
@@ -200,8 +211,11 @@ def generate( project_path
             #   - there are no files to be overwritten, or
             #   - there are files to be overwritten and overwrite is True.
             # Tell the user what is going on.
+            print( all_dirs )
             if existing_files:
                 if overwrite:
+                    for d in all_dirs:
+                        os.makedirs(d,exist_ok=True)
                     info("INFO   : The following files are created:")
                     for f in new_files:
                         info(f"       - {f}")
@@ -210,6 +224,7 @@ def generate( project_path
                     for f in existing_files:
                         warning(f"         - {f}")
                         os.remove(f)
+                        os.makedirs(os.path.dirname(f), exist_ok=True)
                         shutil.move(os.path.join(tmp,f),f)                    
                 else:
                     error("ERROR  : The following files exist already and would be overwritten:")
@@ -219,6 +234,8 @@ def generate( project_path
                             "         Add '--overwrite' on the command line to overwrite existing files.\n")
                     return 1
             else:
+                for d in all_dirs:
+                    os.makedirs(d,exist_ok=False)
                 info("INFO : The following files are created:")
                 for f in new_files:
                     info(f"     - {f}")

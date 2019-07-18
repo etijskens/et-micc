@@ -291,8 +291,9 @@ def micc_module_f2py( module_name
                                                        , module_name=module_name
                                                        , project_name=project_name
                                                        )
-    f2py_suffix = template_parameters['f2py_suffix']
-    module_name = template_parameters['module_name'] + f2py_suffix
+    module_name = template_parameters['module_name']
+    path_to_cmake_tools = utils.path_to_cmake_tools()
+    template_parameters['path_to_cmake_tools'] = path_to_cmake_tools
     
     if not global_options.quiet:
         msg = f"Are you sure to add f2py module '{module_name}' to project '{project_name}'?"
@@ -326,7 +327,7 @@ def micc_module_f2py( module_name
         # docs
         package_name = template_parameters['project_name'].lower().replace('-', '_')
         with open("API.rst","a") as f:
-            f.write(f"\n.. include:: ../{package_name}/{module_name}.rst\n")
+            f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
         if global_options.verbose:
             utils.info(f"INFO: Documentation template for f2py module '{module_name}' added.\n"
                        f"      Because recent versions of sphinx are incompatible with sphinxfortran,\n"

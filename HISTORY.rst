@@ -269,15 +269,24 @@ TODO:
   directory in CMakeLists.txt. Fixed! Finds the pybind11 installed in the current
   Python environment out of the box! (see pybind11 documentation 
   ``Build systems/Building with CMake/find_package vs add_subdirectory)``).
+  done.
 * get rid of the directory cmake_f2py_tools by referring to its location inside
   micc in CMakeLists.txt (we do not want endless copies of these, nor soft links)
-  How can i install the micc CMake files so i can find them in the same way:
-  
-.. code-block:: cmake
-  
-  find_package(micc CONFIG REQUIRED)
+  How can i install the micc CMake files so i can find them in the same way
+  ``find_package(micc CONFIG REQUIRED)``. Playing the trick of pybind11 to install 
+  files into ``/path/to/my_conda_environment/share/pybind11``
+  seems to be non-trivial (`https://github.com/pybind/pybind11/issues/1628`_. Let's see
+  if we can work around this. We can indeed easily work around. The ``micc.utils`` 
+  module now has a function ``path_to_cmake_tools()`` that returns the path to the 
+  cmake_tools directory (using ``__file__``). This path is added to the template 
+  parameters (before they are exported to cookiecutter.json). Then Cookiecutter 
+  knows the path and can insert it in the ``CMakeLists.txt``. Simple, and no loose 
+  ends.
+  done.
   
 * allow for multiple fortran source files?
+
+* check `cppimport <https://github.com/tbenthompson/cppimport>`_
 
 v0.5.4 (2019-07-10)
 *******************

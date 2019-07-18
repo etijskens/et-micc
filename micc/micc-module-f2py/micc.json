@@ -2,12 +2,6 @@
   "module_name"     : {"default":""
                   	  ,"text"   :"name of the module you want to add to this package"
                   	  }
-, "f2py_suffix"     : {"default":"_f2py"
-                  	  ,"text"   :"suffix to identify f2py modules"
-                  	  }
-, "build_prefix"   : {"default":"build_"
-                  	  ,"text"   :"prefix to identify shell script for building with f2pyh."
-                  	  }
 , "project_name"	: {"default":""
   					  ,"text"   :"the name of the project to be created"
   					  }

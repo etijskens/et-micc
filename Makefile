@@ -102,3 +102,10 @@ install: clean dist ## install the package to the active Python's site-packages
 # Uninstall package micc from current Python environment
 uninstall:
 	pip uninstall $(module_name)
+
+#-------------------------------------------------------------------------------
+# Re-install package micc from current Python environment
+reinstall: clean dist
+	yes | pip uninstall $(module_name)
+	pip install dist/$(module_name)-$(version)-py3-none-any.whl
+	
