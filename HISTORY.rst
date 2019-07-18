@@ -111,8 +111,173 @@ available... Hence we look further:
 
 * `https://anaconda.org/anaconda/boost`_ has libboost-python, but not also
   segfaults. 
-
   
+[At this point i checked that the test code works on Leibniz using the Intel
+Python distribution: it does! So the problem is the same as before, but the 
+solution does no longer work.]
+
+I gave up... Started compiling Boost.Python myself. Download the boost version
+you like, and uncompress ::
+
+   > cd ~/software/boost_1_70_0
+   > ./bootstrap.sh --with-python=`which python` --with-libraries="python"
+   > ./b2 toolset=darwin stage
+
+Got errors like::
+
+   ...failed darwin.compile.c++ bin.v2/libs/python/build/darwin-4.2.1/release/python-3.6/threading-multi/visibility-hidden/tuple.o...
+   darwin.compile.c++ bin.v2/libs/python/build/darwin-4.2.1/release/python-3.6/threading-multi/visibility-hidden/str.o
+   In file included from libs/python/src/str.cpp:4:
+   In file included from ./boost/python/str.hpp:8:
+   In file included from ./boost/python/detail/prefix.hpp:13:
+   ./boost/python/detail/wrap_python.hpp:57:11: fatal error: 'pyconfig.h' file not found
+   # include <pyconfig.h>
+             ^~~~~~~~~~~~
+   1 error generated.
+   
+       "g++"   -fvisibility-inlines-hidden -fPIC -m64 -O3 -Wall -fvisibility=hidden -dynamic -gdwarf-2 -fexceptions -Wno-inline  
+       -DBOOST_ALL_NO_LIB=1 -DBOOST_PYTHON_SOURCE -DNDEBUG  -I"." -I"/Users/etijskens/miniconda3/envs/pp2017/include/python3.6m" 
+       -c -o "bin.v2/libs/python/build/darwin-4.2.1/release/python-3.6/threading-multi/visibility-hidden/str.o" 
+       "libs/python/src/str.cpp"
+       
+The -I option specifies the wrong Python location! had to remove the Python 
+configuration in ``~/user-config.jam``.
+
+Still got "pyconfig.h not found errors"::
+
+   ...failed darwin.compile.c++ bin.v2/libs/python/build/darwin-4.2.1/release/python-3.7/threading-multi/visibility-hidden/list.o...
+   darwin.compile.c++ bin.v2/libs/python/build/darwin-4.2.1/release/python-3.7/threading-multi/visibility-hidden/long.o
+   In file included from libs/python/src/long.cpp:5:
+   In file included from ./boost/python/long.hpp:8:
+   In file included from ./boost/python/detail/prefix.hpp:13:
+   ./boost/python/detail/wrap_python.hpp:57:11: fatal error: 'pyconfig.h' file not found
+   # include <pyconfig.h>
+             ^~~~~~~~~~~~
+   1 error generated.
+   
+       "g++"   -fvisibility-inlines-hidden -fPIC -m64 -O3 -Wall -fvisibility=hidden -dynamic -gdwarf-2 
+       -fexceptions -Wno-inline  -DBOOST_ALL_NO_LIB=1 -DBOOST_PYTHON_SOURCE -DNDEBUG  -I"." 
+      -I"/Users/etijskens/miniconda3/envs/ws2/include/python3.7" -c -o 
+      "bin.v2/libs/python/build/darwin-4.2.1/release/python-3.7/threading-multi/visibility-hidden/long.o" 
+      "libs/python/src/long.cpp"       
+
+The -I option specifies ``/Users/etijskens/miniconda3/envs/ws2/include/python3.7`` 
+whereas on my mac it is called ``/Users/etijskens/miniconda3/envs/ws2/include/python3.7m``.
+a soft link ``python3.7`` which links to ``python3.7m`` solves the problem. 
+Alternatively, edit the ``project-config.jam`` file and replace the ``using python :`` line
+with (on a single line, I guess)::
+   
+       using python : 3.7 : /Users/etijskens/miniconda3/envs/ws2/bin/python \
+                    : /Users/etijskens/miniconda3/envs/ws2/include/python3.7m \
+                    : /Users/etijskens/miniconda3/envs/ws2/lib ;
+   
+Now Boost.Python builds fine. The libraries are in ``stage/lib``::
+
+   > ll stage/lib
+   total 13952
+   -rw-r--r--  1 etijskens  staff   935152 Jul 12 12:23 libboost_numpy37.a
+   -rwxr-xr-x  1 etijskens  staff    73852 Jul 12 12:23 libboost_numpy37.dylib*
+   -rw-r--r--  1 etijskens  staff  5750432 Jul 12 12:23 libboost_python37.a
+   -rwxr-xr-x  1 etijskens  staff   374980 Jul 12 12:23 libboost_python37.dylib*
+
+In ``/Users/etijskens/miniconda3/envs/ws2/lib`` create soft links to both 
+libraries::
+
+   > cd /Users/etijskens/miniconda3/envs/ws2/lib
+   > ln -s path/to/boost_1_70_0/stage/lib/libboost_python37.dylib
+   > ln -s path/to/boost_1_70_0/stage/lib/libboost_numpy37.dylib
+
+In ``/Users/etijskens/miniconda3/envs/ws2/include``, if there is no ``boost`` 
+subdirectory, create soft links to 
+libraries::
+
+   > cd /Users/etijskens/miniconda3/envs/ws2/include
+   > ln -s path/to/boost_1_70_0/boost
+
+If there is already a ``boost`` subdirectory::
+
+   > cd /Users/etijskens/miniconda3/envs/ws2/include/boost
+   > ln -s path/to/boost_1_70_0/boost/python.hpp
+   > ln -s path/to/boost_1_70_0/boost/python
+   
+... on Linux this works fine. On my Mac however I keep running into problems.
+
+While googling for a solution, I came across `pybind11 <https://github.com/pybind/pybind11>`_.
+These sections in the readme makes me particularly curious:
+
+* pybind11 is a lightweight header-only library that exposes C++ types in 
+  Python and vice versa, mainly to create Python bindings of existing C++ code. 
+  
+* Think of this library as a tiny self-contained version of Boost.Python with 
+  everything stripped away that isn't relevant for binding generation. Without 
+  comments, the core header files only require ~4K lines of code and depend on 
+  Python (2.7 or 3.x, or PyPy2.7 >= 5.7) and the C++ standard library. This 
+  compact implementation was possible thanks to some of the new C++11 language 
+  features (specifically: tuples, lambda functions and variadic templates). Since 
+  its creation, this library has grown beyond Boost.Python in many ways, leading 
+  to dramatically simpler binding code in many common situations. 
+  
+Works as a charm. Comes with a cross-platform CMake build system that works out
+of the box. Must put a soft link to the pybind11 repository in the project 
+directory for the ``add_subdirectory(pybind11)`` statement to work. (in section 
+"6.3.3 find_package vs. add_subdirectory" of the pybind11 manual, it is stated 
+that this can be overcome with ``find_package(pybind11 REQUIRED)`` (this finds 
+the pybind11 installed in the the current python environment out of the box - 
+which is a good reason to ``conda|pip install pybind11``, rather than check it
+out from github). 
+That releaves me from maintaining the ``make`` stuff i wrote. (With a little bit
+of CMake code for the f2py modules everything becomes much better streamlined and
+the ``et/make`` system is no longer needed.
+
+Had some trouble making it work on Leibniz. CMake's ``FindPythonInterp`` relies on 
+``python-config`` to pick up the location current python executable. Unfortunately,
+the Python environment I was using only defines ``python3-config``, and not 
+``python-config``. That soft link still had to be added. 
+
+Must now figure out how to deal with numpy arrays... There is some interesting
+information in section "11.6 Eigen" of the pybind11 manual, allowing numpy arrays
+to be passed by reference and work with `Eigen <http://eigen.tuxfamily.org>`_ 
+matrices on the C++ side. Using Eigen instead of Boost.MultiArray has the 
+additional advantage that there is some dense and sparse linear algebra routines
+are also available. 
+
+Set ``Boost_INCLUDE_DIR`` and ``Eigen3_INCLUDE_DIR`` in ``pybind11/CMakeLists.txt``.
+Now Eigen tests are run as well and no failures observed.
+
+The fact that cmake does so well, make me wonder if i shouldn't use cmake for the 
+f2py modules as well instead of a shell script that will fail on windows. 
+`Scikit-build <https://github.com/scikit-build>`_ contains a 
+`FindF2py.cmake <https://github.com/scikit-build/scikit-build/blob/master/skbuild/resources/cmake/FindF2PY.cmake>`_
+The tool, however, lets f2py find out the Fortran and C compiler it should use, 
+and does not add any optimisation flags. 
+
+There is a slight catch in using CMake: the filename ``CMakeLists.txt`` is fixed.
+As "fixed"" as in "impossible to change" 
+(see `this <http://cmake.3232098.n2.nabble.com/Changing-name-of-CMakeLists-txt-file-td4408932.html>`_).
+That requires us to have a separate directory for each cpp module we want to add.
+We did not have that restriction with f2py modules. For reasons of consistency,
+we might change that. Module directory names should then, probably, be set as
+``f2py_module`` and ``cpp_module`` rather than the other way around, so modules 
+of the same type appear consecutivel in a directory listing. Sofar, Python modules
+added through ``micc module my_module`` appear as my_module.py in the package directory.
+
+CMake version is working. F2py autoselects the compilers (Fortran and C)
+TODO:
+
+* Fortran compiler options: is -O3 enough? 
+* get rid of the soft link to pybind11 by referring to its installation 
+  directory in CMakeLists.txt. Fixed! Finds the pybind11 installed in the current
+  Python environment out of the box! (see pybind11 documentation 
+  ``Build systems/Building with CMake/find_package vs add_subdirectory)``).
+* get rid of the directory cmake_f2py_tools by referring to its location inside
+  micc in CMakeLists.txt (we do not want endless copies of these, nor soft links)
+  How can i install the micc CMake files so i can find them in the same way:
+  
+.. code-block:: cmake
+  
+  find_package(micc CONFIG REQUIRED)
+  
+* allow for multiple fortran source files?
 
 v0.5.4 (2019-07-10)
 *******************
@@ -177,8 +342,6 @@ document a python module (built from Fortran code with f2py), we expect the user
 enter documentation for the wrapper functions, not for the pure Fortran functions. 
 That goes in the ``<project_name>/<package_name>/<module_f2py>.f90`` file but is 
 not exposed in the project documentation. 
-
-
 
 v0.5.3 (2019-07-09)
 *******************
