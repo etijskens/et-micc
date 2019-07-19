@@ -167,6 +167,9 @@ def generate( project_path
     """
     Generate directory tree according to Cookiecutter template.
     """
+    if template_parameters['package_name'].startswith('{{ '):
+        template_parameters['package_name'] = python_name(template_parameters['project_name'])
+        
     with in_directory(project_path):        
         # write a cookiecutter.json file in the cookiecutter template directory
         cookiecutter_json = os.path.join(template, 'cookiecutter.json')
@@ -175,7 +178,7 @@ def generate( project_path
         
         # run cookiecutter 
         with in_directory(os.path.join(project_path,'..')):
-            # expand the Cookiecutte4r template in a temporary directory,
+            # expand the Cookiecutter template in a temporary directory,
             tmp = '_cookiecutter_tmp_'
             if os.path.exists(tmp):
                 shutil.rmtree(tmp)
@@ -235,7 +238,7 @@ def generate( project_path
                     return 1
             else:
                 for d in all_dirs:
-                    os.makedirs(d,exist_ok=False)
+                    os.makedirs(d,exist_ok=overwrite)
                 info("INFO : The following files are created:")
                 for f in new_files:
                     info(f"     - {f}")

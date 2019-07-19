@@ -1,0 +1,105 @@
+TODO
+====
+
+.. _readthedocs: https://readthedocs.org/
+.. _poetry: https://https://poetry.eustace.io/
+
+
+* Put makefile targets into micc commands and remove micc/makefile? This
+  makes a more uniform interface. Use subprocess or lrcmd for this?
+* Fortran compiler options (while using f2py): is ``-O3`` enough? 
+* allow for multiple fortran source files?
+* check `cppimport <https://github.com/tbenthompson/cppimport>`_
+* undo ``micc app ...``?
+* undo ``micc module ...``?
+* check if project_name exists already on `readthedocs`_, and prompt for a 
+  different name. (My ``utils`` project works fine, but it was to be expected 
+  that the name was already used on `readthedocs`_.
+* micc feature rename project, in case one forgot to check if that project name 
+  does not already exist on `readthedocs`_ 
+* remove dependency on `toml <https://pypi.org/project/toml/>`_ in favor of
+  `tomlkit <https://pypi.org/project/tomlkit/>`_ which comes with poetry.
+  (now that we are fixed poetry issue #1182)
+* pypi publishing
+* virtual environments
+* requirements
+* regression tests
+* Reflect about "do we really need poetry? (see below)
+
+What are we using `poetry`_ for so far?
+---------------------------------------
+
+(... and do we really need it?)
+
+There is a poetry issue on poetry+anaconda python 
+`Any plans to make it work with anaconda python? <https://github.com/sdispater/poetry/issues/190>`_.
+Locally, we are completely relying on Anaconda Python. 
+Consequentially, I am not completely feeling comfortable with it - but it is
+young and very actively developed.
+
+* building wheels (which are used for installing and publishing): 
+  ``poetry build``, typically inside the ``Makefile``. However, I haven't
+  figured out how to go with e.g. f2py modules and C++ modules. 
+  
+* ``poetry.console.commands.VersionCommand`` for updating version strings,
+
+* we are not using 
+   * ``poetry install`` to create a virtual environment
+   * ``poetry run ...`` to run code in that virtual environment
+   
+* We could use ``poetry install`` to create a virtual environment and 
+  point to it in eclipse/pydev so that we will always run our code in that
+  environment
+* tests should probably be run as::
+
+   > poetry run pytest tests/test*
+
+  
+Development plan
+----------------
+
+What do we actually need?
+
+* a standardized development environment
+
+   * click : for command line interfaces
+   * sphinx : for documentation
+   * pytest : for running tests
+   * flake8 : for assuring PEP 8 compatibility
+   * cookiecutter : if we want sth based on existing templates
+   * tox ?
+   * poetry?
+* a standardized way of creating projects for packages and apps.
+* automation of project management tasks, e.g. CI, publishing, ... 
+   
+This package was inspired by
+`Cookiecutter <https://github.com/audreyr/cookiecutter>`_.
+ 
+Inspiration for the project templates came from: 
+
+* `audreyr/cookiecutter-pypackage <https://github.com/audreyr/cookiecutter-pypackage>`_
+* `jacebrowning/template-python <https://github.com/jacebrowning/template-python>`_
+
+Interesting posts:
+
+* Here is a particularly readable and concise text about packaging 
+  `Current State of Python Packaging - 2019 <https://stefanoborini.com/current-status-of-python-packaging/>`_
+  (Pycoder's weekly #372 june 11, by Stefano Borini). The bottom line is: use 
+  `poetry`_. After reading (just part) of the documentation
+  I concluded that poetry solves a lot project management issues in an elegant way.
+  I am likely to become addicted :).
+* version numbers: adhere to `Semantic Versioning <https://semver.org>`_
+
+Think big, start small...
+-------------------------
+Maybe it is a good idea to get everything going locally + github, and add 
+features such as:
+
+* readthedocs,
+* publishing to pypi,  
+* travis,
+* pyup, 
+* ..., 
+
+incrementally.
+  

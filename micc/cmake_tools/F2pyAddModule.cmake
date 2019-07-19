@@ -24,6 +24,6 @@ function(f2py_add_module target_name)
         ${fortran_src_file}
      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
      )
-   install(FILES ${generated_module_file} DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}")
+   install(FILES ${generated_module_file} DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 endfunction()

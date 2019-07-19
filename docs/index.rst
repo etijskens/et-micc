@@ -1,5 +1,6 @@
+################################
 Welcome to micc's documentation!
-================================
+################################
 
 .. toctree::
    :maxdepth: 3
@@ -13,8 +14,9 @@ Welcome to micc's documentation!
    authors
    history
 
+##################
 Indices and tables
-==================
+##################
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`

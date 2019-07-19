@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Build f2py module {{ cookiecutter.project_name }}.{{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
+# Build f2py module {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
 #   > cd _build
 # For a clean build:
 #   > rm -rf * 

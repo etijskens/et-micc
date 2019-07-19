@@ -1,4 +1,13 @@
-! Enter documentation for this module in ``{{ cookiecutter.module_name }}.rst``
+!-------------------------------------------------------------------------------------------------
+! Fortran source code for module {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
+!-------------------------------------------------------------------------------------------------
+! Remarks:
+!   . Enter Python documentation for this module in ``./{{ cookiecutter.module_name }}.rst``.
+!     You might want to check the f2py output for the interfaces of the C-wrapper functions.
+!     It will be autmatically included in the {{ cookiecutter.package_name }} documentation.
+!   . Documument the Fortran routines in this file. This documentation will not be included
+!     in the {{ cookiecutter.package_name }} documentation (because there is no recent sphinx
+!     extension for modern fortran.
 
 subroutine mean_and_stddev(avgstd,x,nx)
   ! Compute average and stddev of all elements of x

@@ -1,76 +1,13 @@
-.. todo::
 
-   Fortran compiler options: is -O3 enough? 
-   
-   allow for multiple fortran source files?
-   
-   check `cppimport <https://github.com/tbenthompson/cppimport>`_
-   
-   
-   undo ``micc app ...``?
-   
-   undo ``micc module ...``?
-   
-   check if project_name exists already on `readthedocs.io`_, and prompt for a 
-   different name. (My ``utils`` project works fine, but it was to be expected 
-   that the name was already used on `readthedocs.io`_.
- 
-   micc feature rename project, in case one forgot to check if that project name 
-   does not already exist on `readthedocs.io`_ 
-   
-   remove dependency on `toml <https://pypi.org/project/toml/>`_ in favor of
-   `tomlkit <https://pypi.org/project/tomlkit/>`_ which comes with poetry.
-   (now that we are fixed poetry issue #1182)
-   
-   pypi publishing
-   
-   virtual environments
-   
-   requirements
-   
-   tox stuff
-   
-   regression tests
-   
-   Reflect about "do we really need poetry? (see below)
-
-What are we using poetry for so far?
-************************************
-
-(... and do we really need it?)
-
-There is a poetry issue on poetry+anaconda python 
-`Any plans to make it work with anaconda python? <https://github.com/sdispater/poetry/issues/190>`_.
-Locally, we are completely relying on Anaconda Python. 
-Consequentially, I am not completely feeling comfortable with it - but it is
-young and very actively developed.
-
-* building wheels (which are used for installing and publishing): 
-  ``poetry build``, typically inside the ``Makefile``. However, I haven't
-  figured out how to go with e.g. f2py modules and C++ modules. 
-  
-* ``poetry.console.commands.VersionCommand`` for updating version strings,
-
-* we are not using 
-   * ``poetry install`` to create a virtual environment
-   * ``poetry run ...`` to run code in that virtual environment
-   
-* We could use ``poetry install`` to create a virtual environment and 
-  point to it in eclipse/pydev so that we will always run our code in that
-  environment
-* tests should probably be run as::
-
-   > poetry run pytest tests/test*
-
-  
+*******
 History
-=======
+*******
 
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
 v0.5.5 (2019-07-10)
-*******************
+===================
 
 * add cookiecutter template for C++ modules. 
 
@@ -121,12 +58,12 @@ environment created as::
    > conda create -n py-boost python=3.7 py-boost
    > conda install py-boost python python-3.6.4 -c conda-forge
 
-as suggested `here <https://github.com/pybind/pybind11/issues/1579>`_.
+as suggested here (`<https://github.com/pybind/pybind11/issues/1579>`_).
 Make sure to rerun the last line after installing a package
 This fix doesn't seem to work anymore (2019.07.12). Python-3.6.4 is no longer
 available... Hence we look further:
 
-* `https://anaconda.org/anaconda/boost`_ has libboost-python, but not also
+* `<https://anaconda.org/anaconda/boost>`_ has libboost-python, but not also
   segfaults. 
   
 [At this point i checked that the test code works on Leibniz using the Intel
@@ -291,7 +228,7 @@ We further accomplished
   How can i install the micc CMake files so i can find them in the same way
   ``find_package(micc CONFIG REQUIRED)``. Playing the trick of pybind11 to install 
   files into ``/path/to/my_conda_environment/share/pybind11``
-  seems to be non-trivial (`https://github.com/pybind/pybind11/issues/1628`_. Let's see
+  seems to be non-trivial (`<https://github.com/pybind/pybind11/issues/1628>`_. Let's see
   if we can work around this. We can indeed easily work around. The ``micc.utils`` 
   module now has a function ``path_to_cmake_tools()`` that returns the path to the 
   cmake_tools directory (using ``__file__``). This path is added to the template 
@@ -311,7 +248,7 @@ Now add the cookiecutter templates for C++ modules
 
 
 v0.5.4 (2019-07-10)
-*******************
+===================
 
 * add cookiecutter template for fortran modules with f2py. We need:
    * f2py, comes with Numpy
@@ -375,7 +312,7 @@ That goes in the ``<project_name>/<package_name>/<module_f2py>.f90`` file but is
 not exposed in the project documentation. 
 
 v0.5.3 (2019-07-09)
-*******************
+===================
 
 * check for overwriting files (we must specify ``overwrite_if_exists`` for 
   cookiecutter because it will already report an error if just the directories
@@ -385,6 +322,7 @@ v0.5.3 (2019-07-09)
   happen.
   We propose that ``micc`` should fail when files are overwritten, and that the 
   command be run again with a ``--force`` option.
+  
   * Maybe, we can monkey patch this problem in cookiecutter. No success.
   * Create a tree of directories and files to be created and check against the 
     pre-existing tree. Seems complicated.
@@ -392,24 +330,24 @@ v0.5.3 (2019-07-09)
     than check for collisions. That seems feasible.
       
 v0.5.2 (2019-07-09)
-*******************
+===================
 
 * add option ``--f2py`` to ``micc module ...``
 
 v0.5.1 (2019-07-09)
-*******************
+===================
 
 * ``micc create ...`` must write a .gitignore file and other configuration
   files. Addition of modules, apps do not change these.
 * Cookiecutter template micc-module-f2py added, no code to use it yet
 
 v0.5.0 (2019-07-04)
-*******************
+===================
 
 * Fixed poetry issue #1182
 
 v0.4.0 (2019-06-11)
-*******************
+===================
 
 * First functional working version with
    
@@ -421,7 +359,7 @@ v0.4.0 (2019-06-11)
   
 
 v0.2.5 (2019-06-11)
-*******************
+===================
 
 * git support
 
@@ -429,7 +367,7 @@ v0.2.5 (2019-06-11)
   * ``micc tag``
 
 v0.2.4 (2019-06-11)
-*******************
+===================
 
 * Makefile improvements:
   
@@ -439,7 +377,7 @@ v0.2.4 (2019-06-11)
   * install-dev/uninstall-dev
 
 v0.2.3 (2019-06-11)
-*******************
+===================
 
 * Using pyproject.toml, instead of the flawed setup.py
 
@@ -448,11 +386,8 @@ v0.2.3 (2019-06-11)
   avoid. There is not pyproject.toml file sofar... 
   
 Moving away from setup.py and going down the pyproject.toml road, we can choose 
-between poetry_ and flit_.
+between `poetry`_ and `flit`_.
   
-.. _poetry: https://github.com/sdispater/poetry  
-.. _flit: https://github.com/takluyver/flit  
-
 Although, I am having some trouble with reusing some poetry code, i have the
 impression that it is better developed, and has a more active community 
 (more watchters, downloads, commits, ...)
@@ -473,7 +408,7 @@ is a good post about that.
   
 * the command `poetry version ...` allows to modify the version string in 
   pyproject.toml. In principle we can recycle that code. However, we could not 
-  get it to work properly (see issue `https://github.com/sdispater/poetry/issues/1182`_).
+  get it to work properly (see issue `<https://github.com/sdispater/poetry/issues/1182>`_).
   This could probably be circumvented by creating my own fork of poetry.
   
   * it is simple to write a hack around this (read the file into a string, 
@@ -520,59 +455,15 @@ See `this post <https://stackoverflow.com/questions/17346619/how-to-uninstall-ed
 
    
 v0.1.21 (2019-06-11)
-********************
+====================
 
 first working version
 
 v0.0.0 (2019-06-06)
-*******************
+===================
 
 Start of development.
 
-Development plan
-----------------
+.. include:: ../TODO.rst
 
-What do we actually need?
-
-* a standardized development environment
-
-   * click : for command line interfaces
-   * sphinx : for documentation
-   * pytest : for running tests
-   * flake8 : for assuring PEP 8 compatibility
-   * cookiecutter : if we want sth based on existing templates
-   * tox ?
-   * poetry?
-* a standardized way of creating projects for packages and apps.
-* automation of project management tasks, e.g. CI, publishing, ... 
-   
-This package was inspired by
-`Cookiecutter <https://github.com/audreyr/cookiecutter>`_.
- 
-Inspiration for the project templates came from: 
-
-* `audreyr/cookiecutter-pypackage <https://github.com/audreyr/cookiecutter-pypackage>`_
-* `jacebrowning/template-python <https://github.com/jacebrowning/template-python>`_
-
-Interesting posts:
-
-* Here is a particularly readable and concise text about packaging 
-  `Current State of Python Packaging - 2019 <https://stefanoborini.com/current-status-of-python-packaging/>`_
-  (Pycoder's weekly #372 june 11, by Stefano Borini). The bottom line is: use 
-  `poetry <https://poetry.eustace.io>`_. After reading (just part) of the documentation
-  I concluded that poetry solves a lot project management issues in an elegant way.
-  I am likely to become addicted :).
-* version numbers: adhere to `Semantic Versioning <https://semver.org>`_
-
-Think big, start small...
--------------------------
-Maybe it is a good idea to get everything going locally + github, and add 
-features such as:
-
-* readthedocs,
-* publishing to pypi,  
-* travis,
-* pyup, 
-* ..., 
-
-incrementally.
+.. _flit: https://github.com/takluyver/flit  

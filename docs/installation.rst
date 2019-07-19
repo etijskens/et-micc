@@ -1,10 +1,12 @@
 .. highlight:: shell
 
+
+************
 Installation
-============
+************
 
 Stable release
-**************
+==============
 
 To install micc, run this command in your terminal:
 
@@ -22,7 +24,7 @@ you through the process.
 
 
 From sources
-************
+============
 
 The sources for micc can be downloaded from the `Github repo`_.
 

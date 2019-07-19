@@ -2,10 +2,10 @@
   "module_name"		: {"default":""
                   	  ,"text"   :"name of the module you want to add to this package"
                   	  }
-, "project_name"	: {"default":""
+, "package_name"    : {"default":"{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}"
   					  ,"text"   :"the name of the project to be created"
   					  }
-, "package_name"    : {"default":"{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}"
+, "project_name"	: {"default":""
   					  ,"text"   :"the name of the project to be created"
   					  }
 }
