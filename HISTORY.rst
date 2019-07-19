@@ -1,24 +1,38 @@
-TODO
-====
+.. todo::
 
-* undo ``micc app ...``?
-* undo ``micc module ...``?
-* check if project_name exists already on `readthedocs.io`_, and prompt for a 
-  different name. (My ``utils`` project works fine, but it was to be expected 
-  that the name was already used on `readthedocs.io`_.
-* micc feature rename project, in case one forgot to check if that project name 
-  does not already exist on `readthedocs.io`_ 
-
-* remove dependency on `toml <https://pypi.org/project/toml/>`_ in favor of
-  `tomlkit <https://pypi.org/project/tomlkit/>`_ which comes with poetry.
-  (now that we are fixed poetry issue #1182)
-
-* pypi publishing
-* virtual environments
-* requirements
-* tox stuff
-* regression tests
-
+   Fortran compiler options: is -O3 enough? 
+   
+   allow for multiple fortran source files?
+   
+   check `cppimport <https://github.com/tbenthompson/cppimport>`_
+   
+   
+   undo ``micc app ...``?
+   
+   undo ``micc module ...``?
+   
+   check if project_name exists already on `readthedocs.io`_, and prompt for a 
+   different name. (My ``utils`` project works fine, but it was to be expected 
+   that the name was already used on `readthedocs.io`_.
+ 
+   micc feature rename project, in case one forgot to check if that project name 
+   does not already exist on `readthedocs.io`_ 
+   
+   remove dependency on `toml <https://pypi.org/project/toml/>`_ in favor of
+   `tomlkit <https://pypi.org/project/tomlkit/>`_ which comes with poetry.
+   (now that we are fixed poetry issue #1182)
+   
+   pypi publishing
+   
+   virtual environments
+   
+   requirements
+   
+   tox stuff
+   
+   regression tests
+   
+   Reflect about "do we really need poetry? (see below)
 
 What are we using poetry for so far?
 ************************************
@@ -51,6 +65,9 @@ young and very actively developed.
   
 History
 =======
+
+This section summarizes all my steps on the way to a working micc,
+including dead-ends.
 
 v0.5.5 (2019-07-10)
 *******************
@@ -262,9 +279,8 @@ of the same type appear consecutivel in a directory listing. Sofar, Python modul
 added through ``micc module my_module`` appear as my_module.py in the package directory.
 
 CMake version is working. F2py autoselects the compilers (Fortran and C)
-TODO:
+We further accomplished
 
-* Fortran compiler options: is -O3 enough? 
 * get rid of the soft link to pybind11 by referring to its installation 
   directory in CMakeLists.txt. Fixed! Finds the pybind11 installed in the current
   Python environment out of the box! (see pybind11 documentation 
@@ -284,9 +300,15 @@ TODO:
   ends.
   done.
   
-* allow for multiple fortran source files?
+The approach to expose the ``micc/cmake_tools`` directory to the ``CMakeLists.txt``
+of an fpy module through ``utils.path_to_cmake_tools()`` is a bit static as it 
+hardcodes the path of the micc version that was use to create the module. If it 
+changes, because that micc version is moved, or because development continues in 
+another python environment, the build will fail. Instead we rely on the CMake 
+variable ``${PYTHON_SITE_PACKAGES}`` and append ``/micc/cmake_tools`` to it.
+  
+Now add the cookiecutter templates for C++ modules
 
-* check `cppimport <https://github.com/tbenthompson/cppimport>`_
 
 v0.5.4 (2019-07-10)
 *******************
