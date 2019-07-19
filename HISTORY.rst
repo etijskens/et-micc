@@ -6,7 +6,21 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.5 (2019-07-10)
+v0.5.6 (2019-?????)
+===================
+
+Currently, we can do::
+
+   > micc module bar
+   > micc module bar --f2py
+   > micc module bar --cpp
+   
+without error, in arbitrary order. However, the f2py module and the C++ module 
+will generate the same ``bar.<something>.so`` file in the package folder, which 
+is obviously wrong. In addition the .so files will be in conflict with ``bar.py``.
+
+
+v0.5.5 (2019-07-19)
 ===================
 
 * add cookiecutter template for C++ modules. 
@@ -245,6 +259,8 @@ another python environment, the build will fail. Instead we rely on the CMake
 variable ``${PYTHON_SITE_PACKAGES}`` and append ``/micc/cmake_tools`` to it.
   
 Now add the cookiecutter templates for C++ modules
+
+Tested f2py and cpp modules and their test scripts.
 
 
 v0.5.4 (2019-07-10)

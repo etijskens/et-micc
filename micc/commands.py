@@ -165,6 +165,7 @@ def micc_app( app_name
                               , template
                               , template_parameters
                               , overwrite
+                              , quiet=global_options.quiet
                               )
     if exit_code:
         return exit_code
@@ -221,20 +222,14 @@ def micc_module( module_name
     if not utils.is_project_directory(project_path):
         raise NotAProjectDirectory(project_path)
 
-    project_name = os.path.basename(project_path)        
+    project_name = os.path.basename(project_path)     
     template_parameters = utils.get_template_parameters( template, micc_file
                                                        , module_name=module_name
                                                        , project_name=project_name
                                                        )   
     module_name = template_parameters['module_name']
-    if not global_options.quiet:
-        msg = f"Are you sure to add module '{module_name}' to project '{project_name}'?"
-        if not click.confirm(msg,default=False):
-            click.echo(f"Canceled: 'micc module {module_name}'")
-            return CANCEL
-        else:
-            click.echo("Proceeding...")
-            
+    template_parameters['module_kind'] = 'python'
+    
     py_name = utils.python_name(module_name)
     if not py_name==module_name:
         msg  = f"Not a valid module name: {module_name}\n"
@@ -245,13 +240,12 @@ def micc_module( module_name
         else:
             module_name = py_name
             template_parameters['module_name'] = py_name
-
            
-    click.echo(f"Adding Python module '{module_name}' to project '{project_name}':")
     exit_code = utils.generate( project_path
                               , template
                               , template_parameters
                               , overwrite
+                              , quiet=global_options.quiet
                               )
     if exit_code:
         return exit_code
@@ -292,16 +286,9 @@ def micc_module_f2py( module_name
                                                        , project_name=project_name
                                                        )
     module_name = template_parameters['module_name']
+    template_parameters['module_kind'] = 'f2py'
     template_parameters['path_to_cmake_tools'] = utils.path_to_cmake_tools()
-    
-    if not global_options.quiet:
-        msg = f"Are you sure to add f2py module '{module_name}' to project '{project_name}'?"
-        if not click.confirm(msg,default=False):
-            click.echo(f"Canceled: 'micc module {module_name}'")
-            return CANCEL
-        else:
-            click.echo("Proceeding...")
-            
+                
     py_name = utils.python_name(module_name)
     if not py_name==module_name:
         msg  = f"Not a valid module name: {module_name}\n"
@@ -313,11 +300,11 @@ def micc_module_f2py( module_name
             module_name = py_name
             template_parameters['module_name'] = py_name
 
-    click.echo(f"Adding f2py module '{module_name}' to project '{project_name}'")
     exit_code = utils.generate( project_path
                               , template
                               , template_parameters
                               , overwrite
+                              , quiet=global_options.quiet
                               )
     if exit_code:
         return exit_code
@@ -361,15 +348,8 @@ def micc_module_cpp( module_name
                                                        , project_name=project_name
                                                        )
     module_name = template_parameters['module_name']
+    template_parameters['module_kind'] = 'cpp'
     
-    if not global_options.quiet:
-        msg = f"Are you sure to add C++ module '{module_name}' to project '{project_name}'?"
-        if not click.confirm(msg,default=False):
-            click.echo(f"Canceled: 'micc module {module_name}'")
-            return CANCEL
-        else:
-            click.echo("Proceeding...")
-            
     py_name = utils.python_name(module_name)
     if not py_name==module_name:
         msg  = f"Not a valid module name: {module_name}\n"
@@ -381,11 +361,11 @@ def micc_module_cpp( module_name
             module_name = py_name
             template_parameters['module_name'] = py_name
 
-    click.echo(f"Adding C++ module '{module_name}' to project '{project_name}'")
     exit_code = utils.generate( project_path
                               , template
                               , template_parameters
                               , overwrite
+                              , quiet=global_options.quiet
                               )
     if exit_code:
         return exit_code

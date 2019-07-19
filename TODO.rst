@@ -8,7 +8,9 @@ TODO
 * Put makefile targets into micc commands and remove micc/makefile? This
   makes a more uniform interface. Use subprocess or lrcmd for this?
 * Fortran compiler options (while using f2py): is ``-O3`` enough? 
-* allow for multiple fortran source files?
+* allow for multiple Fortran/C++ source files?
+* how to add external projects for f2py and C++ modules (include files,
+  libraries)?
 * check `cppimport <https://github.com/tbenthompson/cppimport>`_
 * undo ``micc app ...``?
 * undo ``micc module ...``?
