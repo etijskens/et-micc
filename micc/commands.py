@@ -417,12 +417,12 @@ def micc_version(project_path='.', rule=None, global_options=_global_options):
     pyproject_toml = toml.load(path_to_pyproject_toml)
     project_name    = pyproject_toml['tool']['poetry']['name']
     current_version = pyproject_toml['tool']['poetry']['version']
-    new_version = VersionCommand().increment_version(current_version, rule)
     package_name    = utils.python_name(project_name)
 
     if rule is None:
         click.echo(f"Current version: {project_name} v{current_version}")
     else:
+        new_version = VersionCommand().increment_version(current_version, rule)
         if not global_options.quiet:
             msg = f"Package {project_name} v{current_version}\n"\
                   f"Are you sure to move to v{new_version}'?"
