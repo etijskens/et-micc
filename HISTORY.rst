@@ -6,7 +6,7 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.6 (2019-?????)
+v0.5.6 (2019-07-19)
 ===================
 
 Currently, we can do::
