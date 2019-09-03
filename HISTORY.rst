@@ -9,7 +9,7 @@ including dead-ends.
 v0.5.6 (2019-07-19)
 ===================
 
-Currently, we can do::
+in v0.5.5, we could do::
 
    > micc module bar
    > micc module bar --f2py
@@ -19,6 +19,7 @@ without error, in arbitrary order. However, the f2py module and the C++ module
 will generate the same ``bar.<something>.so`` file in the package folder, which 
 is obviously wrong. In addition the .so files will be in conflict with ``bar.py``.
 
+This version fixes this problem.
 
 v0.5.5 (2019-07-19)
 ===================

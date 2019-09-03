@@ -2,8 +2,7 @@ TODO
 ====
 
 .. _readthedocs: https://readthedocs.org/
-.. _poetry: https://https://poetry.eustace.io/
-
+.. _poetry: https://poetry.eustace.io/
 
 * Put makefile targets into micc commands and remove micc/makefile? This
   makes a more uniform interface. Use subprocess or lrcmd for this?
@@ -28,22 +27,33 @@ TODO
 * regression tests
 * Reflect about "do we really need poetry? (see below)
 
-What are we using `poetry`_ for so far?
----------------------------------------
-
-(... and do we really need it?)
+Poetry considerations
+------------------------
+* What are we using `poetry`_ for?
+* Do we really need it?
+* Maybe we should wait a bit for poetry to mature, before we start building our
+  micc project around it.
+* Maybe we should decouple micc and `poetry`_?
+* Maybe we should still use ``setup.py`` rather than `poetry`_ because it is
+  well established?
 
 There is a poetry issue on poetry+anaconda python 
 `Any plans to make it work with anaconda python? <https://github.com/sdispater/poetry/issues/190>`_.
 Locally, we are completely relying on Anaconda Python. 
-Consequentially, I am not completely feeling comfortable with it - but it is
-young and very actively developed.
+Consequentially, I am not completely feeling comfortable with `poetry`_` - but it is
+very actively developed.
 
-* building wheels (which are used for installing and publishing): 
+Anaconda Python used to be very convenient, but maybe the standard python+pip+virtualenv is good
+enough today? One advantage anaconda python still has is that its numpy
+well aligned numpy arrays which is in favor of vectorization.
+
+So far we use `poetry`_ for:
+
+* **building wheels** (which are used for installing and publishing):
   ``poetry build``, typically inside the ``Makefile``. However, I haven't
   figured out how to go with e.g. f2py modules and C++ modules. 
   
-* ``poetry.console.commands.VersionCommand`` for updating version strings,
+* ``poetry.console.commands.VersionCommand`` for **updating version strings**
 
 * we are not using 
    * ``poetry install`` to create a virtual environment
@@ -56,7 +66,6 @@ young and very actively developed.
 
    > poetry run pytest tests/test*
 
-  
 Development plan
 ----------------
 
