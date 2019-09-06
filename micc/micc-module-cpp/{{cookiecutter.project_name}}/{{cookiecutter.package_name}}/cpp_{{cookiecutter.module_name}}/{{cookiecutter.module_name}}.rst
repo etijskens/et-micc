@@ -1,10 +1,10 @@
-This file documents a python module built from Fortran code with f2py.
-You should document the Python interfaces, *NOT* the Fortran interfaces.
+This file documents a python module built from C++ code with pybind11.
+You should document the Python interfaces, *NOT* the C++ interfaces.
 
 Module {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
 *********************************************************************
 
-Module {{ cookiecutter.module_name }} built from fortran code in ``f2py_{{ cookiecutter.module_name }}/{{ cookiecutter.module_name }}.f90``.
+Module {{ cookiecutter.module_name }} built from C++ code in ``cpp_{{ cookiecutter.module_name }}/{{ cookiecutter.module_name }}.cpp``.
 
 method {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}.add(x,y,z)
 --------------------------------------------------------------------------------

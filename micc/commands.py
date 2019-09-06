@@ -371,14 +371,17 @@ def micc_module_cpp( module_name
         return exit_code
 
     with in_directory(project_path):
-        pass
         # docs
-#         package_name = template_parameters['project_name'].lower().replace('-', '_')
-#         with open("API.rst","a") as f:
-#             f.write(f"\n.. automodule:: {package_name}.{module_name}")
-#             f.write( "\n   :members:\n\n")
-#         if global_options.verbose:
-#             utils.info(f"INFO: documentation for C++ module '{module_name}' added.")
+        package_name = template_parameters['project_name'].lower().replace('-', '_')
+        with open("API.rst","a") as f:
+            f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
+        if global_options.verbose:
+            utils.info(f"INFO: Documentation template for cpp module '{module_name}' added.\n"
+                       f"      Because recent versions of sphinx are incompatible with sphinxfortran,\n"
+                       f"      you are required to enter the documentation manually in file\n"
+                       f"      '{project_name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
+                       f"      A suitable example is pasted.\n"
+                      )
     return 0
 #===============================================================================
 def micc_version(project_path='.', rule=None, global_options=_global_options):
