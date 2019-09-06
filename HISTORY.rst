@@ -6,13 +6,17 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.7 (2019-09-??)
+v0.5.9 (2019-09-06)
 ===================
+fixed issue #1
 
-We can now create projects containing python modules, f2py modules and C++ modules.
-How these modules are packaged and published to PyPI is still a bit unclear to me. Let's
-first study this topic a bit.
+v0.5.8 (2019-09-06)
+===================
+fixed issue #3 for cpp modules
 
+v0.5.7 (2019-09-06)
+===================
+fixed issue #3 for f2py modules
 
 v0.5.6 (2019-07-19)
 ===================

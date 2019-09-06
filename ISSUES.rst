@@ -1,38 +1,10 @@
 Open Issues
 ===========
 
-#1 [bug] FileExistsError in micc module
----------------------------------------
-in v0.5.6:
-
-The commands::
-
-    > micc module --f2py <module_name>
-    > micc module --cpp <module_name>
-
-generate::
-
-    FileExistsError: [Errno 17] File exists: '<package_name>/tests'
-
-if the flag ``--overwrite`` is not specified. This behavior is incorrect.
-Only if existing **files** are overwritten an exception must be raised, not
-when a new file is added to an existing directory.
-
 #2 [feature] simple python project
 ----------------------------------
 add ``--simple`` flag to ``micc create`` to create a simple (=unnested) python module ``<package_name>.py``
-instead of the nested ``<package_name/>__init__.py``
-
-#3 [feature] add useful example code to templates
--------------------------------------------------
-Put more useful example code in
-
-* ``cpp_{{cookiecutter.module_name}}/{{cookiecutter.module_name}}.cpp`` -> added in  v0.5.7.
-* ``f2py_{{cookiecutter.module_name}}/{{cookiecutter.module_name}}.f90``
-
-as well as in the corresponding test files.
-
-
+instead of the nested ``<package_name/>__init__.py`
 
 #4 [bug] build commands for f2py and cpp modules
 ------------------------------------------------
@@ -83,3 +55,29 @@ how does poetry deal with binary extensions?
 
 Closed Issues
 =============
+#1 [bug] FileExistsError in micc module
+---------------------------------------
+in v0.5.6:
+
+The commands::
+
+    > micc module --f2py <module_name>
+    > micc module --cpp <module_name>
+
+generate::
+
+    FileExistsError: [Errno 17] File exists: '<package_name>/tests'
+
+if the flag ``--overwrite`` is not specified. This behavior is incorrect.
+Only if existing **files** are overwritten an exception must be raised, not
+when a new file is added to an existing directory.
+
+#3 [feature] add useful example code to templates
+-------------------------------------------------
+Put more useful example code in
+
+* ``cpp_{{cookiecutter.module_name}}/{{cookiecutter.module_name}}.cpp`` -> added in  v0.5.7.
+* ``f2py_{{cookiecutter.module_name}}/{{cookiecutter.module_name}}.f90``
+
+as well as in the corresponding test files.
+
