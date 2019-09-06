@@ -255,7 +255,7 @@ def generate( project_path
                 info(f"Adding {module_kind} module '{module_name}' to package '{package_name}':")
                         
                 for d in all_dirs:
-                    os.makedirs(d,exist_ok=overwrite)
+                    os.makedirs(d,exist_ok=True)
                 info("INFO : The following files are created:")
                 for f in new_files:
                     info(f"     - {f}")
