@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "micc"
-version = "0.5.7"
+version = "0.5.8"
 description = "A practical Python project skeleton generator."
 authors = ["Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>"]
 license = "MIT"
