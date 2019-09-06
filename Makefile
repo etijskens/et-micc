@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # This makefile automates a number of tasks for the developer of this Python
-# package.\
+# package.
 # This makefile is meant to be run in the project directory (not elsewhere) as:
 #   > make <target>
 #-------------------------------------------------------------------------------

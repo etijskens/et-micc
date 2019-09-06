@@ -1,6 +1,5 @@
 TODO
 ====
-
 .. _readthedocs: https://readthedocs.org/
 .. _poetry: https://poetry.eustace.io/
 
@@ -113,4 +112,4 @@ features such as:
 * ..., 
 
 incrementally.
-  
+

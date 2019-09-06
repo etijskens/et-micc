@@ -6,6 +6,14 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.5.7 (2019-09-??)
+===================
+
+We can now create projects containing python modules, f2py modules and C++ modules.
+How these modules are packaged and published to PyPI is still a bit unclear to me. Let's
+first study this topic a bit.
+
+
 v0.5.6 (2019-07-19)
 ===================
 
@@ -19,7 +27,8 @@ without error, in arbitrary order. However, the f2py module and the C++ module
 will generate the same ``bar.<something>.so`` file in the package folder, which 
 is obviously wrong. In addition the .so files will be in conflict with ``bar.py``.
 
-This version fixes this problem.
+This version fixes this problem by verifying that the module name is not already
+in use. If it is, an exception is raised.
 
 v0.5.5 (2019-07-19)
 ===================
@@ -175,7 +184,7 @@ While googling for a solution, I came across `pybind11 <https://github.com/pybin
 These sections in the readme makes me particularly curious:
 
 * pybind11 is a lightweight header-only library that exposes C++ types in 
-  Python and vice versa, mainly to create Python bindings of existing C++ code. 
+  Python and vice versa, mainly to create Python bindings of existing C++ code.
   
 * Think of this library as a tiny self-contained version of Boost.Python with 
   everything stripped away that isn't relevant for binding generation. Without 
@@ -185,7 +194,9 @@ These sections in the readme makes me particularly curious:
   features (specifically: tuples, lambda functions and variadic templates). Since 
   its creation, this library has grown beyond Boost.Python in many ways, leading 
   to dramatically simpler binding code in many common situations. 
-  
+
+* Find some examples of its use in `Using pybind11 <http://people.duke.edu/~ccc14/cspy/18G_C++_Python_pybind11.html>`_
+
 Works as a charm. Comes with a cross-platform CMake build system that works out
 of the box. Must put a soft link to the pybind11 repository in the project 
 directory for the ``add_subdirectory(pybind11)`` statement to work. (in section 
@@ -481,6 +492,7 @@ v0.0.0 (2019-06-06)
 
 Start of development.
 
-.. include:: ../TODO.rst
+.. include:: ./ISSUES.rst
+.. include:: ./TODO.rst
 
 .. _flit: https://github.com/takluyver/flit  
