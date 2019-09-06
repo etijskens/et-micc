@@ -27,17 +27,19 @@ instead of the nested ``<package_name/>__init__.py``
 -------------------------------------------------
 Put more useful example code in
 
-* ``cpp_{{cookiecutter.module_name}}/{{cookiecutter.module_name}}.cpp``
+* ``cpp_{{cookiecutter.module_name}}/{{cookiecutter.module_name}}.cpp`` -> added in  v0.5.7.
 * ``f2py_{{cookiecutter.module_name}}/{{cookiecutter.module_name}}.f90``
 
 as well as in the corresponding test files.
+
+
 
 #4 [bug] build commands for f2py and cpp modules
 ------------------------------------------------
 ``<package_name>/Makefile`` contains wrong builder for f2py modules and no builder for
 cpp modules.
 
-Running CMake build from the command line::
+Running CMake build from the ccd ..ommand line::
 
     > cd <package_name>/cpp_<module_name>
     > mkdir build_
