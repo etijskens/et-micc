@@ -43,7 +43,7 @@ def test_cpp_add():
 # (normally all tests are run with pytest)
 #===============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_cpp_function
+    the_test_you_want_to_debug = test_cpp_add
 
     print(f"__main__ running {the_test_you_want_to_debug} ...")
     the_test_you_want_to_debug()

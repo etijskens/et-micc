@@ -7,9 +7,6 @@ Tests for f2py module `{{ cookiecutter.project_name }}.{{ cookiecutter.module_na
 
 import os
 import sys
-import pytest
-
-import numpy as np
 #===============================================================================
 # Make sure that the current directory is the project directory.
 # 'make test" and 'pytest' are generally run from the project directory.
@@ -28,24 +25,22 @@ if not ('.' in sys.path or os.getcwd() in sys.path):
     sys.path.insert(0, '.')
 #================================================================================
 import {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }} as f90
+import numpy as np
 #===============================================================================
-def test_f90_subroutine():
-    """
-    Test a f90 subroutine.
-    """
-    x = np.array([1.,2.,3.], dtype=np.float)
-    results = np.zeros((2,), dtype=np.float)
-    f90.mean_and_stddev(results,x)
-    print(results)
-    expected = np.array([2., np.sqrt(14/3 - 4)])
-    for i in range(2):
-        assert abs(results[i] - expected[i]) < 1e-6
+def test_f90_add():
+    x = np.array([0,1,2,3,4],dtype=np.float)
+    shape = x.shape
+    y = np.ones (shape,dtype=np.float)
+    z = np.zeros(shape,dtype=np.float)
+    expected_z = x + y
+    f90.add(x,y,z)
+    assert (z == expected_z).all()
 #===============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 #===============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_f90_subroutine
+    the_test_you_want_to_debug = test_f90_add
 
     print(f"__main__ running {the_test_you_want_to_debug} ...")
     the_test_you_want_to_debug()

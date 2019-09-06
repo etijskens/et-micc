@@ -36,12 +36,11 @@ add ( py::array_t<double> x
     {
         throw std::runtime_error("Input shapes must match");
     }
-    
-    //fix const 
-    double *ptrx = (double *) bufx.ptr
-         , *ptry = (double *) bufy.ptr
-         , *ptrz = (double *) bufz.ptr
-         ;
+ // because the Numpy arrays are mutable by default, py::array_t is mutable too.
+ // Below we declare the raw C++ arrays for x and y as const to make their intent clear.
+    double const *ptrx = static_cast<double const *>(bufx.ptr);
+    double const *ptry = static_cast<double const *>(bufy.ptr);
+    double       *ptrz = static_cast<double       *>(bufz.ptr);
 
     for (size_t i = 0; i < bufx.shape[0]; i++)
         ptrz[i] = ptrx[i] + ptry[i];
