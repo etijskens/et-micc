@@ -68,6 +68,7 @@ as well as in the corresponding test files.
 
 #4 [bug] build commands for f2py and cpp modules
 ------------------------------------------------
+in 0.5.10
 ``<package_name>/Makefile`` contains wrong builder for f2py modules and no builder for
 cpp modules.
 
