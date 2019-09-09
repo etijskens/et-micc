@@ -4,8 +4,10 @@ Main module.
 """
 #===============================================================================
 import os
+import sysconfig
 import json
 import subprocess
+from shutil import copyfile
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
@@ -485,5 +487,61 @@ def micc_tag(project_path='.', global_options=_global_options):
         click.echo(completed_process.stdout)
         if completed_process.stderr:
             click.echo(completed_process.stderr)
+    return 0
+#===============================================================================
+def micc_build(project_path='.', soft_link=False, global_options=_global_options):
+    """
+    Build all binary extions, i.e. f2py modules and cpp modules.
+    
+    :param str project_path: path to the project that must be tagged. 
+    """
+    if not utils.is_project_directory(project_path):
+        raise NotAProjectDirectory(project_path)
+    
+    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
+    pyproject_toml = toml.load(path_to_pyproject_toml)
+    project_name    = pyproject_toml['tool']['poetry']['name']
+#     current_version = pyproject_toml['tool']['poetry']['version']
+    package_name    = utils.python_name(project_name)
+    package_dir = os.path.join(project_path,package_name)
+
+    my_env = os.environ.copy()
+    extension_suffix = sysconfig.get_config_var('EXT_SUFFIX')
+    
+    dirs = os.listdir(package_dir)
+    for d in dirs:
+        if os.path.isdir(os.path.join(package_dir,d)) and (d.startswith("f2py_") or d.startswith("cpp_")):
+            module_type,module_name = d.split('_',1)
+            click.echo(f"\nBuilding {module_type} {module_name}:\n")
+            build_dir = os.path.join(package_dir,d,'build_')
+            os.makedirs(build_dir,exist_ok=True)
+            with utils.in_directory(build_dir):
+                cextension = module_name + extension_suffix
+                destination = os.path.join('..','..',cextension)
+                cmds = [ ['cmake','CMAKE_BUILD_TYPE','=','RELEASE', '..']
+                       , ['make']
+                       ]
+                if soft_link:
+                    cmds.append(['ln', '-sf', os.path.abspath(cextension), destination])
+                else:
+                    if os.path.exists(destination):
+                        click.echo(f"micc build : {module_type} >>> os.remove({destination})\n")
+                        os.remove(destination)
+                # WARNING: for these commands to work in eclipse, eclipse must have
+                # started from the shell with the appropriate environment activated.
+                # Otherwise subprocess starts out with the wrong environment. It 
+                # may not pick the right Python version, and may not find pybind11.
+                for cmd in cmds:
+                    click.echo(f'micc build : {module_type} > ' + ' '.join(cmd))
+                    completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)
+                    click.echo(completed_process.stdout)
+                    if completed_process.stderr:
+                        click.echo(completed_process.stderr)
+                        break
+                if not soft_link:
+                    click.echo(f"micc build : {module_type} >>> shutil.copyfile({cextension}, {destination})\n")
+                    copyfile(cextension, destination)
+                click.echo
+    
     return 0
 #===============================================================================

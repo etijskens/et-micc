@@ -4,22 +4,7 @@ Open Issues
 #2 [feature] simple python project
 ----------------------------------
 add ``--simple`` flag to ``micc create`` to create a simple (=unnested) python module ``<package_name>.py``
-instead of the nested ``<package_name/>__init__.py`
-
-#4 [bug] build commands for f2py and cpp modules
-------------------------------------------------
-``<package_name>/Makefile`` contains wrong builder for f2py modules and no builder for
-cpp modules.
-
-Running CMake build from the ccd ..ommand line::
-
-    > cd <package_name>/cpp_<module_name>
-    > mkdir build_
-    > cd build_
-    > cmake CMAKE_BUILD_TYPE=RELEASE ..
-    > make
-
-Then, either copy the ``.so`` file to ``<package_name>``, or make a softlink.
+instead of the nested ``<package_name/>__init__.py``
 
 #5 [feature] packaging and deployment
 -------------------------------------
@@ -80,4 +65,19 @@ Put more useful example code in
 * ``f2py_{{cookiecutter.module_name}}/{{cookiecutter.module_name}}.f90``
 
 as well as in the corresponding test files.
+
+#4 [bug] build commands for f2py and cpp modules
+------------------------------------------------
+``<package_name>/Makefile`` contains wrong builder for f2py modules and no builder for
+cpp modules.
+
+Running CMake build from the ccd ..ommand line::
+
+    > cd <package_name>/cpp_<module_name>
+    > mkdir build_
+    > cd build_
+    > cmake CMAKE_BUILD_TYPE=RELEASE ..
+    > make
+
+Then, either copy the ``.so`` file to ``<package_name>``, or make a softlink.
 

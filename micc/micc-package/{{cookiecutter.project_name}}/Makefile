@@ -82,7 +82,7 @@ coverage: ## check code coverage quickly with the default Python
 	$(BROWSER) htmlcov/index.html
 
 # Generate Sphinx HTML documentation, including API docs
-docs: 
+docs:
 	cd docs && make html
 	$(BROWSER) docs/_build/html/index.html
 
@@ -91,14 +91,6 @@ servedocs: docs ## compile the docs watching for changes
 
 release: dist ## package and upload a release
 	twine upload dist/*
-
-#-------------------------------------------------------------------------------
-# Build TARGETS
-#-------------------------------------------------------------------------------
-# build all f2py modules
-# (two $$ are necessary for a bash variable in a makfile)
-f2py:
-	cd $(module_name); for sh in build_*_f2py.sh; do echo $${sh}; ./$${sh}; done
 
 #-------------------------------------------------------------------------------
 # INSTALLATION TARGETS
@@ -110,19 +102,19 @@ dist: clean ## builds source and wheel package
 #-------------------------------------------------------------------------------
 # Install package {{cookiecutter.package_name}} in the current Python
 # environment.
-install: clean 
+install: clean
 	pip install dist/$(module_name)-$(version)-py3-none-any.whl
 
 #-------------------------------------------------------------------------------
 # Uninstall package {{cookiecutter.package_name}} from current Python environment
 uninstall:
 	pip uninstall $(module_name)
-	
+
 #-------------------------------------------------------------------------------
-# Install package {{cookiecutter.package_name}} in development mode 
+# Install package {{cookiecutter.package_name}} in development mode
 # in the current Python environment.
 # (does not install apps)
-install-dev: 
+install-dev:
 	ln -s ./$(module_name) $(site_packages)/$(module_name)
 
 #-------------------------------------------------------------------------------
@@ -131,4 +123,3 @@ uninstall-dev:
 	rm $(site_packages)/$(module_name)
 
 #-------------------------------------------------------------------------------
-	

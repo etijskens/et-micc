@@ -167,12 +167,23 @@ and push it::
 
 Options:
   --help                        Show help message.
+
+build
++++++
+
+Build all binary extensions::
+
+    > micc build [OPTIONS] [PROJECT_PATH]
+
+Options:
+    --soft-link, -s             add a soft link to the extension library, rather than a copy.
 """
 #===============================================================================
 import sys
 import click
 from micc.commands import micc_create, micc_version, micc_tag, micc_app, \
-                          micc_module, micc_module_f2py, micc_module_cpp
+                          micc_module, micc_module_f2py, micc_module_cpp, \
+                          micc_build
 from types import SimpleNamespace
 #===============================================================================
 @click.group()
@@ -338,6 +349,17 @@ def tag(ctx, project_path):
     ``micc tag`` subcommand, create a git tag for the current version. 
     """
     return micc_tag(project_path, global_options=ctx.obj)
+#===============================================================================
+@main.command()
+@click.argument('project_path', default='.')
+@click.option('-s', '--soft-link', is_flag=True, default=False
+             , help="Create a soft link rather than a copy of the extension library.")
+@click.pass_context
+def build(ctx, project_path, soft_link):
+    """
+    ``micc tag`` subcommand, create a git tag for the current version. 
+    """
+    return micc_build(project_path, soft_link=soft_link, global_options=ctx.obj)
 #===============================================================================
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover

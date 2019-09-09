@@ -6,6 +6,21 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.5.10 (2019-09-01)
+====================
+Fixed issue #4:
+
+* added command ``micc build [-s|--soft-link]``, builds all binary projects (C++ and f2py)
+* builders removed from Makefile
+
+Fixing issue #4 raised a problem: the environment of subprocess is not the same as
+that in which micc script is run. In particular ``which python`` returns ``/usr/bin/python``.
+As a consequence pybind11 is not found. after using ``subproces.run( ... , env=my_env, ...)``
+things are working (with the caveat that subprocess picks up the environment in which it is
+running. If run in eclipse, e.g. it will pick up the environment from which eclipse was started.
+As a consequence it may pick up the system python and not find pybind11.)
+
+
 v0.5.9 (2019-09-06)
 ===================
 fixed issue #1
