@@ -10,8 +10,7 @@ import pytest
 from click.testing import CliRunner
 from click import echo
 
-from {{ cookiecutter.package_name }} import {{ cookiecutter.package_name }}
-from {{ cookiecutter.package_name }} import __version__
+import {{ cookiecutter.package_name }}
 {#
 {%- if cookiecutter.command_line_interface|lower == 'click' %}
 from {{ cookiecutter.project_name }} import cli
@@ -48,7 +47,7 @@ def test_content(response):
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
 # ==============================================================================
 def test_version():
-    assert __version__=="0.0.0"
+    assert {{ cookiecutter.package_name }}.__version__=="0.0.0"
 # ==============================================================================
 # def test_command_line_interface():
 #     """Test the CLI."""
