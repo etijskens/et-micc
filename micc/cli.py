@@ -204,11 +204,14 @@ def main(ctx, verbose, quiet):
               , help="a Python package cookiecutter template")
 @click.option('-m', '--micc-file',  default='micc.json'
               , help="the micc-file for the cookiecutter template")
+@click.option('-s', '--simple',  is_flag=True, default=False
+              , help="create a simple python project")
 @click.pass_context
 def create( ctx
           , output_dir
           , project_name
           , template, micc_file
+          , simple
           ):
     """
     Create a project skeleton. Prompts the user for all entries in the micc.json file
@@ -217,6 +220,8 @@ def create( ctx
     :param str project_name: name of the project to be created. Current directory if 
         omitted.
     """
+    if simple:
+        template += '-simple'
     return micc_create( project_name
                       , output_dir=output_dir
                       , template=template

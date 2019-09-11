@@ -6,7 +6,28 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.10 (2019-09-01)
+v0.5.11 (2019-09-01)
+====================
+#2 [feature] simple python project
+add ``--simple`` flag to ``micc create`` to create a simple (=unnested) python module ``<package_name>.py``
+instead of the nested ``<package_name/>__init__.py``
+After a bit of thinking the most practical approach would be to make a copy of the cookiecutter
+template micc-package, rename directory ``{{cookiecutter.package_name}}`` to ``src`` and rename
+file ``{{cookiecutter.package_name}}/__init__.py`` to ``src/{{cookiecutter.module_name.py}}``.
+The big advantage of that is that the directory structure is almost completely the same. Other
+approaches would need to relocate the ``docs`` folder, the ``tests`` folder and a bunch of other
+files. This will most certainly limit the number of changes that is necessary.
+
+However, this breaks the test``tests/test_<module_name>.py`` as the module is in ``src`` and it
+cannot be imported without adding ``src`` to ``sys.path``. To cure the problem we can add a test
+to see if the project is simple and add ``src`` to ``sys.path`` if it is. The less code, the better,
+i think, thus i replace ``src/<module_name>.py`` with ``<module_name>.py`` and remove the ``src``
+directory.
+
+Maybe simple packages should be simplified further reducing the number of files (e.g. the number
+
+
+v0.5.10 (2019-09-09)
 ====================
 Fixed issue #4:
 

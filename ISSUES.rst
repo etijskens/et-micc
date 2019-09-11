@@ -5,6 +5,7 @@ Open Issues
 ----------------------------------
 add ``--simple`` flag to ``micc create`` to create a simple (=unnested) python module ``<package_name>.py``
 instead of the nested ``<package_name/>__init__.py``
+a *simple* package should be convertible to a normal package
 
 #5 [feature] packaging and deployment
 -------------------------------------
@@ -37,6 +38,25 @@ for providing windows support: https://packaging.python.org/guides/supporting-wi
 Poetry?
 +++++++
 how does poetry deal with binary extensions?
+
+#6 [feature] decomposition
+--------------------------
+maybe it is usefull to limit the number of files in the cookiecutter_ templates. For now even the
+simples project contains 11 ``.rst`` files. For a beginner that may be too much to grasp. Maybe it is ]
+usefull to start with a ``README.rst`` only and have a ``micc doc [options]`` command that adds documentation
+topics one at a time::
+
+    > micc doc --authors
+    > micc doc --changelog|-c # or
+    > micc doc --history|-h
+    > micc doc --api|-a
+    > micc doc --installation|-i
+
+this is perhaps useful, but rather more complicated. E.g if we first create a package with several
+modules (python, f2py, cpp) and then start to add documentation. This is a more complicated situation
+and one in which errors will be easily made, and more difficult to maintain.
+
+
 
 Closed Issues
 =============
@@ -81,4 +101,6 @@ Running CMake build from the ccd ..ommand line::
     > make
 
 Then, either copy the ``.so`` file to ``<package_name>``, or make a softlink.
+A *simple package* (feature #2) should have simple documentation, and complete documentation when
+converted to a full blown package.
 
