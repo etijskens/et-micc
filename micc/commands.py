@@ -11,7 +11,6 @@ from shutil import copyfile
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
-from micc.exceptions import NotAProjectDirectory
 
 from poetry.console.application import Application
 from cleo.inputs.argv_input import ArgvInput
@@ -45,6 +44,9 @@ def _resolve_template(template):
         # jutst the template name 
         template = os.path.join(os.path.dirname(__file__), template)
     return template
+#===============================================================================
+def _msg_no_pyproject_toml(path):
+    return f"No pyproject.toml found in {path}."
 #===============================================================================
 _global_options = SimpleNamespace(verbose=False, quiet=False)
 CANCEL = -1
@@ -124,7 +126,7 @@ def micc_create( project_name=''
     return 0
 #===============================================================================
 def micc_app( app_name
-            , project_path=''
+            , project_path='.'
             , overwrite=False
             , global_options=_global_options
             , template='micc-app', micc_file='micc.json'
@@ -140,15 +142,11 @@ def micc_app( app_name
         descrioptions, relative to ``template``.  Default is ``micc.json``.
     :param bool verbose: verbose output, False by default. 
     """
-    template = _resolve_template(template)
-
-    if not project_path:
-        project_path = os.getcwd()
-        
-    if not utils.is_project_directory(project_path):
-        raise NotAProjectDirectory(project_path)
+    
+    assert utils.is_project_directory(project_path),f"Directory '{project_path}' without a pyproject.toml"
     
     project_name = os.path.basename(project_path)
+    template = _resolve_template(template)
     template_parameters = utils.get_template_parameters( template, micc_file
                                                        , app_name=app_name
                                                        , project_name=project_name
@@ -217,14 +215,11 @@ def micc_module( module_name
     :param str module_name: name of the module.
     :param str project_path: if empty, use the current working directory
     """
-    template = _resolve_template(template)
+    assert utils.is_project_directory(project_path),f"Directory '{project_path}' without a pyproject.toml"
 
     project_path = os.path.abspath(project_path)
-
-    if not utils.is_project_directory(project_path):
-        raise NotAProjectDirectory(project_path)
-
     project_name = os.path.basename(project_path)     
+    template = _resolve_template(template)
     template_parameters = utils.get_template_parameters( template, micc_file
                                                        , module_name=module_name
                                                        , project_name=project_name
@@ -275,14 +270,11 @@ def micc_module_f2py( module_name
     :param str module_name: name of the module.
     :param str project_path: if empty, use the current working directory
     """
-    template = _resolve_template(template)
+    assert utils.is_project_directory(project_path),f"Directory '{project_path}' without a pyproject.toml"
 
     project_path = os.path.abspath(project_path)
-    
-    if not utils.is_project_directory(project_path):
-        raise NotAProjectDirectory(project_path)
-
     project_name = os.path.basename(project_path)        
+    template = _resolve_template(template)
     template_parameters = utils.get_template_parameters( template, micc_file
                                                        , module_name=module_name
                                                        , project_name=project_name
@@ -337,14 +329,11 @@ def micc_module_cpp( module_name
     :param str module_name: name of the module.
     :param str project_path: if empty, use the current working directory
     """
-    template = _resolve_template(template)
+    assert utils.is_project_directory(project_path),f"Directory '{project_path}' without a pyproject.toml"
 
     project_path = os.path.abspath(project_path)
-    
-    if not utils.is_project_directory(project_path):
-        raise NotAProjectDirectory(project_path)
-
     project_name = os.path.basename(project_path)        
+    template = _resolve_template(template)
     template_parameters = utils.get_template_parameters( template, micc_file
                                                        , module_name=module_name
                                                        , project_name=project_name
@@ -395,8 +384,7 @@ def micc_version(project_path='.', rule=None, global_options=_global_options):
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
     """
-    if not utils.is_project_directory(project_path):
-        raise NotAProjectDirectory(project_path)
+    assert utils.is_project_directory(project_path),f"Directory '{project_path}' without a pyproject.toml"
 
     path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
     pyproject_toml = toml.load(path_to_pyproject_toml)
@@ -452,8 +440,8 @@ def micc_tag(project_path='.', global_options=_global_options):
     
     :param str project_path: path to the project that must be tagged. 
     """
-    if not utils.is_project_directory(project_path):
-        raise NotAProjectDirectory(project_path)
+    assert utils.is_project_directory(project_path),f"Directory '{project_path}' without a pyproject.toml"
+    
     # There is not really a reason to be careful when creating a tag
     # if not global_options.quiet:
     #     project_name, version = utils.get_name_version(project_path)
@@ -495,12 +483,11 @@ def micc_build(project_path='.', soft_link=False, global_options=_global_options
     
     :param str project_path: path to the project that must be tagged. 
     """
-    if not utils.is_project_directory(project_path):
-        raise NotAProjectDirectory(project_path)
+    assert utils.is_project_directory(project_path),f"Directory '{project_path}' without a pyproject.toml"
     
     path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
     pyproject_toml = toml.load(path_to_pyproject_toml)
-    project_name    = pyproject_toml['tool']['poetry']['name']
+    project_name   = pyproject_toml['tool']['poetry']['name']
 #     current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = utils.python_name(project_name)
     package_dir = os.path.join(project_path,package_name)
@@ -544,4 +531,40 @@ def micc_build(project_path='.', soft_link=False, global_options=_global_options
                 click.echo
     
     return 0
+#===============================================================================
+def add_extra_doc(project_path):
+    """
+    """
+    # this may give troubel if the .rst files in doxs have been touched but
+    # that is not meant to happen. Changes should have been made to 
+    #     <project_name>/README.rst and 
+    #     <project_name>/API.rst and 
+    template = 'micc-package'
+    template = _resolve_template(template)
+    template_docs_dir = os.path.join(template,'{{cookiecutter.project_name}}','docs')
+    docs = os.listdir(template_docs_dir)
+    for file in docs:
+        if file.endswith('.rst'):
+            s = os.path.join(template_docs_dir,file)
+            d = os.path.join(project_path,docs,file)
+            copyfile(s,d)
+#===============================================================================
+def micc_convert_simple(project_path='.', global_options=_global_options):
+    """
+    Convert simple python package to general python package.
+    
+    :param str project_path: path to the project that must be tagged. 
+    """
+    assert utils.is_project_directory(project_path),f"Directory '{project_path}' without a pyproject.toml"
+    
+    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
+    pyproject_toml = toml.load(path_to_pyproject_toml)
+    project_name   = pyproject_toml['tool']['poetry']['name']
+    package_name    = utils.python_name(project_name)
+    
+    if utils.is_simple(project_path,package_name):
+        add_extra_doc(os.path.abspath(project_path))
+#         with utils.in_directory(project_name):
+            
+        
 #===============================================================================

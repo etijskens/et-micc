@@ -129,10 +129,11 @@ def is_project_directory(path):
     except:
         return False
     
-    if  os.path.exists(os.path.join(path, python_name(project_name), '__init__.py')):
+    package_name = python_name(project_name)
+    if  os.path.exists(os.path.join(path, package_name, '__init__.py')):
         # python package found
         return True
-    elif os.path.exists(os.path.join(path, project_name + '.py')):
+    elif os.path.exists(os.path.join(path, package_name + '.py')):
         return True
         # simple python module found
     else:
@@ -309,4 +310,23 @@ def warning(text):
 #===============================================================================
 def error(text):
     click.echo(click.style(text,**ERROR))
+#===============================================================================
+def is_simple(project_path,package_name):
+    """Find out if this project is a simple or general python project."""
+     
+    has_simple_module  = os.path.isfile( os.path.join(project_path, package_name + ".py") )
+
+    package_dir = os.path.join(project_path, package_name)
+    has_general_module = os.path.isdir(package_dir) 
+    if has_general_module:
+        if not os.path.exists(os.path.join(package_dir,"__init__.py")):
+            has_general_module = False
+    
+    if has_simple_module and has_general_module:
+        raise RuntimeError(f"ERROR: This project has both '{package_dir}.py' and '{package_dir}/__init__.py'.")
+ 
+    if not has_simple_module and not has_general_module:
+        raise RuntimeError(f"ERROR: This directory has neither '{package_dir}.py' nor '{package_dir}/__init__.py'.")
+    
+    return has_simple_module
 #===============================================================================
