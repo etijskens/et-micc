@@ -56,6 +56,11 @@ this is perhaps useful, but rather more complicated. E.g if we first create a pa
 modules (python, f2py, cpp) and then start to add documentation. This is a more complicated situation
 and one in which errors will be easily made, and more difficult to maintain.
 
+issue #6 common items in micc.json files
+----------------------------------------
+While workin on issue #2 I realized that there are now several ``micc.json` files with common
+items which are in fact copies. we need either a single ``micc.json`` or a way of isolating
+the common parts in a single file.
 
 
 Closed Issues

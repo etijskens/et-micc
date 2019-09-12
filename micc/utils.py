@@ -311,12 +311,16 @@ def warning(text):
 def error(text):
     click.echo(click.style(text,**ERROR))
 #===============================================================================
-def is_simple(project_path,package_name):
+def is_simple_project(project_path):
     """Find out if this project is a simple or general python project."""
-     
+    
+    if project_path == '.':
+        project_path = os.path.abspath(project_path)
+    package_name = python_name(os.path.basename(project_path))
+    package_dir = os.path.join(project_path, package_name)
+    
     has_simple_module  = os.path.isfile( os.path.join(project_path, package_name + ".py") )
 
-    package_dir = os.path.join(project_path, package_name)
     has_general_module = os.path.isdir(package_dir) 
     if has_general_module:
         if not os.path.exists(os.path.join(package_dir,"__init__.py")):

@@ -24,8 +24,39 @@ to see if the project is simple and add ``src`` to ``sys.path`` if it is. The le
 i think, thus i replace ``src/<module_name>.py`` with ``<module_name>.py`` and remove the ``src``
 directory.
 
-Maybe simple packages should be simplified further reducing the number of files (e.g. the number
+This works fine. The next consideration that comes to my mind is that as a simple python package
+grows, it might be useful to be able to convert it to a general python package. To do that, 
+the missing ``.rst`` files must be added, with their references to cookiecutter variables 
+correctly replaced. Currently, however, the cookiecutter variables aren't stored in the project.
+Moreover, cookiecutter doesn't support filters to use part of a template. so we must copy that 
+part into a seperate cookiecutter template. Hence, this is the plan:
 
+* we remove the ``docs`` directory from the ``micc-package`` template and from the
+  ``micc-package-simple`` template.
+* we create a ``micc-package-simple-docs`` template with the ``.rst`` files from
+  ``micc-package-simple``
+* and a ``micc-package-general-docs`` template with the ``.rst`` files that must be added or overwritten
+  from ``micc-package``
+
+Moreover, we split of the common parts of ``micc-package`` and ``micc-package-simple`` into
+
+* ``micc-package``, common parts
+* ``micc-package-general``, general package specific parts
+* ``micc-package-simple``, simple package specific parts
+
+we also change all names of cookiecutter template from ``micc-whatever>`` to ``template-<whatever>''
+Thus, when a general package is created, we must use the templates (in this order)
+
+* ``template-package``
+* ``template-package-general``
+* ``template-package-simple-docs``
+* ``template-package-general-docs``
+
+and when a simple package is created, we must use the templates (in this order)
+
+* ``template-package``
+* ``template-package-simple``
+* ``template-package-simple-docs``
 
 v0.5.10 (2019-09-09)
 ====================
