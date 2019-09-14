@@ -58,6 +58,13 @@ and when a simple package is created, we must use the templates (in this order)
 * ``template-package-simple``
 * ``template-package-simple-docs``
 
+Then converting a simple python project to a general python project is simple:
+
+* add directory ``<packaga_name>`` to the project,
+* copy ``<packaga_name>.py`` to ``<packaga_name>/__init__.py``.
+* add the template ``template-package-general-docs``
+
+
 v0.5.10 (2019-09-09)
 ====================
 Fixed issue #4:

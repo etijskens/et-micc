@@ -62,6 +62,25 @@ While workin on issue #2 I realized that there are now several ``micc.json` file
 items which are in fact copies. we need either a single ``micc.json`` or a way of isolating
 the common parts in a single file.
 
+issue #7 cookiecutter.json files are temporary
+----------------------------------------------
+While workin on issue #2 I realized that these are in fact temporary files, which do neither belong 
+in the template directories (although cookiecutter requires them). It is better to remove these files 
+when cookiecutter is done. 
+
+issue #8 cookiecutter.json files
+--------------------------------
+These files are written in the template directories of the micc installation. If micc happens to be 
+installed in a location where the user has no write access, micc will not work.
+
+issue #9 prohibit creation of a micc project under another project
+------------------------------------------------------------------
+This implies asserting that none of the parent directories of the output directory
+is a project directory (in ``micc_create_simple`` and ``micc_create_general``
+
+issue #10 micc files are part of the template
+---------------------------------------------
+So they better live there.
 
 Closed Issues
 =============

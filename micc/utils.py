@@ -41,7 +41,7 @@ def file_not_found_msg(path, looking_for='File'):
     return msg
 
 #===============================================================================
-def get_template_parameters(path_to_template, micc_file, **kwargs):
+def get_template_parameters(template, micc_file, global_options, **kwargs):
     """
     Read the template parameter descriptions from the micc file, and
     prompt the user for supplying the values for the parameters with an
@@ -49,12 +49,23 @@ def get_template_parameters(path_to_template, micc_file, **kwargs):
     
     :returns: a dict of (parameter,value) pairs.
     """
-    micc_file = os.path.join(path_to_template, micc_file)
-
-    with open(micc_file, 'r') as f:
-        template_parameters = json.load(f)
+    if global_options.verbose > 1:
+        click.echo(f"> applying template {template}")
+    micc_file = os.path.join(template, micc_file)
+    try:
+        f = open(micc_file, 'r')
+    except IOError:
+        if global_options.verbose > 1:
+            click.echo(f"    using micc file (None)")
+        template_parameters = {}
+    else:
+        with f:
+            if global_options.verbose > 1:
+                click.echo(f"    using micc file {micc_file}.")
+            template_parameters = json.load(f)
       
-    for kw,arg in kwargs.items():  
+    for kw,arg in kwargs.items(): 
+        template_parameters[kw] = {} 
         template_parameters[kw]['default'] = arg 
     
     for key,value in template_parameters.items():
@@ -73,13 +84,8 @@ def get_template_parameters(path_to_template, micc_file, **kwargs):
                 value = click.prompt(**kwargs,show_default=False)
         template_parameters[key] = value
 
-    if DEBUG:
-        info(f'Micc v{__version__}')
-        info( '  Cookiecutter: ' + path_to_template)
-        info( '  Micc file   : ' + micc_file)
-        info('Template parameters:')
-        info( json.dumps(template_parameters, indent=2) )
-        
+    if global_options.verbose > 2:
+        click.echo(f"    parameters:\n{json.dumps(template_parameters,indent=4)}")
     return template_parameters
 #===============================================================================
 @contextmanager
@@ -116,10 +122,12 @@ def replace_in_file(filepath,old,new):
 #===============================================================================
 def is_project_directory(path):
     """
-    Verify that the dir at path is a project directory. As a sufficident 
-    condition, we request that there is a pyproject.toml file, exposing 
-    ~`['tool']['poetry']['name']``, and that there is a python package or module 
-    with that name.
+    Verify that the directory ``path`` is a project directory. 
+    As a sufficident condition, we request that 
+    
+    * there is a pyproject.toml file, exposing ``['tool']['poetry']['name']``
+    * that there is a python package or module with that name.
+    
     """
     
     path_to_pyproject_toml = os.path.join(path,'pyproject.toml')
@@ -166,7 +174,6 @@ def generate( project_path
             , template
             , template_parameters
             , overwrite=False
-            , quiet=False
             ):
     """
     Generate directory tree according to Cookiecutter template.
@@ -333,4 +340,16 @@ def is_simple_project(project_path):
         raise RuntimeError(f"ERROR: This directory has neither '{package_dir}.py' nor '{package_dir}/__init__.py'.")
     
     return has_simple_module
+#===============================================================================
+def get_parent_dir(p):
+    """
+    Return the parent directory of ``p``. If ``p`` is ``'/'`` an empty string
+    (``' '``) is returned.
+    """
+    if p[0] != os.sep:
+        p = os.path.abspath(p)
+    if p[-1] == os.sep:
+        p = p[:-1]
+    p = os.path.dirname(p)
+    return p
 #===============================================================================

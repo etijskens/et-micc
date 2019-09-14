@@ -187,30 +187,31 @@ from micc.commands import micc_create, micc_version, micc_tag, micc_app, \
 from types import SimpleNamespace
 #===============================================================================
 @click.group()
-@click.option('-v', '--verbose', is_flag=True, default=False)
-@click.option('-q', '--quiet'  , is_flag=True, default=False
-             , help="Prompts the use for confirmation on most actions.")
+@click.option('-v', '--verbose', count=True)
+# @click.option('-q', '--quiet'  , is_flag=True, default=False
+#              , help="Prompts the use for confirmation on most actions.")
 @click.pass_context
-def main(ctx, verbose, quiet):
+def main(ctx, verbose):
     """
     Micc command line interface. Type ``micc --help`` on the command line for details.
     """
-    ctx.obj = SimpleNamespace(verbose=verbose, quiet=quiet)
+    ctx.obj = SimpleNamespace(verbose=verbose)
 #===============================================================================
 @main.command()
 @click.argument('project_name',     default='')
 @click.option('-o', '--output-dir', default='.', help="location of the new project")
-@click.option('-T', '--template',   default='micc-package'
-              , help="a Python package cookiecutter template")
+@click.option('-T', '--template',   default=[]
+              , help="ordered list Python package cookiecutter templates")
 @click.option('-m', '--micc-file',  default='micc.json'
-              , help="the micc-file for the cookiecutter template")
+              , help="name of the micc-file in the cookiecutter templates")
 @click.option('-s', '--simple',  is_flag=True, default=False
-              , help="create a simple python project")
+              , help="create a simple instead of a general python project")
 @click.pass_context
 def create( ctx
           , output_dir
           , project_name
-          , template, micc_file
+          , template
+          , micc_file
           , simple
           ):
     """
@@ -220,30 +221,49 @@ def create( ctx
     :param str project_name: name of the project to be created. Current directory if 
         omitted.
     """
-    if simple:
-        template += '-simple'
+    if not template: # default, empty list
+        if simple:
+            template = ['template-package-base'
+                        ,'template-package-simple'
+                        ,'template-package-simple-docs'
+                        ]
+            project_type = 'simple'
+        else:
+            template = ['template-package-base'
+                        ,'template-package-general'
+                        ,'template-package-simple-docs'
+                        ,'template-package-general-docs'
+                        ]
+            project_type = 'general'
+    else:
+        # ignore simple
+        project_type = 'user-defined'
+        
     return micc_create( project_name
                       , output_dir=output_dir
-                      , template=template
+                      , templates=template
                       , micc_file=micc_file
+                      , project_type=project_type
                       , global_options=ctx.obj
                       )
 #===============================================================================
 @main.command()
 @click.argument('app_name', default='')
-@click.option('-P', '--project_path', default='')
-@click.option( '--overwrite', is_flag=True, default=False
-             , help='overwrite existing files.')
-@click.option('-T', '--template',   default='micc-app'
-              , help="a Python package cookiecutter template")
+@click.option('-P', '--project_path', default='.'
+             ,help="path to project directory")
+@click.option('-T', '--template',   default='template-app'
+             , help="ordered list Python package cookiecutter templates")
 @click.option('-m', '--micc-file',  default='micc.json'
-              , help="the micc-file for the cookiecutter template")
+              , help="name of the micc-file in the cookiecutter templates")
+@click.option('--overwrite', is_flag=True, default=False
+             , help='overwrite existing files.')
 @click.pass_context
 def app( ctx
        , app_name
        , project_path
+       , template
+       , micc_file
        , overwrite
-       , template, micc_file
        ):
     """
     ``micc app`` subcommand, add an app (console script) to the package. 
@@ -251,10 +271,10 @@ def app( ctx
     :param str app_name: name of the cli application to be added to the package.
     """
     return micc_app( app_name
-                   , project_path
-                   , overwrite=overwrite
+                   , project_path=project_path
                    , template=template
                    , micc_file=micc_file
+                   , overwrite=overwrite
                    , global_options=ctx.obj
                    )
 #===============================================================================
