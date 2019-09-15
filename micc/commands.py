@@ -117,7 +117,6 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
     os.makedirs(project_path, exist_ok=True)
     
     # list existing files that would be overwritten
-    all_dirs = [] 
     existing_files = {}
     for template in templates:
         template = resolve_template(template)             
@@ -134,38 +133,37 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
         
         # run cookiecutter in an empty temporary directory to check if there are any
         # existing project files that woud be overwritten.
-        
-        tmp = os.path.join(output_dir, '_cookiecutter_tmp_')
-        if os.path.exists(tmp):
-            shutil.rmtree(tmp)
-        os.makedirs(tmp, exist_ok=True)
-
-        # expand the Cookiecutter template in a temporary directory,
-        cookiecutter( template
-                    , no_input=True
-                    , overwrite_if_exists=True
-                    , output_dir=tmp
-                    )
-        
-        # find out if there are any files that would be overwritten.
-        os_name = platform.system()
-        for root, dirs, files in os.walk(tmp):
-            if root==tmp:
-                continue
-            else:
-                root2 = os.path.relpath(root,tmp)
-            for d in dirs:
-                all_dirs.append(os.path.join(root2,d))
-            for f in files:
-                if os_name=="Darwin" and f==".DS_Store":
-                    continue
-                file = os.path.join(output_dir, root2, f)
-#                     print('FILE',file, 'exists =', os.path.exists(file))
-                if os.path.exists(file):                            
-                    if not template in existing_files:
-                        existing_files[template] = []
-                    existing_files[template].append(file)
+        if not global_options.overwrite:
+            tmp = os.path.join(output_dir, '_cookiecutter_tmp_')
+            if os.path.exists(tmp):
+                shutil.rmtree(tmp)
+            os.makedirs(tmp, exist_ok=True)
     
+            # expand the Cookiecutter template in a temporary directory,
+            cookiecutter( template
+                        , no_input=True
+                        , overwrite_if_exists=True
+                        , output_dir=tmp
+                        )
+            
+            # find out if there are any files that would be overwritten.
+            os_name = platform.system()
+            for root, _, files in os.walk(tmp):
+                if root==tmp:
+                    continue
+                else:
+                    root2 = os.path.relpath(root,tmp)
+                for f in files:
+                    if os_name=="Darwin" and f==".DS_Store":
+                        continue
+                    file = os.path.join(output_dir, root2, f)
+    #                     print('FILE',file, 'exists =', os.path.exists(file))
+                    if os.path.exists(file):                            
+                        if not template in existing_files:
+                            existing_files[template] = []
+                        existing_files[template].append(file)
+    
+    # if global_options.overwrite is True, existing_files will aways be empty
     if existing_files:
         click.echo(f"The following files will be overwritten in {output_dir}:")
         for template, files in existing_files.items():
@@ -181,7 +179,7 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
                              ).lower()
         if answer=='a':
             click.echo("Exiting.")
-            exit(CANCEL)
+            return CANCEL,extra_parameters
         elif answer=='b':
             click.echo(f"Making backup files in {project_path}:")
             for files in existing_files.values():
@@ -189,8 +187,9 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
                     dst = src + '.bak'
                     shutil.copyfile(src, dst)
                     click.echo(f"     created backup file: {dst}")
+            click.echo(f"Overwriting files ...")
         else:
-            click.echo(f"Continuing ...")
+            click.echo(f"Overwriting files ... (no backup)")
 
     for template in templates:
         template = resolve_template(template)
@@ -208,14 +207,21 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
     if os.path.exists(tmp):
         shutil.rmtree(tmp)
         
-    return template_parameters
-#===============================================================================
+    return 0,extra_parameters
+
+
 def msg_NotAProjectDirectory(path):
     return f"Invalid project directory {path}."
-#===============================================================================
+
+
+def msg_CannotAddToSimpleProject(path):
+    return f"Cannot add components to simple project ({path})."
+
+
 _global_options = SimpleNamespace(verbose=1)
 CANCEL = -1
-#===============================================================================
+
+
 def micc_create( project_name
                , output_dir
                , templates
@@ -253,11 +259,20 @@ def micc_create( project_name
         assert not utils.is_project_directory(p),f"Cannot create a project inside another project ({p})."
         p = utils.get_parent_dir(p)
         
-    template_parameters = expand_templates( templates, micc_file, project_path, global_options
-                                         # template parameters to be added: 
-                                         , project_name=project_name
-                                         )                
-        
+    ( exit_code
+    , template_parameters
+    ) = expand_templates( templates, micc_file, project_path, global_options
+                        # extra template parameters:
+                        , project_name=project_name
+                        )                
+    msg = f"Exiting ({exit_code}) ..."
+    if exit_code:
+        if exit_code == CANCEL:
+            utils.warning(msg)
+        else:
+            utils.error(msg)
+        return exit_code
+    
     with utils.in_directory(os.path.join(output_dir,project_name)):
         cmds = [ ['git', 'init']
                , ['git', 'add', '*']
@@ -273,45 +288,65 @@ def micc_create( project_name
             click.echo(completed_process.stdout)
         if completed_process.stderr:
             click.echo(completed_process.stderr)
+
+    utils.info("Done.").
     return 0
-#===============================================================================
+
+
 def micc_app( app_name
             , project_path
             , templates
             , micc_file
-            , overwrite=False
-            , global_options=_global_options
+            , overwrite
+            , global_options
             ):
     """
     Micc app subcommand, add a console script (app) to the package. 
     
     :param str app_name: name of the applicatiom to be added.
     :param str project_path: path to the project where the app will be created. 
-    :param str templates: ordered list of paths to a Cookiecutter_ template. a single 
-        path is ok too.
-    :param str micc_file: name of the json file with the default values in the template directories. 
-    :param bool overwrite: allow overwriting exixting files.
-    :param types.SimpleNamespace global_options: namespace object with options accepted by all micc commands.
+    :param str templates: ordered list of paths to a Cookiecutter_ template. a 
+        single path is ok too.
+    :param str micc_file: name of the json file with the default values in the 
+        template directories. 
+    :param bool overwrite: overwrites any existing files, without backup. If 
+        overwrite is False, micc verifies if there are existing files that 
+        would be overwritten and gives you three options: abort, continue with
+        backup files, and continue without backup files. The latter is equi-
+        valent to specifying overwrite=True.
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by all micc commands.
     """
-    assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
-
+    project_path = os.path.abspath(project_path)
+    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
+    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    
     project_name = os.path.basename(project_path)
+    
+    if not app_name:
+        app_name = click.prompt("Enter application name",default='')
+        if not app_name:
+            click.echo("No application name provided, exiting.")
+            return CANCEL
+    
     if global_options.verbose>0:
         click.echo(f"Creating app {app_name} in Python package {project_name}")
-
-    template_parameters = expand_templates( templates, micc_file, project_path, global_options
-                                          # template parameters to be added: 
-                                          , app_name=app_name
-                                          )                
-    app_name = template_parameters['app_name']
-
-    exit_code = utils.generate( project_path
-                              , template
-                              , template_parameters
-                              , overwrite
-                              , quiet=global_options.quiet
-                              )
+    
+    global_options.overwrite = overwrite
+    
+    ( exit_code
+    , _ # template_parameters
+    ) = expand_templates( templates, micc_file, project_path, global_options
+                        # extra template parameters:
+                        , project_name=project_name
+                        , app_name=app_name
+                        )                
+    msg = f"Exiting ({exit_code}) ..."
     if exit_code:
+        if exit_code == CANCEL:
+            utils.warning(msg)
+        else:
+            utils.error(msg)
         return exit_code
 
     with in_directory(project_path):
@@ -343,10 +378,11 @@ def micc_app( app_name
         tomlfile.write(content)
         if global_options.verbose:
             utils.info(f"INFO: application '{app_name}' added to pyproject.toml.")
+    
+    utils.info("Done.")
     return 0
-#===============================================================================
-INFO = {'fg':'green'}
-#===============================================================================
+
+
 def micc_module( module_name
                , project_path='.'
                , overwrite=False
@@ -577,7 +613,8 @@ def micc_version(project_path='.', rule=None, global_options=_global_options):
                                                 , current_version, new_version):
                 click.echo(f"Warning: No package {package_name}/__init__.py and no modute {package_name}.py found.")
     return 0
-#===============================================================================
+
+
 def micc_tag(project_path='.', global_options=_global_options):
     """
     Create and push a version tag ``vM.m.p`` for the current version.
@@ -620,7 +657,8 @@ def micc_tag(project_path='.', global_options=_global_options):
         if completed_process.stderr:
             click.echo(completed_process.stderr)
     return 0
-#===============================================================================
+
+
 def micc_build(project_path='.', soft_link=False, global_options=_global_options):
     """
     Build all binary extions, i.e. f2py modules and cpp modules.
@@ -675,56 +713,45 @@ def micc_build(project_path='.', soft_link=False, global_options=_global_options
 #                 click.echo
     
     return 0
-#===============================================================================
-def extend_doc(project_path):
-    """
-    """
-    # this may give troubel if the .rst files in doxs have been touched but
-    # that is not meant to happen. Changes should have been made to 
-    #     <project_name>/README.rst and 
-    #     <project_name>/API.rst and 
-    template = 'micc-package'
-    template = resolve_template(template)
-    template_docs_dir = os.path.join(template,'{{cookiecutter.project_name}}','docs')
 
-    click.echo(f"extending documentation of project:\n              {project_path}")
 
-    files = os.listdir(template_docs_dir)
-    for file in files:
-        if file.endswith('.rst'):
-            s = os.path.join(template_docs_dir,file)
-            d = os.path.join(project_path,'docs',file)
-            if os.path.exists(d):
-                click.echo(f"> Overwriting {d}")
-            else:
-                click.echo(f"> Adding      {d}")                
-            shutil.copyfile(s,d)
-
-    template_dir = os.path.abspath(os.path.join(template_docs_dir,'..'))
-    files = os.listdir(template_dir)
-    for file in files:
-        if file.endswith('.rst'):
-            s = os.path.join(template_docs_dir,file)
-            d = os.path.join(project_path,'docs',file)
-            if not os.path.exists(d):
-                click.echo(f"> Adding      {d}")                
-            shutil.copyfile(s,d)
-#===============================================================================
-def micc_convert_simple(project_path='.', global_options=_global_options):
+def micc_convert_simple(project_path, overwrite, global_options):
     """
     Convert simple python package to general python package.
     
     :param str project_path: path to the project that must be tagged. 
     """
-    assert utils.is_project_directory(project_path),_msg_pyproject_toml_missing(project_path)
-    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
-    pyproject_toml = toml.load(path_to_pyproject_toml)
-    project_name = pyproject_toml['tool']['poetry']['name']
-    package_name = utils.python_name(project_name)
-    assert utils.is_simple_project(project_path), f"Project {project_name} is not a simple python package. (missing '{package_name}.py')"
+    project_path = os.path.abspath(project_path)
+    assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
+    assert utils.is_simple_project(project_path), f"Project {project_name} is already a general Python package."
+    
+    project_name = os.path.basename(project_path)
+    if global_options.verbose>0:
+        click.echo(f"Converting simple Python project {project_name} to general Python project.")
+    global_options.overwrite = overwrite
+    
+    # add documentation files for general Python project
+    tomlfile = TomlFile('pyproject.toml')
+    content = tomlfile.read()
 
-    add_extra_doc(os.path.abspath(project_path))
-#         with utils.in_directory(project_name):
-            
-        
-#===============================================================================
+    ( exit_code
+    , _ # template_parameters
+    ) = expand_templates("template-package-general-docs", 'micc.json', project_path, global_options
+                        # extra template parameters:
+                        , project_name=project_name
+                        , project_short_description=content['tool']['poetry']['description']
+                        )                
+    if exit_code:
+        return exit_code
+    
+    package_name = utils.python_name(project_name)
+    package_dir = os.path.join(project_path,package_name)
+    os.makedirs(package_dir)
+    src = os.path.join(project_path,package_name + '.py')
+    dst = os.path.join(project_path,package_name, '__init__.py')
+    shutil.copyfile(src, dst)
+    
+    if global_options.verbose>0:
+        click.echo("Done.")
+    
+    return 0

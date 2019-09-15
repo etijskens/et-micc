@@ -178,14 +178,18 @@ Build all binary extensions::
 Options:
     --soft-link, -s             add a soft link to the extension library, rather than a copy.
 """
-#===============================================================================
+
 import sys
+from types import SimpleNamespace
+
 import click
+
 from micc.commands import micc_create, micc_version, micc_tag, micc_app, \
                           micc_module, micc_module_f2py, micc_module_cpp, \
                           micc_build, micc_convert_simple
-from types import SimpleNamespace
-#===============================================================================
+
+
+
 @click.group()
 @click.option('-v', '--verbose', count=True)
 # @click.option('-q', '--quiet'  , is_flag=True, default=False
@@ -196,7 +200,8 @@ def main(ctx, verbose):
     Micc command line interface. Type ``micc --help`` on the command line for details.
     """
     ctx.obj = SimpleNamespace(verbose=verbose)
-#===============================================================================
+
+
 @main.command()
 @click.argument('project_name',     default='')
 @click.option('-o', '--output-dir', default='.', help="location of the new project")
@@ -224,16 +229,16 @@ def create( ctx
     if not template: # default, empty list
         if simple:
             template = ['template-package-base'
-                        ,'template-package-simple'
-                        ,'template-package-simple-docs'
-                        ]
+                       ,'template-package-simple'
+                       ,'template-package-simple-docs'
+                       ]
             project_type = 'simple'
         else:
             template = ['template-package-base'
-                        ,'template-package-general'
-                        ,'template-package-simple-docs'
-                        ,'template-package-general-docs'
-                        ]
+                       ,'template-package-general'
+                       ,'template-package-simple-docs'
+                       ,'template-package-general-docs'
+                       ]
             project_type = 'general'
     else:
         # ignore simple
@@ -246,7 +251,8 @@ def create( ctx
                       , project_type=project_type
                       , global_options=ctx.obj
                       )
-#===============================================================================
+
+
 @main.command()
 @click.argument('app_name', default='')
 @click.option('-P', '--project_path', default='.'
@@ -272,12 +278,13 @@ def app( ctx
     """
     return micc_app( app_name
                    , project_path=project_path
-                   , template=template
+                   , templates=template
                    , micc_file=micc_file
                    , overwrite=overwrite
                    , global_options=ctx.obj
                    )
-#===============================================================================
+
+
 @main.command()
 @click.argument('module_name', default='')
 @click.option( '-P', '--project_path', default='.'
@@ -331,7 +338,8 @@ def module( ctx
                           , micc_file=micc_file
                           , global_options=ctx.obj
                           )
-#===============================================================================
+
+
 @main.command()
 @click.argument('project_path', default='.')
 @click.option('-M','--major', is_flag=True, default=False
@@ -365,7 +373,8 @@ def version(ctx, project_path, major, minor, patch, poetry_version_rule, tag):
     return_code = micc_version(project_path, rule, global_options=ctx.obj)
     if return_code==0 and tag:
         return micc_tag(project_path, global_options=ctx.obj)
-#===============================================================================
+
+
 @main.command()
 @click.argument('project_path', default='.')
 @click.pass_context
@@ -374,7 +383,8 @@ def tag(ctx, project_path):
     ``micc tag`` subcommand, create a git tag for the current version. 
     """
     return micc_tag(project_path, global_options=ctx.obj)
-#===============================================================================
+
+
 @main.command()
 @click.argument('project_path', default='.')
 @click.option('-s', '--soft-link', is_flag=True, default=False
@@ -385,17 +395,20 @@ def build(ctx, project_path, soft_link):
     ``micc build`` subcommand, builds all binary extension libraries (f2py and C++ modules. 
     """
     return micc_build(project_path, soft_link=soft_link, global_options=ctx.obj)
-#===============================================================================
+
+
 @main.command()
 @click.argument('project_path', default='.')
+@click.option('--overwrite', is_flag=True, default=False
+             , help='overwrite existing files.')
 @click.pass_context
-def convert_simple(ctx, project_path):
+def convert_simple(ctx, project_path, overwrite):
     """
     ``micc convert_simple`` subcommand, convert a simple python package
     (created as ``micc create <module_name> --simple``) to a general python package. 
     """
-    return micc_convert_simple(project_path, global_options=ctx.obj)
-#===============================================================================
+    return micc_convert_simple(project_path, overwrite, global_options=ctx.obj)
+
+
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
-#===============================================================================
