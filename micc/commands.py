@@ -47,62 +47,127 @@ def resolve_template(template):
         template = os.path.join(os.path.dirname(__file__), template)
     return template
 #===============================================================================
-def apply_templates(templates, micc_file, project_path, global_options, **kwargs):
+def get_template_parameters(template, micc_file, global_options, **kwargs):
     """
-    Expand a list of cookiecutter templates in directory ``project_path``.
+    Read the template parameter descriptions from the micc file, and
+    prompt the user for supplying the values for the parameters with an
+    empty string as default.     
+    
+    :returns: a dict of (parameter,value) pairs.
+    """
+    if global_options.verbose > 1:
+        click.echo(f"> applying template {template}")
+    micc_file = os.path.join(template, micc_file)
+    try:
+        f = open(micc_file, 'r')
+    except IOError:
+        if global_options.verbose > 1:
+            click.echo(f"    using micc file (None)")
+        template_parameters = {}
+    else:
+        with f:
+            if global_options.verbose > 1:
+                click.echo(f"    using micc file {micc_file}.")
+            template_parameters = json.load(f)
+      
+    for kw,arg in kwargs.items(): 
+        template_parameters[kw] = {} 
+        template_parameters[kw]['default'] = arg 
+    
+    for key,value in template_parameters.items():
+        default = value['default']
+        if bool(default):
+            value = default
+        else:
+            kwargs = value
+#             text = kwargs['text']
+#             del kwargs['msg']
+            if 'type' in kwargs:
+                kwargs['type'] = eval(kwargs['type'])
+            click.echo('')
+            value = False
+            while not value:
+                value = click.prompt(**kwargs,show_default=False)
+        template_parameters[key] = value
+
+    if global_options.verbose > 2:
+        click.echo(f"    parameters:\n{json.dumps(template_parameters,indent=4)}")
+    return template_parameters
+#===============================================================================
+def expand_templates(templates, micc_file, project_path, global_options, **extra_parameters):
+    """
+    Expand a list of cookiecutter ``templates`` in directory ``project_path``.
+    
+    :param list templates: ordered list of (paths to) cookiecutter templates that 
+        will be expanded as they appear. The template parameters are propagated 
+        from each template to the next.
+    :param str micc_file: name of the micc file in all templates. Usually, this is
+        ``'micc.json'``.
+    :param str project_path: path to the project directory where the templates 
+        will be expanded
+    :param types.SimpleNamespace: command line options accessible to all micc
+        commands
+    :param dict extra_parameters: extra template parameters that have to be set 
+        before 
+        expanding.
     """
     if not isinstance(templates, list):
         templates = [templates]
-    extra_parameters = kwargs
+    output_dir = os.path.abspath(os.path.join(project_path, '..'))
+    os.makedirs(project_path, exist_ok=True)
     
     # list existing files that would be overwritten
     all_dirs = [] 
     existing_files = {}
     for template in templates:
         template = resolve_template(template)             
-        template_parameters = utils.get_template_parameters( template, micc_file, global_options
-                                                           , **extra_parameters
-                                                           )  
+        template_parameters = get_template_parameters( template, micc_file, global_options
+                                                     , **extra_parameters
+                                                     )
+        # Store the template parameters from this template for the the next
+        # template in the templates list
         extra_parameters = template_parameters
         # write a cookiecutter.json file in the cookiecutter template directory
         cookiecutter_json = os.path.join(template, 'cookiecutter.json')
         with open(cookiecutter_json,'w') as f:
             json.dump(template_parameters, f, indent=2)
         
-        # run cookiecutter in a temporary directory to check if there are any
+        # run cookiecutter in an empty temporary directory to check if there are any
         # existing project files that woud be overwritten.
-        with in_directory(os.path.join(project_path,'..')):
-            # expand the Cookiecutter template in a temporary directory,
-            tmp = '_cookiecutter_tmp_'
-            if os.path.exists(tmp):
-                shutil.rmtree(tmp)
-            os.makedirs(tmp, exist_ok=True)
-            cookiecutter( template
-                        , no_input=True
-                        , overwrite_if_exists=True
-                        , output_dir=tmp
-                        )
-            # find out if there are any files that would be overwritten.
-            os_name = platform.system()
-            for root, dirs, files in os.walk(tmp):
-                if root==tmp:
+        
+        tmp = os.path.join(output_dir, '_cookiecutter_tmp_')
+        if os.path.exists(tmp):
+            shutil.rmtree(tmp)
+        os.makedirs(tmp, exist_ok=True)
+
+        # expand the Cookiecutter template in a temporary directory,
+        cookiecutter( template
+                    , no_input=True
+                    , overwrite_if_exists=True
+                    , output_dir=tmp
+                    )
+        
+        # find out if there are any files that would be overwritten.
+        os_name = platform.system()
+        for root, dirs, files in os.walk(tmp):
+            if root==tmp:
+                continue
+            else:
+                root2 = os.path.relpath(root,tmp)
+            for d in dirs:
+                all_dirs.append(os.path.join(root2,d))
+            for f in files:
+                if os_name=="Darwin" and f==".DS_Store":
                     continue
-                else:
-                    root2 = os.path.join(*root.split(os.sep)[1:])
-                for d in dirs:
-                    all_dirs.append(os.path.join(root2,d))
-                for f in files:
-                    if os_name=="Darwin" and f==".DS_Store":
-                        continue
-                    file = os.path.join(root2,f)
+                file = os.path.join(output_dir, root2, f)
 #                     print('FILE',file, 'exists =', os.path.exists(file))
-                    if os.path.exists(file):                            
-                        if not template in existing_files:
-                            existing_files[template] = []
-                        existing_files[template].append(file)
+                if os.path.exists(file):                            
+                    if not template in existing_files:
+                        existing_files[template] = []
+                    existing_files[template].append(file)
     
     if existing_files:
-        click.echo("The following files will be overwritten:")
+        click.echo(f"The following files will be overwritten in {output_dir}:")
         for template, files in existing_files.items():
             t = os.path.basename(template)
             for f in files:
@@ -115,24 +180,37 @@ def apply_templates(templates, micc_file, project_path, global_options, **kwargs
                              ,show_choices=True
                              ).lower()
         if answer=='a':
-            print('abort')
+            click.echo("Exiting.")
             exit(CANCEL)
         elif answer=='b':
-            print('make .bak files')
-        exit(CANCEL)
-        
-        
+            click.echo(f"Making backup files in {project_path}:")
+            for files in existing_files.values():
+                for src in files:
+                    dst = src + '.bak'
+                    shutil.copyfile(src, dst)
+                    click.echo(f"     created backup file: {dst}")
+        else:
+            click.echo(f"Continuing ...")
+
     for template in templates:
+        template = resolve_template(template)
         cookiecutter( template
                     , no_input=True
                     , overwrite_if_exists=True
-                    , output_dir=project_path
+                    , output_dir=output_dir
+
                     )
         # Clean up (see issue #7)
+        cookiecutter_json = os.path.join(template, 'cookiecutter.json')
         os.remove(cookiecutter_json)
+
+    # Clean up
+    if os.path.exists(tmp):
+        shutil.rmtree(tmp)
+        
     return template_parameters
 #===============================================================================
-def _msg_NotAProjectDirectory(path):
+def msg_NotAProjectDirectory(path):
     return f"Invalid project directory {path}."
 #===============================================================================
 _global_options = SimpleNamespace(verbose=1)
@@ -175,7 +253,7 @@ def micc_create( project_name
         assert not utils.is_project_directory(p),f"Cannot create a project inside another project ({p})."
         p = utils.get_parent_dir(p)
         
-    template_parameters = apply_templates( templates, micc_file, project_path, global_options
+    template_parameters = expand_templates( templates, micc_file, project_path, global_options
                                          # template parameters to be added: 
                                          , project_name=project_name
                                          )                
@@ -215,17 +293,16 @@ def micc_app( app_name
     :param bool overwrite: allow overwriting exixting files.
     :param types.SimpleNamespace global_options: namespace object with options accepted by all micc commands.
     """
-    assert utils.is_project_directory(project_path),_msg_NotAProjectDirectory(project_path)
+    assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
 
     project_name = os.path.basename(project_path)
     if global_options.verbose>0:
         click.echo(f"Creating app {app_name} in Python package {project_name}")
-    
 
-    template_parameters = apply_templates( templates, micc_file, project_path, global_options
-                                         # template parameters to be added: 
-                                         , app_name=app_name
-                                         )                
+    template_parameters = expand_templates( templates, micc_file, project_path, global_options
+                                          # template parameters to be added: 
+                                          , app_name=app_name
+                                          )                
     app_name = template_parameters['app_name']
 
     exit_code = utils.generate( project_path

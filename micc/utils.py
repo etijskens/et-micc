@@ -41,53 +41,6 @@ def file_not_found_msg(path, looking_for='File'):
     return msg
 
 #===============================================================================
-def get_template_parameters(template, micc_file, global_options, **kwargs):
-    """
-    Read the template parameter descriptions from the micc file, and
-    prompt the user for supplying the values for the parameters with an
-    empty string as default.     
-    
-    :returns: a dict of (parameter,value) pairs.
-    """
-    if global_options.verbose > 1:
-        click.echo(f"> applying template {template}")
-    micc_file = os.path.join(template, micc_file)
-    try:
-        f = open(micc_file, 'r')
-    except IOError:
-        if global_options.verbose > 1:
-            click.echo(f"    using micc file (None)")
-        template_parameters = {}
-    else:
-        with f:
-            if global_options.verbose > 1:
-                click.echo(f"    using micc file {micc_file}.")
-            template_parameters = json.load(f)
-      
-    for kw,arg in kwargs.items(): 
-        template_parameters[kw] = {} 
-        template_parameters[kw]['default'] = arg 
-    
-    for key,value in template_parameters.items():
-        default = value['default']
-        if bool(default):
-            value = default
-        else:
-            kwargs = value
-#             text = kwargs['text']
-#             del kwargs['msg']
-            if 'type' in kwargs:
-                kwargs['type'] = eval(kwargs['type'])
-            click.echo('')
-            value = False
-            while not value:
-                value = click.prompt(**kwargs,show_default=False)
-        template_parameters[key] = value
-
-    if global_options.verbose > 2:
-        click.echo(f"    parameters:\n{json.dumps(template_parameters,indent=4)}")
-    return template_parameters
-#===============================================================================
 @contextmanager
 def in_directory(path):
     """

@@ -114,3 +114,6 @@ _f2py_build/
 *.o
 *.so
 *.DSYM/
+
+# backup files
+*.bak
