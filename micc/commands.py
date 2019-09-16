@@ -289,7 +289,7 @@ def micc_create( project_name
         if completed_process.stderr:
             click.echo(completed_process.stderr)
 
-    utils.info("Done.").
+    utils.info("Done.")
     return 0
 
 
@@ -339,6 +339,7 @@ def micc_app( app_name
     ) = expand_templates( templates, micc_file, project_path, global_options
                         # extra template parameters:
                         , project_name=project_name
+                        , package_name=utils.python_name(project_name)
                         , app_name=app_name
                         )                
     msg = f"Exiting ({exit_code}) ..."
@@ -384,29 +385,41 @@ def micc_app( app_name
 
 
 def micc_module( module_name
-               , project_path='.'
-               , overwrite=False
-               , global_options=_global_options
-               , template='micc-module', micc_file='micc.json'
+               , project_path
+               , templates
+               , micc_file
+               , overwrite
+               , global_options
                ):
     """
     Micc module subcommand, add a module to the package. 
     
-    :param str module_name: name of the module.
-    :param str project_path: if empty, use the current working directory
+    :param str module_name: name of the module to be added.
+    :param str project_path: path to the project where the app will be created. 
+    :param str templates: ordered list of paths to a Cookiecutter_ template. a 
+        single path is ok too.
+    :param str micc_file: name of the json file with the default values in the 
+        template directories. 
+    :param bool overwrite: overwrites any existing files, without backup. If 
+        overwrite is False, micc verifies if there are existing files that 
+        would be overwritten and gives you three options: abort, continue with
+        backup files, and continue without backup files. The latter is equi-
+        valent to specifying overwrite=True.
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by all micc commands.
     """
-    assert utils.is_project_directory(project_path),_msg_pyproject_toml_missing(project_path)
-
     project_path = os.path.abspath(project_path)
-    project_name = os.path.basename(project_path)     
-    template = resolve_template(template)
-    template_parameters = utils.get_template_parameters( template, micc_file
-                                                       , module_name=module_name
-                                                       , project_name=project_name
-                                                       )   
-    module_name = template_parameters['module_name']
-    template_parameters['module_kind'] = 'python'
+    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
+    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
     
+    project_name = os.path.basename(project_path)
+    
+    if not module_name:
+        module_name = click.prompt("Enter module name",default='')
+        if not module_name:
+            utils.warning("No application name provided, exiting.")
+            return CANCEL
+        
     py_name = utils.python_name(module_name)
     if not py_name==module_name:
         msg  = f"Not a valid module name: {module_name}\n"
@@ -415,16 +428,26 @@ def micc_module( module_name
             click.echo(f"Canceled: 'micc module {module_name}'")
             return CANCEL
         else:
-            module_name = py_name
-            template_parameters['module_name'] = py_name
-           
-    exit_code = utils.generate( project_path
-                              , template
-                              , template_parameters
-                              , overwrite
-                              , quiet=global_options.quiet
-                              )
+            module_name = py_name           
+    
+    if global_options.verbose>0:
+        click.echo(f"Creating Python module {module_name} in Python package {project_name}")
+    
+    global_options.overwrite = overwrite
+    
+    ( exit_code
+    , template_parameters
+    ) = expand_templates( templates, micc_file, project_path, global_options
+                        # extra template parameters:
+                        , project_name=project_name
+                        , module_name=module_name
+                        )                
+    msg = f"Exiting ({exit_code}) ..."
     if exit_code:
+        if exit_code == CANCEL:
+            utils.warning(msg)
+        else:
+            utils.error(msg)
         return exit_code
     
     with in_directory(project_path):        
@@ -434,10 +457,11 @@ def micc_module( module_name
             f.write(f"\n.. automodule:: {package_name}.{module_name}"
                      "\n   :members:\n\n"
                    )
-        if global_options.verbose:
+        if global_options.verbose>1:
             utils.info(f"INFO: documentation for Python module '{module_name}' added.")
     return 0
-#===============================================================================
+
+
 def micc_module_f2py( module_name
                     , project_path='.'
                     , overwrite=False
@@ -749,7 +773,7 @@ def micc_convert_simple(project_path, overwrite, global_options):
     os.makedirs(package_dir)
     src = os.path.join(project_path,package_name + '.py')
     dst = os.path.join(project_path,package_name, '__init__.py')
-    shutil.copyfile(src, dst)
+    shutil.move(src, dst)
     
     if global_options.verbose>0:
         click.echo("Done.")

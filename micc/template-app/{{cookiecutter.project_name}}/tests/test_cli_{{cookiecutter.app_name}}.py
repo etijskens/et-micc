@@ -10,7 +10,7 @@ import pytest
 from click.testing import CliRunner
 from click import echo
 
-from {{ cookiecutter.package_name }} import {{ cookiecutter.package_name }}
+import {{ cookiecutter.package_name }}
 from {{ cookiecutter.package_name }} import __version__
 {#
 {%- if cookiecutter.command_line_interface|lower == 'click' %}
