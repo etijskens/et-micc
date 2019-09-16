@@ -2,28 +2,28 @@
 """
 Utility functions for micc.py
 """
-#===============================================================================
 import os
 import json
 import shutil, platform
 from contextlib import contextmanager
-#===============================================================================
+
 import click
 from cookiecutter.main import cookiecutter
 import toml
-#===============================================================================
+
 from micc import __version__
-#===============================================================================
+
 DEBUG = False
-#===============================================================================
+CANCEL = -1
+
+
 def path_to_cmake_tools():
     """
     return the path to the folder with the CMake tools.
     """
     return os.path.join(os.path.dirname(__file__),'cmake_tools')
-#===============================================================================
-# print('path_to_cmake_tools', path_to_cmake_tools())
-#===============================================================================
+
+
 def file_not_found_msg(path, looking_for='File'):
     """
     This function constructs an error message for when a file is not found. 
@@ -40,7 +40,8 @@ def file_not_found_msg(path, looking_for='File'):
         msg = f"{looking_for} {path} not found in {os.getcwd()}."
     return msg
 
-#===============================================================================
+
+
 @contextmanager
 def in_directory(path):
     """
@@ -51,7 +52,8 @@ def in_directory(path):
     os.chdir(path)
     yield os.getcwd()
     os.chdir(previous_dir)
-#===============================================================================
+
+
 def replace_version_in_file(filepath,current_version,new_version):
     if os.path.exists(filepath):
         click.echo('    Updating : ' + filepath)
@@ -90,7 +92,7 @@ def is_project_directory(path):
     except:
         return False
     
-    package_name = python_name(project_name)
+    package_name = convert_to_valid_module_name(project_name)
     if  os.path.exists(os.path.join(path, package_name, '__init__.py')):
         # python package found
         return True
@@ -110,173 +112,89 @@ def get_name_version(project_path):
            , pyproject_toml['tool']['poetry']['version']
            )
 #===============================================================================
-def python_name(filename):
+def convert_to_valid_module_name(name):
     """
-    Convert a *filename* to a python name:
+    Convert a *name* to a python name:
     
     * lowercase
     * whitespace -> underscore 
     * dash -> underscore 
+    * if leading numeric character, prepend '_'
+      Names like this are discouraged by https://www.python.org/dev/peps/pep-0008/#package-and-module-names,
+      but so are, names starting with a numeric character.
     """
-    python_name = filename.lower().replace('-', '_')
-    return python_name
-#===============================================================================
-CANCEL = -1
-#===============================================================================
-def generate( project_path
-            , template
-            , template_parameters
-            , overwrite=False
-            ):
-    """
-    Generate directory tree according to Cookiecutter template.
-    """
-    if template_parameters['package_name'].startswith('{{ '):
-        template_parameters['package_name'] = python_name(template_parameters['project_name'])
-    module_name = template_parameters['module_name'] 
-    module_kind = template_parameters['module_kind']
-    package_name = template_parameters['package_name'] 
     
-    # Verify that the module name is not used already:
-    if module_exists( project_path, package_name, module_name, module_kind):
-        return 1
+    if name[0].isnumeric():
+        name = '_'+name
+    valid_module_name = name.lower().replace('-', '_').replace(' ', '_')
+    return valid_module_name
 
-    with in_directory(project_path):        
-        # write a cookiecutter.json file in the cookiecutter template directory
-        cookiecutter_json = os.path.join(template, 'cookiecutter.json')
-        with open(cookiecutter_json,'w') as f:
-            json.dump(template_parameters, f, indent=2)
-        
-        # run cookiecutter 
-        with in_directory(os.path.join(project_path,'..')):
-            # expand the Cookiecutter template in a temporary directory,
-            tmp = '_cookiecutter_tmp_'
-            if os.path.exists(tmp):
-                shutil.rmtree(tmp)
-            os.makedirs(tmp, exist_ok=True)
-            cookiecutter( template
-                        , no_input=True
-                        , overwrite_if_exists=True
-                        , output_dir=tmp
-                        )
-            # find out if there are any files that would be overwritten.
-            os_name = platform.system()
-            existing_files = []
-            new_files = []
-            all_dirs = [] 
-            for root, dirs, files in os.walk(tmp):
-                if root==tmp:
-                    continue
-                else:
-                    root2 = os.path.join(*root.split(os.sep)[1:])
-                for d in dirs:
-                    all_dirs.append(os.path.join(root2,d))
-                for f in files:
-                    if os_name=="Darwin" and f==".DS_Store":
-                        continue
-                    file = os.path.join(root2,f)
-#                     print('FILE',file, 'exists =', os.path.exists(file))
-                    if os.path.exists(file):                            
-                        existing_files.append(file)
-                    else:
-                        new_files.append(file)
-            # Move the generated files from the tmp directory to their
-            # destination if and only if
-            #   - there are no files to be overwritten, or
-            #   - there are files to be overwritten and overwrite is True.
-            # Tell the user what is going on.
 
-            if existing_files:
-                if overwrite:                    
-                    for d in all_dirs:
-                        os.makedirs(d,exist_ok=True)
-                    info("INFO   : The following files are created:")
-                    for f in new_files:
-                        info(f"       - {f}")
-                        shutil.move(os.path.join(tmp,f),f)
-                    warning("WARNING: The following files exist already and are overwritten:")
-                    for f in existing_files:
-                        warning(f"         - {f}")
-                        os.remove(f)
-                        os.makedirs(os.path.dirname(f), exist_ok=True)
-                        shutil.move(os.path.join(tmp,f),f)                    
-                else:
-                    error("ERROR  : The following files exist already and would be overwritten:")
-                    for f in existing_files:
-                        error(f"         - {f}")
-                    warning("WARNING: No files were added!\n"
-                            "         Add '--overwrite' on the command line to overwrite existing files.\n")
-                    return 1
-            else:
-                if not quiet:
-                    msg = f"Are you sure to add a C++ module '{module_name}' to package '{package_name}'?"
-                    if not click.confirm(msg,default=False):
-                        warning("Canceled.")
-                        return CANCEL
-                info(f"Adding {module_kind} module '{module_name}' to package '{package_name}':")
-                        
-                for d in all_dirs:
-                    os.makedirs(d,exist_ok=True)
-                info("INFO : The following files are created:")
-                for f in new_files:
-                    info(f"     - {f}")
-                    shutil.move(os.path.join(tmp,f),f)
-            # clean up tmp dir
-            shutil.rmtree(tmp)
-    return 0
-#===============================================================================
-def module_exists(project_path, package_name, module_name, module_kind):
+def module_exists(project_path, module_name):
     """
-    Test if there is alreade a module with name ``module_name`` in this project.
+    Test if there is already a module with name ``module_name`` in this project.
     This can be:
 
-        * a python module ``<package_name>/<module_name>.py``
-        * a f2py module jo jm``<package_name>/f2py_<module_name>``
+        * a simple python module  ``<package_name>/<module_name>.py``
+        * a generel python module ``<package_name>/<module_name>/__init__.py``
+        * a f2py module           ``<package_name>/f2py_<module_name>``
+        * a cpp module            ``<package_name>/cpp_<module_name>``
         
-    Write an error message
-    if True.
-
     :param str project_path: project path
-    :param str package_name: package name
     :param str module_name: module name
-    :param str module_kind: kind of the module the user wants to create. Either
-        ``python``, ``cpp``, or ``f2py``
-    :returns: True/False
+    :returns: bool
     """
-    module_kinds = ['python','cpp','f2py']
-    for kind in module_kinds:
-        if module_kind != kind:
-            if kind=='python':
-                full_module_name = os.path.join(package_name, module_name + '.py')
-            else:
-                full_module_name = os.path.join(package_name, f"{kind}_{module_name}")
-            p = os.path.join(project_path, full_module_name)
-            if os.path.exists(p):
-                error(f"Module name conflict creating {module_kind} module {package_name}.{module_name}:\n"
-                      f"    There is already a {kind} module with this name: {full_module_name}")
-                return True
-    return False
-#===============================================================================
+    package_dir = os.path.join( project_path, convert_to_valid_module_name(os.path.basename(project_path)))
+    
+    exists_py = ( os.path.isdir (os.path.join(package_dir,module_name,'__init__.py'))
+               or os.path.isfile(os.path.join(package_dir,module_name + '.py')) 
+                )
+    exists_cpp  = os.path.isdir (os.path.join(package_dir,'cpp' + module_name))
+    exists_f2py = os.path.isdir (os.path.join(package_dir,'cpp' + module_name))
+
+    return exists_cpp or exists_f2py or exists_py
+
+
+def app_exists(project_path, app_name):
+    """
+    Test if there is already an app with name ``app_name`` in this project.
+    
+        * ``<package_name>/cli_<app_name>.py``
+        
+    :param str project_path: project path
+    :param str app_name: app name
+    :returns: bool
+    """
+    package_dir = os.path.join( project_path, convert_to_valid_module_name(os.path.basename(project_path)))
+    
+    exists_app = os.path.isfile(os.path.join(package_dir,app_name,'__init__.py'))
+
+    return exists_app
+
+
 INFO    = { 'fg'  :'black'}
 WARNING = { 'fg'  :'blue' }
 ERROR   = { 'fg'  :'red'
           , 'bold':True   }
-#===============================================================================
+
 def info(text):
     click.echo(click.style(text,**INFO))
-#===============================================================================
+
+
 def warning(text):
     click.echo(click.style(text,**WARNING))
-#===============================================================================
+
+
 def error(text):
     click.echo(click.style(text,**ERROR))
-#===============================================================================
+
+
 def is_simple_project(project_path):
     """Find out if this project is a simple or general python project."""
     
     if project_path == '.':
         project_path = os.path.abspath(project_path)
-    package_name = python_name(os.path.basename(project_path))
+    package_name = convert_to_valid_module_name(os.path.basename(project_path))
     package_dir = os.path.join(project_path, package_name)
     
     has_simple_module  = os.path.isfile( os.path.join(project_path, package_name + ".py") )
@@ -293,7 +211,8 @@ def is_simple_project(project_path):
         raise RuntimeError(f"ERROR: This directory has neither '{package_dir}.py' nor '{package_dir}/__init__.py'.")
     
     return has_simple_module
-#===============================================================================
+
+
 def get_parent_dir(p):
     """
     Return the parent directory of ``p``. If ``p`` is ``'/'`` an empty string
@@ -305,4 +224,48 @@ def get_parent_dir(p):
         p = p[:-1]
     p = os.path.dirname(p)
     return p
-#===============================================================================
+
+
+def verify_name(name,obj,force_python_name=False):
+    """
+    Verifies ``name`` for module and app objects. 
+    
+    :param str name: name of a module or app. If name is empty, the user is
+        prompted to provide a name.
+    :param str obj: either ``'module'`` or ``'app'``. if ``obj`` is ``'module'``,
+        or ``force_python_name`` is ``True``, then it is checked if name is a
+        valid name for a python_module. If not, name is converted 
+    """
+    valid_objects = ('module', 'app')
+    assert obj in valid_objects, f"invalid object {obj}, expecting {valid_objects}."
+    if not name:
+        name = click.prompt(f"Enter {obj} name (leave empty to quit)",default='',show_default=False)
+        if not name:
+            warning(f"No {obj} name provided, exiting.")
+            return CANCEL
+        
+    if obj=='module' or force_python_name:
+        while True:
+            py_name = convert_to_valid_module_name(name)
+            if py_name==name:
+                # name is ok 
+                return name
+            
+            msg = (f"Not a valid python name: {name}\n"
+                   f"Valid python names\n"
+                   f" - must be lower case,\n"
+                   f" - must not contain any special characters other than '_',\n"
+                   f" - must not start with a number.\n"
+                   f"Press Enter to use {py_name} instead.\n"
+                   f"Press a+Enter to abort\n"
+                   f"Any string + Enter to propose a new name:")
+            name = click.prompt(msg,default='',show_default=False)
+            if not name:
+                # accepting py_name
+                return py_name
+            elif name=='a':
+                warning(f"Exiting.")
+                return CANCEL
+            # continue with verifying new name provided.
+            
+# end of file

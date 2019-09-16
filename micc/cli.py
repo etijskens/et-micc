@@ -179,15 +179,17 @@ Options:
     --soft-link, -s             add a soft link to the extension library, rather than a copy.
 """
 
-import sys
+import sys,os
 from types import SimpleNamespace
 
 import click
 
 from micc.commands import micc_create, micc_version, micc_tag, micc_app, \
-                          micc_module, micc_module_f2py, micc_module_cpp, \
+                          micc_module_py, micc_module_f2py, micc_module_cpp, \
                           micc_build, micc_convert_simple
-
+                          
+from micc.utils import module_exists
+from micc import utils
 
 
 @click.group()
@@ -206,7 +208,7 @@ def main(ctx, verbose):
 @click.argument('project_name',     default='')
 @click.option('-o', '--output-dir', default='.', help="location of the new project")
 @click.option('-T', '--template',   default=[]
-              , help="ordered list Python package cookiecutter templates")
+              , help="ordered list Python package cookiecutter templates, or a single template")
 @click.option('-m', '--micc-file',  default='micc.json'
               , help="name of the micc-file in the cookiecutter templates")
 @click.option('-s', '--simple',  is_flag=True, default=False
@@ -258,11 +260,16 @@ def create( ctx
 @click.option('-P', '--project_path', default='.'
              ,help="path to project directory")
 @click.option('-T', '--template',   default='template-app'
-             , help="ordered list Python package cookiecutter templates")
+             , help="ordered list Python package cookiecutter templates, or a single template")
 @click.option('-m', '--micc-file',  default='micc.json'
               , help="name of the micc-file in the cookiecutter templates")
 @click.option('--overwrite', is_flag=True, default=False
-             , help='overwrite existing files.')
+             , help="If True, any existing files are overwritten without backup."
+                    "If False, micc verifies if there are existing files that"
+                    "would be overwritten and gives you three options: abort, "
+                    "continue with backup files, and continue without backup "
+                    "files. The latter is equivalent to specifying overwrite=True."
+             )
 @click.pass_context
 def app( ctx
        , app_name
@@ -276,11 +283,12 @@ def app( ctx
     
     :param str app_name: name of the cli application to be added to the package.
     """
+    assert not utils.app_exists(project_path, app_name), f"Project {os.path.basename(project_path)} has already an app named {app_name}."
+    ctx.obj.overwrite = overwrite
     return micc_app( app_name
                    , project_path=project_path
                    , templates=template
                    , micc_file=micc_file
-                   , overwrite=overwrite
                    , global_options=ctx.obj
                    )
 
@@ -294,9 +302,14 @@ def app( ctx
 @click.option( '--cpp', is_flag=True, default=False
              , help='create a C++ module.')
 @click.option( '--overwrite', is_flag=True, default=False
-             , help='overwrite existing files.')
-@click.option( '-T', '--template',   default='micc-module'
-             , help="a Python package cookiecutter template")
+             , help="If True, any existing files are overwritten without backup."
+                    "If False, micc verifies if there are existing files that"
+                    "would be overwritten and gives you three options: abort, "
+                    "continue with backup files, and continue without backup "
+                    "files. The latter is equivalent to specifying overwrite=True."
+             )
+@click.option( '-T', '--template',   default=''
+              , help="ordered list Python package cookiecutter templates, or a single template")
 @click.option( '-m', '--micc-file',  default='micc.json'
              , help="the micc-file for the cookiecutter template")
 @click.pass_context
@@ -304,40 +317,46 @@ def module( ctx
           , module_name
           , project_path
           , f2py, cpp
+          , template
+          , micc_file
           , overwrite
-          , template, micc_file
           ):
     """
     ``micc module`` subcommand, add a module to the package. 
     
     :param str module_name: name of the module to be added to the package.
     """
+    assert not (cpp and f2py), "Flags '--f2py' and '--cpp' cannot be specified simultaneously."
+    assert not module_exists(project_path,module_name), f"Project {os.path.basename(project_path)} has already a module named {module_name}."
+
+    ctx.obj.overwrite = overwrite
     if f2py:
-        assert not cpp, "'--f2py' and '--cpp' cannot be specified simultaneously."
+        if not template:
+            template = 'template-module-f2py'
         return micc_module_f2py( module_name
-                               , project_path
-                               , overwrite=overwrite
-                               , template=template + '-f2py'
+                               , project_path=project_path
+                               , templates=template
                                , micc_file=micc_file
                                , global_options=ctx.obj
                                )
     elif cpp:
-        assert not f2py, "'--f2py' and '--cpp' cannot be specified simultaneously."
+        if not template:
+            template = 'template-module-cpp'
         return micc_module_cpp( module_name
-                              , project_path
-                              , overwrite=overwrite
-                              , template=template + '-cpp'
+                              , project_path=project_path
+                              , templates=template
                               , micc_file=micc_file
                               , global_options=ctx.obj
                               )
     else:
-        return micc_module( module_name
-                          , project_path
-                          , overwrite=overwrite
-                          , template=template
-                          , micc_file=micc_file
-                          , global_options=ctx.obj
-                          )
+        if not template:
+            template = 'template-module'
+        return micc_module_py( module_name
+                             , project_path=project_path
+                             , templates=template
+                             , micc_file=micc_file
+                             , global_options=ctx.obj
+                             )
 
 
 @main.command()
@@ -400,14 +419,20 @@ def build(ctx, project_path, soft_link):
 @main.command()
 @click.argument('project_path', default='.')
 @click.option('--overwrite', is_flag=True, default=False
-             , help='overwrite existing files.')
+             , help="If True, any existing files are overwritten without backup."
+                    "If False, micc verifies if there are existing files that"
+                    "would be overwritten and gives you three options: abort, "
+                    "continue with backup files, and continue without backup "
+                    "files. The latter is equivalent to specifying overwrite=True."
+             )
 @click.pass_context
 def convert_simple(ctx, project_path, overwrite):
     """
     ``micc convert_simple`` subcommand, convert a simple python package
     (created as ``micc create <module_name> --simple``) to a general python package. 
     """
-    return micc_convert_simple(project_path, overwrite, global_options=ctx.obj)
+    ctx.obj.overwrite = overwrite
+    return micc_convert_simple(project_path, global_options=ctx.obj)
 
 
 if __name__ == "__main__":
