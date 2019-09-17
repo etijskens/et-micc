@@ -649,29 +649,38 @@ def micc_tag( project_path
     """
     assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
             
-    with utils.in_directory(project_path):
-        path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
-        pyproject_toml = toml.load(path_to_pyproject_toml)
-        project_name    = pyproject_toml['tool']['poetry']['name']
-        current_version = pyproject_toml['tool']['poetry']['version']
-
+    if global_options.verbose>0:
         click.echo(f"Creating tag {current_version} for project {project_name}")
-        cmd = ['git', 'tag', '-a', f'v{current_version}', '-m', f'"tag version {current_version}"']
-        if global_options.verbose:
+        
+    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
+    pyproject_toml = toml.load(path_to_pyproject_toml)
+    project_name    = pyproject_toml['tool']['poetry']['name']
+    current_version = pyproject_toml['tool']['poetry']['version']
+    tag = f"v{current_version}"
+    
+    with utils.in_directory(project_path):
+    
+        if global_options.verbose>1:
+            click.echo(f"Creating tag {tag} for project {project_name}")
+        cmd = ['git', 'tag', '-a', tag', '-m', f'"tag version {current_version}"']
+        if global_options.verbose>1:
             click.echo(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        click.echo(completed_process.stdout)
-        if completed_process.stderr:
-            click.echo(completed_process.stderr)
+        if global_options.verbose>1:
+            click.echo(completed_process.stdout)
+            if completed_process.stderr:
+                click.echo(completed_process.stderr)
 
-        click.echo(f"Pushing tag {current_version} for project {project_name}")
-        cmd = ['git', 'push', 'origin', f'v{current_version}']
-        if global_options.verbose:
+        if global_options.verbose>1:
+            click.echo(f"Pushing tag {tag} for project {project_name}")
+        cmd = ['git', 'push', 'origin', tag]
+        if global_options.verbose>1:
             click.echo(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        click.echo(completed_process.stdout)
-        if completed_process.stderr:
-            click.echo(completed_process.stderr)
+        if global_options.verbose>1:
+            click.echo(completed_process.stdout)
+            if completed_process.stderr:
+                click.echo(completed_process.stderr)
     return 0
 
 
