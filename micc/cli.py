@@ -330,6 +330,7 @@ def module( ctx
     assert not module_exists(project_path,module_name), f"Project {os.path.basename(project_path)} has already a module named {module_name}."
 
     ctx.obj.overwrite = overwrite
+    
     if f2py:
         if not template:
             template = 'template-module-f2py'
@@ -350,7 +351,7 @@ def module( ctx
                               )
     else:
         if not template:
-            template = 'template-module'
+            template = 'template-module-py'
         return micc_module_py( module_name
                              , project_path=project_path
                              , templates=template
