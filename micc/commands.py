@@ -10,6 +10,7 @@ import subprocess
 import shutil
 import platform
 import copy
+import logging,sys
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
@@ -27,7 +28,6 @@ from types import SimpleNamespace
 # logging commmands to follow cookiecutter.generate
 dbgcc = False 
 if dbgcc:
-    import logging,sys
     logger = logging.getLogger('cookiecutter.generate')
     logger.setLevel(9)
     stderr_hand = logging.StreamHandler(sys.stderr)
@@ -662,7 +662,7 @@ def micc_tag( project_path
     
         if global_options.verbose>1:
             click.echo(f"Creating tag {tag} for project {project_name}")
-        cmd = ['git', 'tag', '-a', tag', '-m', f'"tag version {current_version}"']
+        cmd = ['git', 'tag', '-a', tag, '-m', f'"tag version {current_version}"']
         if global_options.verbose>1:
             click.echo(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -685,34 +685,60 @@ def micc_tag( project_path
 
 
 def micc_build( project_path
+              , module_to_build
               , soft_link
               , global_options
               ):
     """
     Build all binary extions, i.e. f2py modules and cpp modules.
     
+    :param str module_to_build: name of the only module to build (the prefix cpp_ or f2py_ may be omitted)
     :param str project_path: path to the project that must be built.
     :param bool soft_link: if False, the binary extension modules are copied
         into the package directory. Otherwise a soft link is provided.
     """
     assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
     
-    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
-    pyproject_toml = toml.load(path_to_pyproject_toml)
-    project_name   = pyproject_toml['tool']['poetry']['name']
-#     current_version = pyproject_toml['tool']['poetry']['version']
-    package_name    = utils.convert_to_valid_module_name(project_name)
-    package_dir = os.path.join(project_path,package_name)
+    project_path = os.path.abspath(project_path)
+    project_name = os.path.basename(project_path)
+    package_name = utils.convert_to_valid_module_name(project_name)
+    package_path = os.path.join(project_path,package_name)
+
+    build_log = logging.getLogger(f"micc-build")
+    build_log.setLevel(9)
+    # add a handler that accepts messages based on verbosity
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    if global_options.verbose==0:
+        stderr_handler.setLevel(logging.NOTSET)
+    elif global_options.verbose==1:
+        stderr_handler.setLevel(logging.DEBUG)
+    else:
+        stderr_handler.setLevel(logging.INFO)
+    build_log.addHandler(stderr_handler)
+        
+    # get extension for binary extensions (depends on OS and python version)
+    extension_suffix = sysconfig.get_config_var('EXT_SUFFIX')
 
     my_env = os.environ.copy()
-    extension_suffix = sysconfig.get_config_var('EXT_SUFFIX')
-    
-    dirs = os.listdir(package_dir)
+    dirs = os.listdir(package_path)
     for d in dirs:
-        if os.path.isdir(os.path.join(package_dir,d)) and (d.startswith("f2py_") or d.startswith("cpp_")):
+        if os.path.isdir(os.path.join(package_path,d)) and (d.startswith("f2py_") or d.startswith("cpp_")):
+            
+            if module_to_build and not d.endswith(module_to_build): # build only this module
+                continue
+
+            logfile_name = f"micc-build-{d}.log"
+            if os.path.exists(logfile_name):
+                os.remove(logfile_name)
+            # add a handler that accepts all messages and can be consulted later in case of problems
+            logfile_handler = logging.FileHandler(logfile_name)
+            logfile_handler.setLevel(logging.DEBUG) # let all messags pass.
+            build_log.addHandler(logfile_handler)
+ 
             module_type,module_name = d.split('_',1)
-            click.echo(f"\nBuilding {module_type} {module_name}:\n")
-            build_dir = os.path.join(package_dir,d,'build_')
+            build_log.info(f"\nBuilding {module_type} {module_name}:\n")
+                
+            build_dir = os.path.join(package_path,d,'build_')
             os.makedirs(build_dir,exist_ok=True)
             with utils.in_directory(build_dir):
                 cextension = module_name + extension_suffix
@@ -724,24 +750,25 @@ def micc_build( project_path
                     cmds.append(['ln', '-sf', os.path.abspath(cextension), destination])
                 else:
                     if os.path.exists(destination):
-                        click.echo(f"micc build : {module_type} >>> os.remove({destination})\n")
+                        build_log.debug(f"micc build : {module_type} >>> os.remove({destination})\n")
                         os.remove(destination)
                 # WARNING: for these commands to work in eclipse, eclipse must have
                 # started from the shell with the appropriate environment activated.
                 # Otherwise subprocess starts out with the wrong environment. It 
                 # may not pick the right Python version, and may not find pybind11.
                 for cmd in cmds:
-                    click.echo(f'micc build : {module_type} > ' + ' '.join(cmd))
+                    build_log.info(f'micc build : {module_type} > ' + ' '.join(cmd))
                     completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)
-                    click.echo(completed_process.stdout)
+                    build_log.debug(completed_process.stdout.decode('ascii'))
                     if completed_process.stderr:
-                        click.echo(completed_process.stderr)
+                        build_log.error(completed_process.stderr.decode('ascii'))
+                        build_log.removeHandler(logfile_handler)
                         break
+                        
                 if not soft_link:
-                    click.echo(f"micc build : {module_type} >>> shutil.copyfile({cextension}, {destination})\n")
+                    build_log.info(f"micc build : {module_type} >>> shutil.copyfile( '{cextension}', '{destination}' )\n")
                     shutil.copyfile(cextension, destination)
-#                 click.echo
-    
+            build_log.removeHandler(logfile_handler)
     return 0
 
 
@@ -775,8 +802,8 @@ def micc_convert_simple(project_path, overwrite, global_options):
         return exit_code
     
     package_name = utils.convert_to_valid_module_name(project_name)
-    package_dir = os.path.join(project_path,package_name)
-    os.makedirs(package_dir)
+    package_path = os.path.join(project_path,package_name)
+    os.makedirs(package_path)
     src = os.path.join(project_path,package_name + '.py')
     dst = os.path.join(project_path,package_name, '__init__.py')
     shutil.move(src, dst)

@@ -407,14 +407,20 @@ def tag(ctx, project_path):
 
 @main.command()
 @click.argument('project_path', default='.')
+@click.option('-m','--module', default=''
+             , help="Build only this module. The prefix ['cpp_','f2py'] may be omitted.")
 @click.option('-s', '--soft-link', is_flag=True, default=False
              , help="Create a soft link rather than a copy of the extension library.")
 @click.pass_context
-def build(ctx, project_path, soft_link):
+def build(ctx, project_path, module, soft_link):
     """
     ``micc build`` subcommand, builds all binary extension libraries (f2py and C++ modules. 
     """
-    return micc_build(project_path, soft_link=soft_link, global_options=ctx.obj)
+    return micc_build( project_path=project_path
+                     , module_to_build=module
+                     , soft_link=soft_link
+                     , global_options=ctx.obj
+                     )
 
 
 @main.command()

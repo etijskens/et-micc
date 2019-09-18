@@ -82,6 +82,11 @@ issue #10 micc files are part of the template
 ---------------------------------------------
 So they better live there.
 
+issue #11 add log files to ``micc build``
+-----------------------------------------
+controlling the output with verbose is not sufficient. If one of the build commands fails we want
+to print all output for building that module. that's hard to control with verbose.
+
 Closed Issues
 =============
 #1 [bug] FileExistsError in micc module
