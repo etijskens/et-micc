@@ -6,7 +6,7 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.11 (2019-09-??)
+v0.5.11 (2019-09-18)
 ====================
 #2 [feature] simple python project
 add ``--simple`` flag to ``micc create`` to create a simple (=unnested) python module ``<package_name>.py``
