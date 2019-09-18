@@ -378,6 +378,7 @@ def micc_app( app_name
 
 def micc_module_py( module_name
                   , project_path
+                  , simple
                   , templates
                   , micc_file
                   , global_options
@@ -387,6 +388,7 @@ def micc_module_py( module_name
     
     :param str module_name: name of the module to be added.
     :param str project_path: path to the project where the app will be created. 
+    :param bool simple: create simple (``<module_name>.py``) or general python module 
     :param str templates: ordered list of paths to a Cookiecutter_ template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
@@ -410,9 +412,13 @@ def micc_module_py( module_name
             utils.error(msg)
         return exit_code
     
-    with in_directory(project_path):        
+    with in_directory(project_path):
+        package_name = template_parameters['package_name']
+        if not simple:
+            module_py = os.path.join(project_path,package_name,module_name)
+            simple_to_general(module_py)
+        
         # docs
-        package_name = template_parameters['project_name'].lower().replace('-', '_')
         with open("API.rst","a") as f:
             f.write(f"\n.. automodule:: {package_name}.{module_name}"
                      "\n   :members:\n\n"
@@ -709,11 +715,11 @@ def micc_build( project_path
     # add a handler that accepts messages based on verbosity
     stderr_handler = logging.StreamHandler(sys.stderr)
     if global_options.verbose==0:
-        stderr_handler.setLevel(logging.NOTSET)
+        stderr_handler.setLevel(logging.CRITICAL)
     elif global_options.verbose==1:
-        stderr_handler.setLevel(logging.DEBUG)
-    else:
         stderr_handler.setLevel(logging.INFO)
+    else:
+        stderr_handler.setLevel(logging.DEBUG)
     build_log.addHandler(stderr_handler)
         
     # get extension for binary extensions (depends on OS and python version)
@@ -736,9 +742,8 @@ def micc_build( project_path
             build_log.addHandler(logfile_handler)
  
             module_type,module_name = d.split('_',1)
-            build_log.info(f"\nBuilding {module_type} {module_name}:\n")
-                
             build_dir = os.path.join(package_path,d,'build_')
+            build_log.info(f"\nBuilding {module_type} module {module_name} in directory '{build_dir}'\n    (see {logfile_name})\n")
             os.makedirs(build_dir,exist_ok=True)
             with utils.in_directory(build_dir):
                 cextension = module_name + extension_suffix
@@ -750,14 +755,14 @@ def micc_build( project_path
                     cmds.append(['ln', '-sf', os.path.abspath(cextension), destination])
                 else:
                     if os.path.exists(destination):
-                        build_log.debug(f"micc build : {module_type} >>> os.remove({destination})\n")
+                        build_log.debug(f">>> os.remove({destination})\n")
                         os.remove(destination)
                 # WARNING: for these commands to work in eclipse, eclipse must have
                 # started from the shell with the appropriate environment activated.
                 # Otherwise subprocess starts out with the wrong environment. It 
                 # may not pick the right Python version, and may not find pybind11.
                 for cmd in cmds:
-                    build_log.info(f'micc build : {module_type} > ' + ' '.join(cmd))
+                    build_log.debug(f"> {' '.join(cmd)}")
                     completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)
                     build_log.debug(completed_process.stdout.decode('ascii'))
                     if completed_process.stderr:
@@ -766,10 +771,22 @@ def micc_build( project_path
                         break
                         
                 if not soft_link:
-                    build_log.info(f"micc build : {module_type} >>> shutil.copyfile( '{cextension}', '{destination}' )\n")
+                    build_log.debug(f">>> shutil.copyfile( '{cextension}', '{destination}' )\n")
                     shutil.copyfile(cextension, destination)
             build_log.removeHandler(logfile_handler)
+    build_log.info('build finished.')
     return 0
+
+
+def simple_to_general(module_py):
+    """
+    move file module.py to module/__init__.py
+    """
+    module_path = os.path.abspath( module_py.replace('.py','') )
+    os.makedirs(module_path)
+    src = os.path.join(module_path + '.py')
+    dst = os.path.join(module_path, '__init__.py')
+    shutil.move(src, dst)
 
 
 def micc_convert_simple(project_path, overwrite, global_options):

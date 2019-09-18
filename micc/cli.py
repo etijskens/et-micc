@@ -301,6 +301,10 @@ def app( ctx
              , help='create a f2py module.')
 @click.option( '--cpp', is_flag=True, default=False
              , help='create a C++ module.')
+@click.option('--simple/--no-simple',  default=True
+              , help="create a simple or a general python model (ignored if "
+                     " --cpp or --f2py are specified)."
+              )
 @click.option( '--overwrite', is_flag=True, default=False
              , help="If True, any existing files are overwritten without backup."
                     "If False, micc verifies if there are existing files that"
@@ -316,7 +320,7 @@ def app( ctx
 def module( ctx
           , module_name
           , project_path
-          , f2py, cpp
+          , f2py, cpp, simple
           , template
           , micc_file
           , overwrite
@@ -354,6 +358,7 @@ def module( ctx
             template = 'template-module-py'
         return micc_module_py( module_name
                              , project_path=project_path
+                             , simple=simple
                              , templates=template
                              , micc_file=micc_file
                              , global_options=ctx.obj
