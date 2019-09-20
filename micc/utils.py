@@ -10,7 +10,7 @@ from contextlib import contextmanager
 import click
 from cookiecutter.main import cookiecutter
 import toml
-
+from pathlib import Path
 from micc import __version__
 
 DEBUG = False
@@ -83,9 +83,11 @@ def is_project_directory(path):
     * there is a pyproject.toml file, exposing ``['tool']['poetry']['name']``
     * that there is a python package or module with that name.
     
+    :param Path path:
     """
-    
-    path_to_pyproject_toml = os.path.join(path,'pyproject.toml')
+    if not isinstance(path, Path):
+        path = Path(path)
+    path_to_pyproject_toml = str(path /'pyproject.toml')
     
     try:
         project_name = toml.load(path_to_pyproject_toml)['tool']['poetry']['name']
@@ -93,10 +95,10 @@ def is_project_directory(path):
         return False
     
     package_name = convert_to_valid_module_name(project_name)
-    if  os.path.exists(os.path.join(path, package_name, '__init__.py')):
+    if (path / package_name / '__init__.py').exists():
         # python package found
         return True
-    elif os.path.exists(os.path.join(path, package_name + '.py')):
+    elif (path / (package_name + '.py')).exists():
         return True
         # simple python module found
     else:

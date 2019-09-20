@@ -344,7 +344,7 @@ def micc_app( app_name
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by all micc commands.
     """
-    project_path = os.path.abspath(project_path)
+    project_path = Path(project_path).resolve()
     assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
     assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
     

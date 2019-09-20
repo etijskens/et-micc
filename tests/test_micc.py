@@ -92,7 +92,7 @@ def in_empty_tmp_dir():
 #===============================================================================
 # test scenario blocks
 #===============================================================================
-def create(runner,arguments,input_='short description'):
+def run(runner,arguments,input_='short description'):
     """
     create a project 
     """
@@ -101,6 +101,7 @@ def create(runner,arguments,input_='short description'):
                           , input=input_
                           )
     report(result)
+
 
 #===============================================================================
 # tests
@@ -123,9 +124,10 @@ def test_scenario_1():
 #     with runner.isolated_filesystem():
     with in_empty_tmp_dir():
         print(os.getcwd())
-        create(runner, ['-vv', 'create','foo', '--allow-nesting'])
+        run(runner, ['-vv', 'create','foo', '--allow-nesting'])
         assert micc.utils.is_project_directory('foo')
         assert not micc.utils.is_simple_project('foo')
+        run(runner, ['-vv', 'app','my_app','-p','foo'])
 
     
 # def test_micc_version():

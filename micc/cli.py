@@ -261,7 +261,7 @@ def create( ctx
 
 @main.command()
 @click.argument('app_name', default='')
-@click.option('-P', '--project_path', default='.'
+@click.option('-p', '--project_path', default='.'
              ,help="path to project directory")
 @click.option('-T', '--template',   default='template-app'
              , help="ordered list Python package cookiecutter templates, or a single template")
