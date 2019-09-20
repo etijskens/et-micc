@@ -205,21 +205,25 @@ def main(ctx, verbose):
 
 
 @main.command()
-@click.argument('project_name',     default='')
+@click.argument('project_name')
 @click.option('-o', '--output-dir', default='.', help="location of the new project")
 @click.option('-T', '--template',   default=[]
               , help="ordered list Python package cookiecutter templates, or a single template")
 @click.option('-m', '--micc-file',  default='micc.json'
               , help="name of the micc-file in the cookiecutter templates")
-@click.option('-s', '--simple',  is_flag=True, default=False
-              , help="create a simple instead of a general python project")
+@click.option('-s', '--structure', type=click.Choice(['module','package']), default='package'
+              , help="create a python project structure ``<module_name>.py`` (module),"
+                     " or ``<module_name>/__init__.py`` (package).")
+@click.option('-n', '--allow-nesting',  is_flag=True, default=False
+              , help="allow to nest a project inside another project.")
 @click.pass_context
 def create( ctx
           , output_dir
           , project_name
           , template
           , micc_file
-          , simple
+          , structure
+          , allow_nesting
           ):
     """
     Create a project skeleton. Prompts the user for all entries in the micc.json file
@@ -229,28 +233,28 @@ def create( ctx
         omitted.
     """
     if not template: # default, empty list
-        if simple:
+        if structure=='module':
             template = ['template-package-base'
                        ,'template-package-simple'
                        ,'template-package-simple-docs'
                        ]
-            project_type = 'simple'
         else:
             template = ['template-package-base'
                        ,'template-package-general'
                        ,'template-package-simple-docs'
                        ,'template-package-general-docs'
                        ]
-            project_type = 'general'
     else:
-        # ignore simple
-        project_type = 'user-defined'
+        # ignore structure
+        structure = 'user-defined'
+        
+    ctx.obj.structure = structure
+    ctx.obj.allow_nesting = allow_nesting
         
     return micc_create( project_name
                       , output_dir=output_dir
                       , templates=template
                       , micc_file=micc_file
-                      , project_type=project_type
                       , global_options=ctx.obj
                       )
 

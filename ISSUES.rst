@@ -1,6 +1,17 @@
 Open Issues
 ===========
 
+last issue = 13
+
+#12 [feature] os.path -> pathlib
+--------------------------------
+more obvious manipulation of file paths
+ 
+
+#12 [feature] add flag for nesting a project inside another project
+-------------------------------------------------------------------
+mainly for running tests.
+
 #5 [feature] packaging and deployment
 -------------------------------------
 The `Python Packaging User Guide <https://packaging.python.org/guides/>`_
@@ -49,12 +60,6 @@ topics one at a time::
 this is perhaps useful, but rather more complicated. E.g if we first create a package with several
 modules (python, f2py, cpp) and then start to add documentation. This is a more complicated situation
 and one in which errors will be easily made, and more difficult to maintain.
-
-issue #6 common items in micc.json files
-----------------------------------------
-While workin on issue #2 I realized that there are now several ``micc.json` files with common
-items which are in fact copies. we need either a single ``micc.json`` or a way of isolating
-the common parts in a single file.
 
 issue #8 cookiecutter.json files
 --------------------------------
@@ -133,4 +138,11 @@ when cookiecutter is done.
 add ``--simple`` flag to ``micc create`` to create a simple (=unnested) python module ``<package_name>.py``
 instead of the nested ``<package_name/>__init__.py``
 a *simple* package should be convertible to a normal package
+
+issue #12 common items in micc.json files
+-----------------------------------------
+While workin on issue #2 I realized that there are now several ``micc.json` files with common
+items which are in fact copies. we need either a single ``micc.json`` or a way of isolating
+the common parts in a single file.
+Fixed by itself. If there are multiple templates, every new template adds parameters to the original.
 

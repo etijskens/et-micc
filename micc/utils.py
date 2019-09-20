@@ -171,7 +171,7 @@ def app_exists(project_path, app_name):
 
     return exists_app
 
-
+### is this still usefull?
 INFO    = { 'fg'  :'black'}
 WARNING = { 'fg'  :'blue' }
 ERROR   = { 'fg'  :'red'
@@ -187,6 +187,8 @@ def warning(text):
 
 def error(text):
     click.echo(click.style(text,**ERROR))
+###
+
 
 
 def is_simple_project(project_path):
@@ -268,4 +270,27 @@ def verify_name(name,obj,force_python_name=False):
                 return CANCEL
             # continue with verifying new name provided.
             
+
+#===============================================================================
+@contextmanager
+def log(logfun, begin_msg='doing', end_msg='done.'):
+    """
+    Print a start and stop message when executing a task.
+
+    :param logfun: function that writes  e.g. ``logging.info`
+    :param str begin_msg: print this before body is executed
+    :param str end_msg: print this after body is executed
+    :param singleline: generates a single line execution trace as in
+        `<begin_msg> ... <end_msg>`. Calling print2stderr may obfuscate this.
+    """
+    if logfun:
+        if end_msg is None:
+            logfun(begin_msg)
+        else:
+            logfun(begin_msg+' ...')
+        yield
+        if not end_msg is None:
+            logfun(f"{begin_msg} ... {end_msg}\n")
+#===============================================================================
+
 # end of file

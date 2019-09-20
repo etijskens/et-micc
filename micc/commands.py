@@ -23,17 +23,44 @@ import toml
 #===============================================================================
 from micc import utils
 from micc.utils import in_directory
-from types import SimpleNamespace
-#===============================================================================
-# logging commmands to follow cookiecutter.generate
-dbgcc = False 
-if dbgcc:
-    logger = logging.getLogger('cookiecutter.generate')
-    logger.setLevel(9)
-    stderr_hand = logging.StreamHandler(sys.stderr)
-    stderr_hand.setLevel(9) 
-    logger.addHandler(stderr_hand)    
-#===============================================================================
+
+
+def verbosity_to_loglevel(verbosity):
+    """
+    """
+    if verbosity==0:
+        return logging.CRITICAL
+    elif verbosity==1:
+        return logging.INFO
+    else:
+        return logging.DEBUG
+     
+     
+# create logger for micc
+micc_logger = logging.getLogger('micc_logger')
+micc_logger.setLevel(logging.DEBUG)
+# create a console handler 
+micc_console_loghandler = logging.StreamHandler(sys.stderr)
+micc_console_loghandler.setLevel(verbosity_to_loglevel(verbosity=1))
+micc_logger.addHandler(micc_console_loghandler)
+# create a logfile handler 
+micc_logfile_handler = logging.FileHandler('micc.log')
+micc_logger.addHandler(micc_logfile_handler)
+micc_logfile_handler.setLevel(logging.DEBUG)
+# create a formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s') # add formatter to micc_console_loghandler
+formatter = logging.Formatter('[%(levelname)s] %(message)s') # add formatter to micc_console_loghandler
+micc_console_loghandler.setFormatter(formatter) 
+micc_logfile_handler.setFormatter(formatter) 
+
+EXIT_CANCEL = -1 # exit code used for action EXIT_CANCELled by user
+def exit_msg(exit_code):
+    if exit_code==EXIT_CANCEL:
+        micc_logger.warning("Command canceled, exiting!")
+    elif exit_code!=0:
+        micc_logger.error(f"Error {exit_code}, exiting!")
+    return exit_code
+
 def resolve_template(template):
     """
     """
@@ -46,8 +73,9 @@ def resolve_template(template):
         # jutst the template name 
         template = os.path.join(os.path.dirname(__file__), template)
     return template
-#===============================================================================
-def get_template_parameters(template, micc_file, global_options, **kwargs):
+
+
+def get_template_parameters(template, micc_file, **kwargs):
     """
     Read the template parameter descriptions from the micc file, and
     prompt the user for supplying the values for the parameters with an
@@ -55,19 +83,15 @@ def get_template_parameters(template, micc_file, global_options, **kwargs):
     
     :returns: a dict of (parameter,value) pairs.
     """
-    if global_options.verbose > 1:
-        click.echo(f"> applying template {template}")
     micc_file = os.path.join(template, micc_file)
     try:
         f = open(micc_file, 'r')
     except IOError:
-        if global_options.verbose > 1:
-            click.echo(f"    using micc file (None)")
+        micc_logger.debug(f" . getting template parameters from (None)")
         template_parameters = {}
     else:
         with f:
-            if global_options.verbose > 1:
-                click.echo(f"    using micc file {micc_file}.")
+            micc_logger.debug(f" . getting template parameters from {micc_file}.")
             template_parameters = json.load(f)
       
     for kw,arg in kwargs.items(): 
@@ -90,13 +114,19 @@ def get_template_parameters(template, micc_file, global_options, **kwargs):
                 value = click.prompt(**kwargs,show_default=False)
         template_parameters[key] = value
 
-    if global_options.verbose > 2:
-        click.echo(f"    parameters:\n{json.dumps(template_parameters,indent=4)}")
+    micc_logger.debug(f" . parameters used:\n{json.dumps(template_parameters,indent=4)}")
     return template_parameters
-#===============================================================================
+
+
 def expand_templates(templates, micc_file, project_path, global_options, **extra_parameters):
     """
-    Expand a list of cookiecutter ``templates`` in directory ``project_path``.
+    Expand a list of cookiecutter ``templates`` in directory ``project_path``. 
+
+    If ``global_options.overwrite==False`` it is verified that no files will be over
+    written inadvertently. In that case you get the option to EXIT_CANCEL the command, 
+    or overwrite the files with our without creating backup files. If, on the other
+    hand, ``global_options.overwrite==true``, pre-existing files are overwritten
+    without warning.
     
     :param list templates: ordered list of (paths to) cookiecutter templates that 
         will be expanded as they appear. The template parameters are propagated 
@@ -115,12 +145,14 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
         templates = [templates]
     output_dir = os.path.abspath(os.path.join(project_path, '..'))
     os.makedirs(project_path, exist_ok=True)
-    
-    # list existing files that would be overwritten
+
+    # get the template parameters,
+    # list existing files that would be overwritten if global_options.overwrite==True
     existing_files = {}
     for template in templates:
+        micc_logger.debug(f" . Expanding template {template} in temporary directory")
         template = resolve_template(template)             
-        template_parameters = get_template_parameters( template, micc_file, global_options
+        template_parameters = get_template_parameters( template, micc_file
                                                      , **extra_parameters
                                                      )
         # Store the template parameters from this template for the the next
@@ -163,41 +195,43 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
                             existing_files[template] = []
                         existing_files[template].append(file)
     
-    # if global_options.overwrite is True, existing_files will aways be empty
-    if existing_files:
-        click.echo(f"The following files will be overwritten in {output_dir}:")
-        for template, files in existing_files.items():
-            t = os.path.basename(template)
-            for f in files:
-                click.echo(f"    {t} : {f}")
-        answer = click.prompt("Press 'c' to continue\n"
-                              "      'a' to abort\n"
-                              "      'b' to keep the original files with .bak extension\n"
-                             ,type=click.Choice(['c', 'a','b'])
-                             ,default='a'
-                             ,show_choices=True
-                             ).lower()
-        if answer=='a':
-            click.echo("Exiting.")
-            return CANCEL,extra_parameters
-        elif answer=='b':
-            click.echo(f"Making backup files in {project_path}:")
-            for files in existing_files.values():
-                for src in files:
-                    dst = src + '.bak'
-                    shutil.copyfile(src, dst)
-                    click.echo(f"     created backup file: {dst}")
-            click.echo(f"Overwriting files ...")
-        else:
-            click.echo(f"Overwriting files ... (no backup)")
-
+        if existing_files:
+            msg = f"The following pre-existing files will be overwritten in {output_dir}:\n"
+            for template, files in existing_files.items():
+                t = os.path.basename(template)
+                for f in files:
+                    msg += f"    {t} : {f}\n"
+            micc_logger.warning(msg)
+            answer = click.prompt("Press 'c' to continue\n"
+                                  "      'a' to abort\n"
+                                  "      'b' to keep the original files with .bak extension\n"
+                                 ,type=click.Choice(['c', 'a','b'])
+                                 ,default='a'
+                                 ,show_choices=True
+                                 ).lower()
+            if answer=='a':
+                micc_logger.critical("Exiting.")
+                return EXIT_CANCEL,extra_parameters
+            elif answer=='b':
+                micc_logger.warning(f"Making backup files in {project_path}:")
+                for files in existing_files.values():
+                    for src in files:
+                        dst = src + '.bak'
+                        shutil.copyfile(src, dst)
+                        micc_logger.warning(f"     created backup file: {dst}")
+                micc_logger.warning(f"Overwriting files ...")
+            else:
+                micc_logger.warning("Overwriting files ... (no backup)")
+            micc_logger.warning('Overwriting files ... Done.')
+            
+    # Now we can safely overwrite pre-existing files.
     for template in templates:
         template = resolve_template(template)
+        micc_logger.debug(f" . Expanding template {template} in project directory.")
         cookiecutter( template
                     , no_input=True
                     , overwrite_if_exists=True
                     , output_dir=output_dir
-
                     )
         # Clean up (see issue #7)
         cookiecutter_json = os.path.join(template, 'cookiecutter.json')
@@ -218,16 +252,11 @@ def msg_CannotAddToSimpleProject(path):
     return f"Cannot add components to simple project ({path})."
 
 
-_global_options = SimpleNamespace(verbose=1)
-CANCEL = -1
-
-
 def micc_create( project_name
                , output_dir
                , templates
                , micc_file
-               , project_type
-               , global_options=_global_options
+               , global_options
     ):
     """
     Create a new project skeleton for a general Python project. This is a
@@ -241,55 +270,56 @@ def micc_create( project_name
     :param str micc_file: name of the json file with the default values in the template directories. 
     :param types.SimpleNamespace global_options: namespace object with options accepted by all micc commands. 
     """
-    if global_options.verbose>0:
-        click.echo(f"Creating {project_type} Python package {project_name}")
-        if global_options.verbose>1:
-            if project_type == 'simple':
-                click.echo(f"    ( structure: {project_name}/{utils.convert_to_valid_module_name(project_name)}.py )")
-            else:
-                click.echo(f"    ( structure: {project_name}/{utils.convert_to_valid_module_name(project_name)}/__init__.py )")
-
-    output_dir = os.path.abspath(output_dir)
     
-    # Prevent the creation of a project inside another project    
-    # (add a 'dummy' leaf so the first directory checked is output_dir itself)
-    project_path = os.path.join(output_dir,project_name) 
-    p = copy.copy(project_path)
-    while p:
-        assert not utils.is_project_directory(p),f"Cannot create a project inside another project ({p})."
-        p = utils.get_parent_dir(p)
-        
-    ( exit_code
-    , template_parameters
-    ) = expand_templates( templates, micc_file, project_path, global_options
-                        # extra template parameters:
-                        , project_name=project_name
-                        )                
-    msg = f"Exiting ({exit_code}) ..."
-    if exit_code:
-        if exit_code == CANCEL:
-            utils.warning(msg)
-        else:
-            utils.error(msg)
-        return exit_code
-    
-    with utils.in_directory(os.path.join(output_dir,project_name)):
-        cmds = [ ['git', 'init']
-               , ['git', 'add', '*']
-               , ['git', 'add', '.gitignore']
-               , ['git', 'add', '.flake8']
-               , ['git', 'commit', '-m', '"first commit"']
-               , ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
-               , ['git', 'push', '-u', 'origin', 'master']
-               ]
-        for cmd in cmds:
-            click.echo('(micc create) > ' + ' '.join(cmd))
-            completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            click.echo(completed_process.stdout)
-        if completed_process.stderr:
-            click.echo(completed_process.stderr)
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
+    if global_options.structure=='module':
+        structure = f" ({project_name}.py)" 
+    elif global_options.structure=='package':
+        structure = f" ({project_name}/__init__.py)"
+    else:
+        structure = ''
+    with utils.log(micc_logger.info, f"Creating Python package '{project_name}' as a {global_options.structure}{structure}"):
 
-    utils.info("Done.")
+        output_dir = os.path.abspath(output_dir)
+        project_path = os.path.join(output_dir,project_name) 
+        assert not utils.is_project_directory(project_path),f"Project {project_path} exists already."
+        # Prevent the creation of a project inside another project    
+        # (add a 'dummy' leaf so the first directory checked is output_dir itself)
+        if not global_options.allow_nesting:
+            p = copy.copy(output_dir)
+            while p:
+                assert not utils.is_project_directory(p),f"Cannot create a project inside another project ({p})."
+                p = utils.get_parent_dir(p)
+            
+        global_options.overwrite = False
+     
+        ( exit_code
+        , template_parameters
+        ) = expand_templates( templates, micc_file, project_path, global_options
+                            # extra template parameters:
+                            , project_name=project_name
+                            )                
+        if exit_code:
+            return exit_msg(exit_code)
+
+        with utils.log(micc_logger.info,"Creating git repository"):
+            with utils.in_directory(os.path.join(output_dir,project_name)):
+                cmds = [ ['git', 'init']
+                       , ['git', 'add', '*']
+                       , ['git', 'add', '.gitignore']
+                       , ['git', 'commit', '-m', '"first commit"']
+                       , ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
+                       , ['git', 'push', '-u', 'origin', 'master']
+                       ]
+                for cmd in cmds:
+                    cmdstr = ' '.join(cmd)
+                    with utils.log(micc_logger.debug, f'> {cmdstr}', end_msg=None):
+                        completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        if completed_process.stdout:
+                            micc_logger.debug(' (stdout)\n' + completed_process.stdout.decode('ascii'))
+                        if completed_process.stderr:
+                            micc_logger.debug(' (stderr)\n' + completed_process.stderr.decode('ascii'))
+    
     return 0
 
 
@@ -316,15 +346,13 @@ def micc_app( app_name
     assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
     
     project_name = os.path.basename(project_path)
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
+    micc_logger.info(f"Creating app {app_name} in Python package {project_name}.")
     
     app_name = utils.verify_name(app_name, 'app')
     if not isinstance(app_name,str):
         # return exit_code
         return app_name
-
-    
-    if global_options.verbose>0:
-        click.echo(f"Creating app {app_name} in Python package {project_name}")
     
     ( exit_code
     , _ # template_parameters
@@ -334,12 +362,8 @@ def micc_app( app_name
                         , package_name=utils.convert_to_valid_module_name(project_name)
                         , app_name=app_name
                         )                
-    msg = f"Exiting ({exit_code}) ..."
     if exit_code:
-        if exit_code == CANCEL:
-            utils.warning(msg)
-        else:
-            utils.error(msg)
+        micc_logger.critical(f"Exiting ({exit_code}) ...")
         return exit_code
 
     with in_directory(project_path):
@@ -359,8 +383,7 @@ def micc_app( app_name
         with open("APPS.rst","a") as f:
             f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
             f.write( "   :members:\n\n")
-        if global_options.verbose:
-            utils.info(f"INFO: documentation for application '{app_name}' added.")
+        micc_logger.debug(f"INFO: documentation for application '{app_name}' added.")
         
         # pyproject.toml
         # in the [toolpoetry.scripts] add a line 
@@ -369,10 +392,8 @@ def micc_app( app_name
         content = tomlfile.read()
         content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
         tomlfile.write(content)
-        if global_options.verbose:
-            utils.info(f"INFO: application '{app_name}' added to pyproject.toml.")
-    
-    utils.info("Done.")
+
+    micc_logger.debug(f"    application '{app_name}' added to pyproject.toml.")
     return 0
 
 
@@ -396,7 +417,15 @@ def micc_module_py( module_name
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by all micc commands.
     """
-    global_options.language = 'py'
+    if simple:
+        module_type = f"{module_name}.py"
+    else:
+        module_type = f"{module_name}/__init__.py"
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
+    micc_logger.info(f"Creating python module {module_type} in Python package {project_name}.")
+        
+    global_options.simple = simple
+    global_options.module_kind = 'python module'
     ( exit_code
     , template_parameters
     ) = expand_module_templates( 
@@ -405,11 +434,7 @@ def micc_module_py( module_name
             global_options
         )
     if exit_code:
-        msg = f"Exiting ({exit_code}) ..."
-        if exit_code == CANCEL:
-            utils.warning(msg)
-        else:
-            utils.error(msg)
+        micc_logger.critical(f"Exiting ({exit_code}) ...")
         return exit_code
     
     with in_directory(project_path):
@@ -423,8 +448,7 @@ def micc_module_py( module_name
             f.write(f"\n.. automodule:: {package_name}.{module_name}"
                      "\n   :members:\n\n"
                    )
-        if global_options.verbose>1:
-            utils.info(f"INFO: documentation entries for Python module '{module_name}' added.")
+        micc_logger.debug(f"    documentation entries for Python module {module_type} added.")
     return 0
 
 
@@ -446,7 +470,9 @@ def micc_module_f2py( module_name
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by all micc commands.
     """
-    global_options.language = 'f90'
+
+    global_options.module_kind = 'f2py module'
+    
     ( exit_code
     , template_parameters
     ) = expand_module_templates( 
@@ -455,11 +481,7 @@ def micc_module_f2py( module_name
             global_options
         )
     if exit_code:
-        msg = f"Exiting ({exit_code}) ..."
-        if exit_code == CANCEL:
-            utils.warning(msg)
-        else:
-            utils.error(msg)
+        micc_logger.critical(f"Exiting ({exit_code}) ...")
         return exit_code
     
     project_name = template_parameters['project_name']
@@ -468,13 +490,13 @@ def micc_module_f2py( module_name
         # docs
         with open("API.rst","a") as f:
             f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
-        if global_options.verbose:
-            utils.info(f"INFO: Documentation template for f2py module '{module_name}' added.\n"
-                       f"      Because recent versions of sphinx are incompatible with sphinxfortran,\n"
-                       f"      you are required to enter the documentation manually in file\n"
-                       f"      '{project_name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
-                       f"      A suitable example is pasted.\n"
-                      )
+        micc_logger.warning(f"    Documentation template for f2py module '{module_name}' added.\n"
+                            f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
+                            f"    you are required to enter the documentation manually in file\n"
+                            f"    '{project_name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
+                            f"    A suitable example is pasted.\n"
+                           )
+    micc_logger.info(f"F2py module {module_name} created.")
     return 0
 
 
@@ -496,7 +518,7 @@ def micc_module_cpp( module_name
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by all micc commands.
     """
-    global_options.language = 'cpp'
+    global_options.module_kind = 'cpp_module'
 
     ( exit_code
     , template_parameters
@@ -507,7 +529,7 @@ def micc_module_cpp( module_name
         )
     if exit_code:
         msg = f"Exiting ({exit_code}) ..."
-        if exit_code == CANCEL:
+        if exit_code == EXIT_CANCEL:
             utils.warning(msg)
         else:
             utils.error(msg)
@@ -519,13 +541,13 @@ def micc_module_cpp( module_name
         # docs
         with open("API.rst","a") as f:
             f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
-        if global_options.verbose:
-            utils.info(f"INFO: Documentation template for cpp module '{module_name}' added.\n"
-                       f"      Because recent versions of sphinx are incompatible with sphinxfortran,\n"
-                       f"      you are required to enter the documentation manually in file\n"
-                       f"      '{project_name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
-                       f"      A suitable example is pasted.\n"
-                      )
+        micc_logger.warning(f"    Documentation template for cpp module '{module_name}' added.\n"
+                            f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
+                            f"    you are required to enter the documentation manually in file\n"
+                            f"    '{project_name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
+                            f"    A suitable example is pasted.\n"
+                           )
+    micc_logger.info(f"C++ module {module_name} created.")
     return 0
 
 
@@ -562,19 +584,22 @@ def expand_module_templates( module_name
         # return exit_code
         return module_name
         
-    if global_options.verbose>0:
-        if global_options.language=='py':
-            click.echo(f"Creating Python module {module_name} in Python package {project_name}\n"
-                       f"    Source code in {project_name}/{package_name}/{module_name}.py."
-                      )
-        elif global_options.language=='f2py':
-            click.echo(f"Creating f2py module {module_name} in Python package {project_name}\n"
-                       f"    Source files in {project_name}/{package_name}/f2py_{module_name}."
-                      )
-        elif global_options.language=='cpp':
-            click.echo(f"Creating C++ module {module_name} in Python package {project_name}\n"
-                        f"    Source files in {project_name}/{package_name}/cpp_{module_name}."
-                       )
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
+    
+    if global_options.module_kind=='python module':
+        if global_options.simple:
+            module_structure = f"{module_name}.py"
+        else:
+            module_structure = f"{module_name}/__init__.py"
+        micc_logger.info(f"Creating python module {module_structure} in Python package {project_name}.")
+    elif global_options.module_kind=='f2py module':
+        micc_logger.info(f"Creating f2py module {module_name} in Python package {project_name}\n"
+                         f"    Source files in {project_name}/{package_name}/f2py_{module_name}."
+                        )
+    elif global_options.module_kind=='cpp_module':
+        micc_logger.info(f"Creating C++ module {module_name} in Python package {project_name}\n"
+                         f"    Source files in {project_name}/{package_name}/cpp_{module_name}."
+                        )
     return expand_templates( templates, micc_file, project_path, global_options
                            # extra template parameters:
                            , project_name=project_name
@@ -603,20 +628,18 @@ def micc_version( project_path
     current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = utils.convert_to_valid_module_name(project_name)
 
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
     if rule is None:
-        click.echo(f"Current version: {project_name} v{current_version}")
+        micc_logger.info(f"Current version: {project_name} v{current_version}")
     else:
         new_version = VersionCommand().increment_version(current_version, rule)
-        if not global_options.quiet:
-            msg = f"Package {project_name} v{current_version}\n"\
-                  f"Are you sure to move to v{new_version}'?"
-            if not click.confirm(msg,default=False):
-                click.echo(f"Canceled: 'micc version {rule}'")
-                return CANCEL
-            else:
-                click.echo("Proceeding...")                    
-        else:
-            click.echo(f"{project_name} v{current_version} -> v{new_version}")
+        msg = (f"Package {project_name} v{current_version}\n"
+               f"Are you sure to move to v{new_version}'?")
+        micc_logger.warning(msg)
+        if not click.confirm("Confirm to continue",default=False):
+            micc_logger.warning(f"EXIT_CANCELed: 'micc version {rule}'")
+            return EXIT_CANCEL
+        micc_logger.warning(f"{project_name} v{current_version} -> v{new_version}")
 
         # wrt poetry issue #1182. This issue is finally solved, boils down to 
         # tomlkit expecting the sections to appear grouped in pyproject.toml.
@@ -635,14 +658,14 @@ def micc_version( project_path
             app = Application()
             app._auto_exit = False
             app.run(i)       
-        click.echo(f'    Updating : {path_to_pyproject_toml}')
+        micc_logger.debug(f'    Updating : {path_to_pyproject_toml}')
             
         # update version in package
         if not utils.replace_version_in_file( os.path.join(project_path, package_name, '__init__.py')
                                             , current_version, new_version):
             if not utils.replace_version_in_file( os.path.join(project_path, package_name + '.py')
                                                 , current_version, new_version):
-                click.echo(f"Warning: No package {package_name}/__init__.py and no modute {package_name}.py found.")
+                micc_logger.warning(f"Warning: No package {package_name}/__init__.py and no modute {package_name}.py found.")
     return 0
 
 
@@ -655,38 +678,32 @@ def micc_tag( project_path
     """
     assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
             
-    if global_options.verbose>0:
-        click.echo(f"Creating tag {current_version} for project {project_name}")
-        
     path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
     pyproject_toml = toml.load(path_to_pyproject_toml)
     project_name    = pyproject_toml['tool']['poetry']['name']
     current_version = pyproject_toml['tool']['poetry']['version']
     tag = f"v{current_version}"
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
     
     with utils.in_directory(project_path):
     
-        if global_options.verbose>1:
-            click.echo(f"Creating tag {tag} for project {project_name}")
+        micc_logger.info(f"Creating git tag {tag} for project {project_name}")
         cmd = ['git', 'tag', '-a', tag, '-m', f'"tag version {current_version}"']
-        if global_options.verbose>1:
-            click.echo(f"Running '{' '.join(cmd)}'")
+        micc_logger.debug(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if global_options.verbose>1:
-            click.echo(completed_process.stdout)
-            if completed_process.stderr:
-                click.echo(completed_process.stderr)
+        micc_logger.debug(completed_process.stdout.decode('ascii'))
+        if completed_process.stderr:
+            micc_logger.critical(completed_process.stderr.decode('ascii'))
 
-        if global_options.verbose>1:
-            click.echo(f"Pushing tag {tag} for project {project_name}")
+        micc_logger.debug(f"Pushing tag {tag} for project {project_name}")
         cmd = ['git', 'push', 'origin', tag]
-        if global_options.verbose>1:
-            click.echo(f"Running '{' '.join(cmd)}'")
+        micc_logger.debug(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if global_options.verbose>1:
-            click.echo(completed_process.stdout)
-            if completed_process.stderr:
-                click.echo(completed_process.stderr)
+        micc_logger.debug(completed_process.stdout.decode('ascii'))
+        if completed_process.stderr:
+            micc_logger.error(completed_process.stderr.decode('ascii'))
+            
+    micc_logger.info('Done.')
     return 0
 
 
@@ -711,8 +728,8 @@ def micc_build( project_path
     package_path = os.path.join(project_path,package_name)
 
     build_log = logging.getLogger(f"micc-build")
-    build_log.setLevel(9)
-    # add a handler that accepts messages based on verbosity
+    build_log.setLevel(1)
+    # add a handler that accepts messages based on verbosity and writes to stderr
     stderr_handler = logging.StreamHandler(sys.stderr)
     if global_options.verbose==0:
         stderr_handler.setLevel(logging.CRITICAL)
