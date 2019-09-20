@@ -199,20 +199,20 @@ def is_simple_project(project_path):
     package_name = convert_to_valid_module_name(os.path.basename(project_path))
     package_dir = os.path.join(project_path, package_name)
     
-    has_simple_module  = os.path.isfile( os.path.join(project_path, package_name + ".py") )
+    has_module  = os.path.isfile( os.path.join(project_path, package_name + ".py") )
 
-    has_general_module = os.path.isdir(package_dir) 
-    if has_general_module:
+    has_package = os.path.isdir(package_dir) 
+    if has_package:
         if not os.path.exists(os.path.join(package_dir,"__init__.py")):
-            has_general_module = False
+            has_package = False
     
-    if has_simple_module and has_general_module:
+    if has_module and has_package:
         raise RuntimeError(f"ERROR: This project has both '{package_dir}.py' and '{package_dir}/__init__.py'.")
  
-    if not has_simple_module and not has_general_module:
+    if not has_module and not has_package:
         raise RuntimeError(f"ERROR: This directory has neither '{package_dir}.py' nor '{package_dir}/__init__.py'.")
     
-    return has_simple_module
+    return has_module
 
 
 def get_parent_dir(p):

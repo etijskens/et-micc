@@ -48,7 +48,7 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 
 from micc import cli
 import micc.commands
-
+import micc.utils
 #===============================================================================
 def report(result,assert_exit_code=True):
     """
@@ -92,16 +92,15 @@ def in_empty_tmp_dir():
 #===============================================================================
 # test scenario blocks
 #===============================================================================
-def create(runner,arguments,input='short description'):
+def create(runner,arguments,input_='short description'):
     """
     create a project 
     """
     result = runner.invoke( cli.main
                           , arguments
-                          , input=input
+                          , input=input_
                           )
     report(result)
-    
 
 #===============================================================================
 # tests
@@ -125,6 +124,9 @@ def test_scenario_1():
     with in_empty_tmp_dir():
         print(os.getcwd())
         create(runner, ['-vv', 'create','foo', '--allow-nesting'])
+        assert micc.utils.is_project_directory('foo')
+        assert not micc.utils.is_simple_project('foo')
+
     
 # def test_micc_version():
 #     """

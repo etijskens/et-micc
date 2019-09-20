@@ -11,6 +11,7 @@ import shutil
 import platform
 import copy
 import logging,sys
+from pathlib import Path
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
@@ -68,10 +69,11 @@ def resolve_template(template):
         pass # absolute path
     elif os.sep in template:
         # reative path
-        template = os.path.join(os.getcwd(), template)
+        template = Path.cwd() / template
     else:
-        # jutst the template name 
-        template = os.path.join(os.path.dirname(__file__), template)
+        # just the template name 
+        template = Path(__file__).parent / template
+    assert template.exists(), f"Inexisting template {template}"
     return template
 
 
@@ -81,9 +83,11 @@ def get_template_parameters(template, micc_file, **kwargs):
     prompt the user for supplying the values for the parameters with an
     empty string as default.     
     
+    :param Path template:
+    
     :returns: a dict of (parameter,value) pairs.
     """
-    micc_file = os.path.join(template, micc_file)
+    micc_file = template / micc_file
     try:
         f = open(micc_file, 'r')
     except IOError:
@@ -143,8 +147,8 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
     """
     if not isinstance(templates, list):
         templates = [templates]
-    output_dir = os.path.abspath(os.path.join(project_path, '..'))
-    os.makedirs(project_path, exist_ok=True)
+    project_path.mkdir(parents=True, exist_ok=True)
+    output_dir = project_path.parent
 
     # get the template parameters,
     # list existing files that would be overwritten if global_options.overwrite==True
@@ -159,23 +163,23 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
         # template in the templates list
         extra_parameters = template_parameters
         # write a cookiecutter.json file in the cookiecutter template directory
-        cookiecutter_json = os.path.join(template, 'cookiecutter.json')
+        cookiecutter_json = template / 'cookiecutter.json'
         with open(cookiecutter_json,'w') as f:
             json.dump(template_parameters, f, indent=2)
         
         # run cookiecutter in an empty temporary directory to check if there are any
         # existing project files that woud be overwritten.
         if not global_options.overwrite:
-            tmp = os.path.join(output_dir, '_cookiecutter_tmp_')
-            if os.path.exists(tmp):
+            tmp = output_dir / '_cookiecutter_tmp_'
+            if tmp.exists():
                 shutil.rmtree(tmp)
-            os.makedirs(tmp, exist_ok=True)
+            tmp.mkdir(parents=True, exist_ok=True)
     
             # expand the Cookiecutter template in a temporary directory,
-            cookiecutter( template
+            cookiecutter( str(template)
                         , no_input=True
                         , overwrite_if_exists=True
-                        , output_dir=tmp
+                        , output_dir=str(tmp)
                         )
             
             # find out if there are any files that would be overwritten.
@@ -188,9 +192,8 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
                 for f in files:
                     if os_name=="Darwin" and f==".DS_Store":
                         continue
-                    file = os.path.join(output_dir, root2, f)
-    #                     print('FILE',file, 'exists =', os.path.exists(file))
-                    if os.path.exists(file):                            
+                    file = output_dir / root2 / f
+                    if file.exists():
                         if not template in existing_files:
                             existing_files[template] = []
                         existing_files[template].append(file)
@@ -198,7 +201,7 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
         if existing_files:
             msg = f"The following pre-existing files will be overwritten in {output_dir}:\n"
             for template, files in existing_files.items():
-                t = os.path.basename(template)
+                t = template.name
                 for f in files:
                     msg += f"    {t} : {f}\n"
             micc_logger.warning(msg)
@@ -228,18 +231,18 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
     for template in templates:
         template = resolve_template(template)
         micc_logger.debug(f" . Expanding template {template} in project directory.")
-        cookiecutter( template
+        cookiecutter( str(template)
                     , no_input=True
                     , overwrite_if_exists=True
-                    , output_dir=output_dir
+                    , output_dir=str(output_dir)
                     )
         # Clean up (see issue #7)
-        cookiecutter_json = os.path.join(template, 'cookiecutter.json')
-        os.remove(cookiecutter_json)
+        cookiecutter_json = template / 'cookiecutter.json'
+        cookiecutter_json.unlink()
 
     # Clean up
-    if os.path.exists(tmp):
-        shutil.rmtree(tmp)
+    if tmp.exists():
+        shutil.rmtree(str(tmp))
         
     return 0,extra_parameters
 
@@ -278,18 +281,18 @@ def micc_create( project_name
         structure = f" ({project_name}/__init__.py)"
     else:
         structure = ''
+        
     with utils.log(micc_logger.info, f"Creating Python package '{project_name}' as a {global_options.structure}{structure}"):
-
-        output_dir = os.path.abspath(output_dir)
-        project_path = os.path.join(output_dir,project_name) 
+        output_dir = Path(output_dir).resolve()
+        project_path = output_dir / project_name
         assert not utils.is_project_directory(project_path),f"Project {project_path} exists already."
         # Prevent the creation of a project inside another project    
         # (add a 'dummy' leaf so the first directory checked is output_dir itself)
         if not global_options.allow_nesting:
             p = copy.copy(output_dir)
-            while p:
+            while not p.samefile('/'):
                 assert not utils.is_project_directory(p),f"Cannot create a project inside another project ({p})."
-                p = utils.get_parent_dir(p)
+                p = p.parent
             
         global_options.overwrite = False
      
@@ -303,7 +306,7 @@ def micc_create( project_name
             return exit_msg(exit_code)
 
         with utils.log(micc_logger.info,"Creating git repository"):
-            with utils.in_directory(os.path.join(output_dir,project_name)):
+            with utils.in_directory(project_path):
                 cmds = [ ['git', 'init']
                        , ['git', 'add', '*']
                        , ['git', 'add', '.gitignore']
