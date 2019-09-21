@@ -350,51 +350,46 @@ def micc_app( app_name
     
     project_name = os.path.basename(project_path)
     micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
-    micc_logger.info(f"Creating app {app_name} in Python package {project_name}.")
+    with utils.log(micc_logger.info, f"Creating app {app_name} in Python package {Path(project_path).name}."):
     
-    app_name = utils.verify_name(app_name, 'app')
-    if not isinstance(app_name,str):
-        # return exit_code
-        return app_name
+        ( exit_code
+        , _ # template_parameters
+        ) = expand_templates( templates, micc_file, project_path, global_options
+                            # extra template parameters:
+                            , project_name=project_name
+                            , package_name=utils.convert_to_valid_module_name(project_name)
+                            , app_name=app_name
+                            )                
+        if exit_code:
+            micc_logger.critical(f"Exiting ({exit_code}) ...")
+            return exit_code
     
-    ( exit_code
-    , _ # template_parameters
-    ) = expand_templates( templates, micc_file, project_path, global_options
-                        # extra template parameters:
-                        , project_name=project_name
-                        , package_name=utils.convert_to_valid_module_name(project_name)
-                        , app_name=app_name
-                        )                
-    if exit_code:
-        micc_logger.critical(f"Exiting ({exit_code}) ...")
-        return exit_code
-
-    with in_directory(project_path):
-        cli_app_name = 'cli_' + utils.convert_to_valid_module_name(app_name)
-        package_name =          utils.convert_to_valid_module_name(project_name)
-        
-        # docs 
-        with open('docs/api.rst',"r") as f:
-            lines = f.readlines()
-        has_already_apps = False
-        for line in lines:
-            has_already_apps = has_already_apps or line.startswith(".. include:: ../APPS.rst")
-        if not has_already_apps:        
-            with open('docs/api.rst',"w") as f:
-                f.write(".. include:: ../APPS.rst\n\n")
-                f.write(".. include:: ../API.rst\n\n")
-        with open("APPS.rst","a") as f:
-            f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
-            f.write( "   :members:\n\n")
-        micc_logger.debug(f"INFO: documentation for application '{app_name}' added.")
-        
-        # pyproject.toml
-        # in the [toolpoetry.scripts] add a line 
-        #    {app_name} = "{package_name}:{cli_app_name}"
-        tomlfile = TomlFile('pyproject.toml')
-        content = tomlfile.read()
-        content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
-        tomlfile.write(content)
+        with in_directory(project_path):
+            cli_app_name = 'cli_' + utils.convert_to_valid_module_name(app_name)
+            package_name =          utils.convert_to_valid_module_name(project_name)
+            
+            # docs 
+            with open('docs/api.rst',"r") as f:
+                lines = f.readlines()
+            has_already_apps = False
+            for line in lines:
+                has_already_apps = has_already_apps or line.startswith(".. include:: ../APPS.rst")
+            if not has_already_apps:        
+                with open('docs/api.rst',"w") as f:
+                    f.write(".. include:: ../APPS.rst\n\n")
+                    f.write(".. include:: ../API.rst\n\n")
+            with open("APPS.rst","a") as f:
+                f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
+                f.write( "   :members:\n\n")
+            micc_logger.debug(f"INFO: documentation for application '{app_name}' added.")
+            
+            # pyproject.toml
+            # in the [toolpoetry.scripts] add a line 
+            #    {app_name} = "{package_name}:{cli_app_name}"
+            tomlfile = TomlFile('pyproject.toml')
+            content = tomlfile.read()
+            content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
+            tomlfile.write(content)
 
     micc_logger.debug(f"    application '{app_name}' added to pyproject.toml.")
     return 0

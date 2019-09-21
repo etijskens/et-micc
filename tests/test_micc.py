@@ -13,6 +13,7 @@ import logging
 import contextlib
 import uuid
 import traceback
+from pathlib import Path
 
 #===============================================================================
 # import pytest
@@ -128,6 +129,7 @@ def test_scenario_1():
         assert micc.utils.is_project_directory('foo')
         assert not micc.utils.is_simple_project('foo')
         run(runner, ['-vv', 'app','my_app','-p','foo'])
+        assert Path('foo/foo/cli_my_app.py')
 
     
 # def test_micc_version():
