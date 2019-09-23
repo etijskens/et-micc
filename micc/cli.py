@@ -81,7 +81,7 @@ Adds an app (console script) to the package, as well as a test script for it.
 The name of the app ``APP_NAME`` is prompted for if omitted.
 
 Options:
-  -P, --project_path location of the project to add an app to (current directory by default).
+  -p, --project_path location of the project to add an app to (current directory by default).
   -T, --template     specify a non-default Python package cookiecutter template.
   -m, --micc-file    specify a non-default micc-file for the cookiecutter template.
   --help             Show help
@@ -108,7 +108,7 @@ or ``--cpp`` as a command line option.
 The name of the module ``MODULE_NAME`` is prompted for if omitted.
 
 Options:
-  -P, --project_path location of the project to add an app to (current directory by default).
+  -p, --project_path location of the project to add an app to (current directory by default).
   --f2py             add an f2py module, rather than a Python module to the package.
   --cpp              add a C++ module, rather than a Python module to the package.
   -T, --template     specify a non-default cookiecutter template.
@@ -299,16 +299,15 @@ def app( ctx
 
 @main.command()
 @click.argument('module_name', default='')
-@click.option( '-P', '--project_path', default='.'
+@click.option( '-p', '--project_path', default='.'
              , help="path to project." )
 @click.option( '--f2py', is_flag=True, default=False
              , help='create a f2py module.')
 @click.option( '--cpp', is_flag=True, default=False
              , help='create a C++ module.')
-@click.option('--simple/--no-simple',  default=True
-              , help="create a simple or a general python model (ignored if "
-                     " --cpp or --f2py are specified)."
-              )
+@click.option('-s', '--structure', type=click.Choice(['module','package']), default='module'
+              , help="create a python project structure ``<module_name>.py`` (module),"
+                     " or ``<module_name>/__init__.py`` (package).")
 @click.option( '--overwrite', is_flag=True, default=False
              , help="If True, any existing files are overwritten without backup."
                     "If False, micc verifies if there are existing files that"
@@ -324,7 +323,7 @@ def app( ctx
 def module( ctx
           , module_name
           , project_path
-          , f2py, cpp, simple
+          , f2py, cpp, structure
           , template
           , micc_file
           , overwrite
@@ -337,6 +336,7 @@ def module( ctx
     assert not (cpp and f2py), "Flags '--f2py' and '--cpp' cannot be specified simultaneously."
     assert not module_exists(project_path,module_name), f"Project {os.path.basename(project_path)} has already a module named {module_name}."
 
+    ctx.obj.structure = structure
     ctx.obj.overwrite = overwrite
     
     if f2py:
@@ -362,7 +362,6 @@ def module( ctx
             template = 'template-module-py'
         return micc_module_py( module_name
                              , project_path=project_path
-                             , simple=simple
                              , templates=template
                              , micc_file=micc_file
                              , global_options=ctx.obj
@@ -442,10 +441,13 @@ def build(ctx, project_path, module, soft_link):
                     "files. The latter is equivalent to specifying overwrite=True."
              )
 @click.pass_context
-def convert_simple(ctx, project_path, overwrite):
+def convert_module_to_package(ctx, project_path, overwrite):
     """
-    ``micc convert_simple`` subcommand, convert a simple python package
-    (created as ``micc create <module_name> --simple``) to a general python package. 
+    ``micc convert_module_to_package`` subcommand, convert a python module project 
+    (created as ``micc create <module_name> --structure module``) to 
+    a Python package.
+    This also expands the micc-template-general-docs in this project which adds
+    a AYTHORS.rst, HISTORY.rst and installation.rst to the documentation structure.
     """
     ctx.obj.overwrite = overwrite
     return micc_convert_simple(project_path, global_options=ctx.obj)

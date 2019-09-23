@@ -137,7 +137,7 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
         from each template to the next.
     :param str micc_file: name of the micc file in all templates. Usually, this is
         ``'micc.json'``.
-    :param str project_path: path to the project directory where the templates 
+    :param Path project_path: path to the project directory where the templates 
         will be expanded
     :param types.SimpleNamespace: command line options accessible to all micc
         commands
@@ -319,9 +319,9 @@ def micc_create( project_name
                     with utils.log(micc_logger.debug, f'> {cmdstr}', end_msg=None):
                         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                         if completed_process.stdout:
-                            micc_logger.debug(' (stdout)\n' + completed_process.stdout.decode('ascii'))
+                            micc_logger.debug(' (stdout)\n' + completed_process.stdout.decode('utf-8'))
                         if completed_process.stderr:
-                            micc_logger.debug(' (stderr)\n' + completed_process.stderr.decode('ascii'))
+                            micc_logger.debug(' (stderr)\n' + completed_process.stderr.decode('utf-8'))
     
     return 0
 
@@ -381,7 +381,7 @@ def micc_app( app_name
             with open("APPS.rst","a") as f:
                 f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
                 f.write( "   :members:\n\n")
-            micc_logger.debug(f"INFO: documentation for application '{app_name}' added.")
+            micc_logger.debug(f" . documentation for application '{app_name}' added.")
             
             # pyproject.toml
             # in the [toolpoetry.scripts] add a line 
@@ -391,13 +391,11 @@ def micc_app( app_name
             content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
             tomlfile.write(content)
 
-    micc_logger.debug(f"    application '{app_name}' added to pyproject.toml.")
     return 0
 
 
 def micc_module_py( module_name
                   , project_path
-                  , simple
                   , templates
                   , micc_file
                   , global_options
@@ -415,38 +413,41 @@ def micc_module_py( module_name
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by all micc commands.
     """
-    if simple:
-        module_type = f"{module_name}.py"
-    else:
-        module_type = f"{module_name}/__init__.py"
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
-    micc_logger.info(f"Creating python module {module_type} in Python package {project_name}.")
-        
-    global_options.simple = simple
+    project_path = Path(project_path).resolve()
+    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
+    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
+
+    package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'python module'
-    ( exit_code
-    , template_parameters
-    ) = expand_module_templates( 
-            module_name, project_path,
-            templates, micc_file, 
-            global_options
-        )
-    if exit_code:
-        micc_logger.critical(f"Exiting ({exit_code}) ...")
-        return exit_code
     
-    with in_directory(project_path):
-        package_name = template_parameters['package_name']
-        if not simple:
-            module_py = os.path.join(project_path,package_name,module_name)
-            simple_to_general(module_py)
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
+
+    source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}/__init__.py"
+    with utils.log(micc_logger.info,f"Creating python module {source_file} in Python package {project_path.name}."):
         
-        # docs
-        with open("API.rst","a") as f:
-            f.write(f"\n.. automodule:: {package_name}.{module_name}"
-                     "\n   :members:\n\n"
-                   )
-        micc_logger.debug(f"    documentation entries for Python module {module_type} added.")
+        ( exit_code
+        , _ #template_paraeters
+        ) = expand_templates( templates, micc_file, project_path, global_options
+                            # extra template parameters:
+                            , project_name=project_path.name
+                            , package_name=package_name
+                            , module_name=module_name
+                            )
+        if exit_code:
+            micc_logger.critical(f"Exiting ({exit_code}) ...")
+            return exit_code
+        
+        if global_options.structure=='package':
+            module_to_package(project_path / package_name / (module_name + '.py'))
+
+        with in_directory(project_path):    
+            # docs
+            with open("API.rst","a") as f:
+                f.write(f"\n.. automodule:: {package_name}.{module_name}"
+                         "\n   :members:\n\n"
+                       )
+            utils.log(micc_logger.debug,f" . documentation entries for Python module {module_name} added.")
     return 0
 
 
@@ -468,33 +469,43 @@ def micc_module_f2py( module_name
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by all micc commands.
     """
+    project_path = Path(project_path).resolve()
+    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
+    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
 
+    package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
     
-    ( exit_code
-    , template_parameters
-    ) = expand_module_templates( 
-            module_name, project_path,
-            templates, micc_file, 
-            global_options
-        )
-    if exit_code:
-        micc_logger.critical(f"Exiting ({exit_code}) ...")
-        return exit_code
-    
-    project_name = template_parameters['project_name']
-    package_name = template_parameters['package_name']
-    with in_directory(project_path):
-        # docs
-        with open("API.rst","a") as f:
-            f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
-        micc_logger.warning(f"    Documentation template for f2py module '{module_name}' added.\n"
-                            f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
-                            f"    you are required to enter the documentation manually in file\n"
-                            f"    '{project_name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
-                            f"    A suitable example is pasted.\n"
-                           )
-    micc_logger.info(f"F2py module {module_name} created.")
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
+
+    with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
+        
+        ( exit_code
+        , _ #template_paraeters
+        ) = expand_templates( templates, micc_file, project_path, global_options
+                            # extra template parameters:
+                            , project_name=project_path.name
+                            , package_name=package_name
+                            , module_name=module_name
+                            , path_to_cmake_tools=str(Path(__file__) / '..' / 'cmake_tools')
+                            )
+        if exit_code:
+            micc_logger.critical(f"Exiting ({exit_code}) ...")
+            return exit_code
+            
+#         project_name = template_parameters['project_name']
+#         package_name = template_parameters['package_name']
+        with in_directory(project_path):
+            # docs
+            with open("API.rst","a") as f:
+                f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
+            micc_logger.warning(f"    Documentation template for f2py module '{module_name}' added.\n"
+                                f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
+                                f"    you are required to enter the documentation manually in file\n"
+                                f"    '{project_path.name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
+                                f"    A suitable example is pasted.\n"
+                               )
     return 0
 
 
@@ -516,40 +527,47 @@ def micc_module_cpp( module_name
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by all micc commands.
     """
-    global_options.module_kind = 'cpp_module'
+    project_path = Path(project_path).resolve()
+    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
+    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
 
-    ( exit_code
-    , template_parameters
-    ) = expand_module_templates( 
-            module_name, project_path,
-            templates, micc_file, 
-            global_options
-        )
-    if exit_code:
-        msg = f"Exiting ({exit_code}) ..."
-        if exit_code == EXIT_CANCEL:
-            utils.warning(msg)
-        else:
-            utils.error(msg)
-        return exit_code
+    package_name = utils.convert_to_valid_module_name(project_path.name)
+    global_options.module_kind = 'f2py module'
+    
+    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
 
-    project_name = template_parameters['project_name']
-    package_name = template_parameters['package_name']
-    with in_directory(project_path):
-        # docs
-        with open("API.rst","a") as f:
-            f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
-        micc_logger.warning(f"    Documentation template for cpp module '{module_name}' added.\n"
-                            f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
-                            f"    you are required to enter the documentation manually in file\n"
-                            f"    '{project_name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
-                            f"    A suitable example is pasted.\n"
-                           )
-    micc_logger.info(f"C++ module {module_name} created.")
+    with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
+        
+        ( exit_code
+        , _ #template_paraeters
+        ) = expand_templates( templates, micc_file, project_path, global_options
+                            # extra template parameters:
+                            , project_name=project_path.name
+                            , package_name=package_name
+                            , module_name=module_name
+                            , path_to_cmake_tools=str(Path(__file__) / '..' / 'cmake_tools')
+                            )
+        if exit_code:
+            micc_logger.critical(f"Exiting ({exit_code}) ...")
+            return exit_code
+
+#     project_name = template_parameters['project_name']
+#     package_name = template_parameters['package_name']
+        with in_directory(project_path):
+            # docs
+            with open("API.rst","a") as f:
+                f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
+            micc_logger.warning(f"    Documentation template for cpp module '{module_name}' added.\n"
+                                f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
+                                f"    you are required to enter the documentation manually in file\n"
+                                f"    '{project_path.name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
+                                f"    A suitable example is pasted.\n"
+                               )
     return 0
 
 
-def expand_module_templates( module_name
+def _expand_module_templates( module_name
                            , project_path
                            , templates
                            , micc_file
@@ -689,17 +707,17 @@ def micc_tag( project_path
         cmd = ['git', 'tag', '-a', tag, '-m', f'"tag version {current_version}"']
         micc_logger.debug(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        micc_logger.debug(completed_process.stdout.decode('ascii'))
+        micc_logger.debug(completed_process.stdout.decode('utf-8'))
         if completed_process.stderr:
-            micc_logger.critical(completed_process.stderr.decode('ascii'))
+            micc_logger.critical(completed_process.stderr.decode('utf-8'))
 
         micc_logger.debug(f"Pushing tag {tag} for project {project_name}")
         cmd = ['git', 'push', 'origin', tag]
         micc_logger.debug(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        micc_logger.debug(completed_process.stdout.decode('ascii'))
+        micc_logger.debug(completed_process.stdout.decode('utf-8'))
         if completed_process.stderr:
-            micc_logger.error(completed_process.stderr.decode('ascii'))
+            micc_logger.error(completed_process.stderr.decode('utf-8'))
             
     micc_logger.info('Done.')
     return 0
@@ -779,9 +797,9 @@ def micc_build( project_path
                 for cmd in cmds:
                     build_log.debug(f"> {' '.join(cmd)}")
                     completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)
-                    build_log.debug(completed_process.stdout.decode('ascii'))
+                    build_log.debug(completed_process.stdout.decode('utf-8'))
                     if completed_process.stderr:
-                        build_log.error(completed_process.stderr.decode('ascii'))
+                        build_log.error(completed_process.stderr.decode('utf-8'))
                         build_log.removeHandler(logfile_handler)
                         break
                         
@@ -793,15 +811,25 @@ def micc_build( project_path
     return 0
 
 
-def simple_to_general(module_py):
+def module_to_package(module_py):
     """
-    move file module.py to module/__init__.py
+    Move file module.py to module/__init__.py
+    
+    :param str|Path module_py
+    
     """
-    module_path = os.path.abspath( module_py.replace('.py','') )
-    os.makedirs(module_path)
-    src = os.path.join(module_path + '.py')
-    dst = os.path.join(module_path, '__init__.py')
+    if not isinstance(module_py, Path):
+        module_py = Path(module_py)
+    if not module_py.is_file():
+        raise FileNotFoundError(module_py)
+    src = str(module_py.resolve())
+    
+    package_name = str(module_py.name).replace('.py','')
+    package = module_py.parent / package_name
+    package.mkdir()
+    dst = str(package / '__init__.py')
     shutil.move(src, dst)
+    utils.log(micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
 
 
 def micc_convert_simple(project_path, overwrite, global_options):

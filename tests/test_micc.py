@@ -47,7 +47,7 @@ if not ('.' in sys.path or os.getcwd() in sys.path):
 echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 
-from micc import cli
+from micc import cli, commands
 import micc.commands
 import micc.utils
 #===============================================================================
@@ -73,16 +73,18 @@ def in_empty_tmp_dir():
     """A context manager that creates a temporary folder and changes
     the current working directory to it for isolated filesystem tests.
     """
-    cwd = os.getcwd()
+    cwd = Path.cwd()
     uu = uuid.uuid4()
-    tmp = os.path.join(cwd,f'__{uu}')
-    if os.path.exists(tmp):
+    tmp = cwd / f'__{uu}'
+    if tmp.exists():
         shutil.rmtree(tmp)
-    os.makedirs(tmp)
+    tmp.mkdir(parents=True, exist_ok=True)
     os.chdir(tmp)
+    print("Switching cwd to", tmp)
     try:
         yield tmp
     finally:
+        print("Switching cwd back to", cwd)
         os.chdir(cwd)
         try:
             shutil.rmtree(tmp)
@@ -105,7 +107,7 @@ def run(runner,arguments,input_='short description'):
 
 
 #===============================================================================
-# tests
+#   Tests
 #===============================================================================
 def test_micc_help():
     """
@@ -128,151 +130,35 @@ def test_scenario_1():
         run(runner, ['-vv', 'create','foo', '--allow-nesting'])
         assert micc.utils.is_project_directory('foo')
         assert not micc.utils.is_simple_project('foo')
+        
         run(runner, ['-vv', 'app','my_app','-p','foo'])
-        assert Path('foo/foo/cli_my_app.py')
+        assert Path('foo/foo/cli_my_app.py').exists()
+        
+        run(runner, ['-vv', 'module','mod1','--structure','module','-p','foo'])
+        assert Path('foo/foo/mod1.py').exists()
+        
+        run(runner, ['-vv', 'module','mod2','--structure','package','-p','foo'])
+        assert Path('foo/foo/mod2/__init__.py').exists()
 
-    
-# def test_micc_version():
-#     """
-#     test `` micc version`` 
-#     """
-#     runner = CliRunner()
-#     project_name = 'foo'
-#     output_dir = os.path.join(os.getcwd(),'tests','output')
-#     input_ = f'{project_name}\ntest_cli()'
-#     result = runner.invoke(cli.main, ['-v','-q','create','-o',output_dir], input=input_)
-#     report(result)
-#     project_dir = os.path.join(output_dir, project_name)
-#     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
-#     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
-#     current_version = pyproject_toml['tool']['poetry']['version']
-#     assert current_version == "0.0.0"
-#     
-#     path_to_pyproject_toml = os.path.join(project_dir,'pyproject.toml')
-#     pyproject_toml = toml.load(path_to_pyproject_toml)
-#     project_name    = pyproject_toml['tool']['poetry']['name']
-#     current_version = pyproject_toml['tool']['poetry']['version']
-#     print(project_name, current_version)
-# 
-#     micc.commands.micc_version(project_dir, rule='patch', global_options=SimpleNamespace(verbose=False, quiet=True))
-# 
-#     pyproject_toml = toml.load(path_to_pyproject_toml)
-#     project_name    = pyproject_toml['tool']['poetry']['name']
-#     current_version = pyproject_toml['tool']['poetry']['version']
-#     print(project_name, current_version)
-#     assert current_version=="0.0.1"
-#     
-#     # clean up the project if required
-#     if clean_up:
-#         echo(f"cleaning up {project_dir}")
-#         rmtree(project_dir)
-#     else:
-#         echo(f"Project directory left: {project_dir}")
-# 
-# #===============================================================================
-# def test_micc():
-#     """
-#     Test for creating a project skeleton and bump the version.
-#     """
-#     runner = CliRunner()
-#     project_name = micc_test_project_uuid()
-#     output_dir = os.path.join(os.getcwd(),'tests','output')
-#     input_ = f'{project_name}\ntest_cli()'
-#     result = runner.invoke(cli.main, ['-v','-q','create','-o',output_dir], input=input_)
-#     report(result)
-#     project_dir = os.path.join(output_dir, project_name)
-#     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
-#     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
-#     current_version = pyproject_toml['tool']['poetry']['version']
-#     assert current_version == "0.0.0"
-#     
-#     # clean up the project if required
-#     if clean_up:
-#         echo(f"cleaning up {project_dir}")
-#         rmtree(project_dir)
-#     else:
-#         echo(f"Project directory left: {project_dir}")
-#     
-# #===============================================================================
-# def test_micc_create_with_project_name():
-#     """
-#     Test for creating a project skeleton, with a project name provided on the 
-#     command line and bump the version.
-#     """
-#     runner = CliRunner()
-#     project_name = 'a-test-project'
-#     output_dir = os.path.join(os.getcwd(),'tests','output')
-#     input_ = 'test_cli_with_project_name()'
-#     result = runner.invoke(cli.main, ['-v','-q','create',project_name,'-o',output_dir], input=input_)
-#     report(result)
-#     project_dir = os.path.join(output_dir, project_name)
-#     assert os.path.exists(project_dir.replace('-','_')) or os.path.exists(project_dir) 
-#     pyproject_toml = toml.load(os.path.join(project_dir,'pyproject.toml'))
-#     current_version = pyproject_toml['tool']['poetry']['version']
-#     print('current_version',current_version)
-#     assert current_version == "0.0.0"
-#     
-#     # clean up the project if required
-#     if clean_up:
-#         echo(f"cleaning up {project_dir}")
-#         rmtree(project_dir)
-#     else:
-#         echo(f"Project directory left: {project_dir}")
-# 
-# # ==============================================================================
-# def test_micc_app():
-#     """
-#     Test ``micc app``
-#     """
-#     # First create a project
-#     runner = CliRunner()
-#     project_name = micc_test_project_uuid()
-#     output_dir = os.path.join(os.getcwd(),'tests','output')
-#     
-#     input_ = f'{project_name}\ntest_micc_app()'
-#     result = runner.invoke(cli.main, ['-v','-q','create','-o',output_dir], input=input_)
-#     report(result)
-#     
-#     # Add an app
-#     project_dir = os.path.join(output_dir, project_name)
-#     with in_directory(project_dir):
-#         input_ = 'my-app'
-#         result = runner.invoke(cli.main, ['-q','app'], input=input_)
-#         report(result)
-#     
-#     # clean up the project if required
-#     if clean_up:
-#         echo(f"cleaning up {project_dir}")
-#         rmtree(project_dir)
-#     else:
-#         echo(f"Project directory left: {project_dir}")
-# 
-# # ==============================================================================
-# def test_micc_module():
-#     """
-#     Test ``micc module``
-#     """
-#     # First create a project
-#     runner = CliRunner()
-#     project_name = micc_test_project_uuid()
-#     output_dir = os.path.join(os.getcwd(),'tests','output')
-#     input_ = f'{project_name}\ntest_micc_module()'
-#     result = runner.invoke(cli.main, ['-v','-q','create','-o',output_dir], input=input_)
-#     report(result)
-#     
-#     # Add an app
-#     project_dir = os.path.join(output_dir, project_name)
-#     with in_directory(project_dir):
-#         input_ = 'my_module'
-#         result = runner.invoke(cli.main, ['-q','module'], input=input_)
-#         report(result)
-#     
-#     # clean up the project if required
-#     if clean_up:
-#         echo(f"cleaning up {project_dir}")
-#         rmtree(project_dir)
-#     else:
-#         echo(f"Project directory left: {project_dir}")
+        run(runner, ['-vv', 'module','mod3','--f2py','-p','foo'])
+        assert Path('foo/foo/f2py_mod3/mod3.f90').exists()
+        print("f2py ok")
+
+        run(runner, ['-vv', 'module','mod4','--cpp','-p','foo'])
+        assert Path('foo/foo/cpp_mod3/mod4.cpp').exists()
+
+
+def test_module_to_package():
+    with in_empty_tmp_dir():
+        m = Path('m.py')
+        m.touch()
+        assert m.is_file()
+        commands.module_to_package(m)
+        p = Path('m')
+        assert p.is_dir()
+        assert (p / '__init__.py').is_file()
+        
+        
 
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
