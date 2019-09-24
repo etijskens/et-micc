@@ -2,26 +2,28 @@
 """
 Utility functions for micc.py
 """
-import os
-import json
-import shutil, platform
+import os, sys, subprocess, logging, sysconfig, copy
+# import json
+# import shutil, platform
 from contextlib import contextmanager
 
-import click
-from cookiecutter.main import cookiecutter
+# import click
 import toml
 from pathlib import Path
-from micc import __version__
 
 DEBUG = False
 CANCEL = -1
+
+
+def get_extension_suffix():
+    return sysconfig.get_config_var('EXT_SUFFIX')
 
 
 def path_to_cmake_tools():
     """
     return the path to the folder with the CMake tools.
     """
-    return os.path.join(os.path.dirname(__file__),'cmake_tools')
+    return str(Path(__file__) / 'cmake_tools')
 
 
 def file_not_found_msg(path, looking_for='File'):
@@ -41,7 +43,6 @@ def file_not_found_msg(path, looking_for='File'):
     return msg
 
 
-
 @contextmanager
 def in_directory(path):
     """
@@ -49,15 +50,17 @@ def in_directory(path):
     working directory when done. 
     """
     previous_dir = os.getcwd()
-    os.chdir(path)
+    os.chdir(str(path)) # the str method takes care of when path is a Path object
     yield os.getcwd()
     os.chdir(previous_dir)
 
 
 def replace_version_in_file(filepath,current_version,new_version):
-    if os.path.exists(filepath):
-        click.echo('    Updating : ' + filepath)
-        if os.path.basename(filepath) == "pyproject.toml":
+    """
+    :param Path filepath: 
+    """
+    if filepath.exists():
+        if filepath.name == "pyproject.toml":
             fmt = 'version = "{}"'
         else:
             fmt = '__version__ = "{}"'
@@ -69,10 +72,13 @@ def replace_version_in_file(filepath,current_version,new_version):
         return False
 #===============================================================================
 def replace_in_file(filepath,old,new):
-    with open(filepath) as f:
+    """
+    :param Path filepath: 
+    """
+    with filepath.open() as f:
         content_as_string = f.read()
     content_as_string = content_as_string.replace(old,new)
-    with open(filepath,"w") as f:
+    with filepath.open(mode="w") as f:
         f.write(content_as_string)
 #===============================================================================
 def is_project_directory(path):
@@ -108,8 +114,8 @@ def get_name_version(project_path):
     """
     Read name and version of this project from the pyproject.toml file.
     """
-    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
-    pyproject_toml = toml.load(path_to_pyproject_toml)
+    path_to_pyproject_toml = Path(project_path) / 'pyproject.toml'
+    pyproject_toml = toml.load(str(path_to_pyproject_toml))
     return ( pyproject_toml['tool']['poetry']['name']
            , pyproject_toml['tool']['poetry']['version']
            )
@@ -131,31 +137,66 @@ def convert_to_valid_module_name(name):
     valid_module_name = name.lower().replace('-', '_').replace(' ', '_')
     return valid_module_name
 
+def py_module_exists(project_path, module_name):
+    """
+    Test if there is already a python module with name ``module_name`` 
+    in the project at ``project_path``.
+        
+    :param Path project_path: project path
+    :param str module_name: module name
+    :returns: bool
+    """
+    file = project_path / convert_to_valid_module_name(project_path.name) / f'{module_name}.py'
+    return file.is_file()
+
+
+def py_package_exists(project_path, module_name):
+    """
+    Test if there is already a python package with name ``module_name`` 
+    in the project at ``project_path``.
+        
+    :param Path project_path: project path
+    :param str module_name: module name
+    :returns: bool
+    """
+    return (project_path / convert_to_valid_module_name(project_path.name) / module_name / '__init__.py').is_file()
+
+
+def f2py_module_exists(project_path, module_name):
+    """
+    Test if there is already a f2py module with name ``module_name`` in this project.
+        
+    :param Path project_path: project path
+    :param str module_name: module name
+    :returns: bool
+    """
+    return (project_path / convert_to_valid_module_name(project_path.name) / ('f2py_' + module_name)/ f"{ module_name}.f90").is_file() 
+
+
+def cpp_module_exists(project_path, module_name):
+    """
+    Test if there is already a cpp module with name ``module_name`` in this project.
+        
+    :param Path project_path: project path
+    :param str module_name: module name
+    :returns: bool
+    """
+    return (project_path / convert_to_valid_module_name(project_path.name) / ('cpp_' + module_name)/ f"{ module_name}.cpp").is_file() 
+
 
 def module_exists(project_path, module_name):
     """
     Test if there is already a module with name ``module_name`` in this project.
-    This can be:
 
-        * a simple python module  ``<package_name>/<module_name>.py``
-        * a generel python module ``<package_name>/<module_name>/__init__.py``
-        * a f2py module           ``<package_name>/f2py_<module_name>``
-        * a cpp module            ``<package_name>/cpp_<module_name>``
-        
-    :param str project_path: project path
+    :param Path project_path: project path
     :param str module_name: module name
     :returns: bool
     """
-    package_dir = os.path.join( project_path, convert_to_valid_module_name(os.path.basename(project_path)))
-    
-    exists_py = ( os.path.isdir (os.path.join(package_dir,module_name,'__init__.py'))
-               or os.path.isfile(os.path.join(package_dir,module_name + '.py')) 
-                )
-    exists_cpp  = os.path.isdir (os.path.join(package_dir,'cpp' + module_name))
-    exists_f2py = os.path.isdir (os.path.join(package_dir,'cpp' + module_name))
-
-    return exists_cpp or exists_f2py or exists_py
-
+    return (  py_module_exists(project_path, module_name)
+         or  py_package_exists(project_path, module_name)
+         or  cpp_module_exists(project_path, module_name)
+         or f2py_module_exists(project_path, module_name)
+           )
 
 def app_exists(project_path, app_name):
     """
@@ -163,119 +204,168 @@ def app_exists(project_path, app_name):
     
         * ``<package_name>/cli_<app_name>.py``
         
-    :param str project_path: project path
+    :param Path project_path: project path
     :param str app_name: app name
     :returns: bool
     """
-    package_dir = os.path.join( project_path, convert_to_valid_module_name(os.path.basename(project_path)))
+    return (project_path / convert_to_valid_module_name(project_path.name) / f"cli_{app_name}.py").is_file()
     
-    exists_app = os.path.isfile(os.path.join(package_dir,app_name,'__init__.py'))
 
-    return exists_app
-
-### is this still usefull?
-INFO    = { 'fg'  :'black'}
-WARNING = { 'fg'  :'blue' }
-ERROR   = { 'fg'  :'red'
-          , 'bold':True   }
-
-def info(text):
-    click.echo(click.style(text,**INFO))
-
-
-def warning(text):
-    click.echo(click.style(text,**WARNING))
-
-
-def error(text):
-    click.echo(click.style(text,**ERROR))
-###
-
-
-
-def is_simple_project(project_path):
-    """Find out if this project is a simple or general python project."""
+def is_module_project(project_path):
+    """Find out if this project is a simple or general python project.
     
-    if project_path == '.':
-        project_path = os.path.abspath(project_path)
-    package_name = convert_to_valid_module_name(os.path.basename(project_path))
-    package_dir = os.path.join(project_path, package_name)
-    
-    has_module  = os.path.isfile( os.path.join(project_path, package_name + ".py") )
-
-    has_package = os.path.isdir(package_dir) 
-    if has_package:
-        if not os.path.exists(os.path.join(package_dir,"__init__.py")):
-            has_package = False
-    
-    if has_module and has_package:
-        raise RuntimeError(f"ERROR: This project has both '{package_dir}.py' and '{package_dir}/__init__.py'.")
- 
-    if not has_module and not has_package:
-        raise RuntimeError(f"ERROR: This directory has neither '{package_dir}.py' nor '{package_dir}/__init__.py'.")
-    
-    return has_module
-
-
-def get_parent_dir(p):
+    :param Path project_path: project path
     """
-    Return the parent directory of ``p``. If ``p`` is ``'/'`` an empty string
-    (``' '``) is returned.
+    package_name = convert_to_valid_module_name(project_path.name)
+    return (project_path / f'{package_name}.py').is_file()
+
+
+def is_package_project(project_path):
+    """Find out if this project is a simple or general python project.
+    
+    :param Path project_path: project path
+    """    
+    package_name = convert_to_valid_module_name(project_path.name)
+    return (project_path / package_name / '__init__.py').is_file()
+
+
+def execute(cmds,logfun=None,stop_on_error=True,env=None):
     """
-    if p[0] != os.sep:
-        p = os.path.abspath(p)
-    if p[-1] == os.sep:
-        p = p[:-1]
-    p = os.path.dirname(p)
+    Executes a list of OS commands, and log with logfun.
+    
+    :param list cmds: list of OS commands (=list of list of str)
+    :parma callable logfun: a function to write output, typically 
+        ``logging.getLogger('micc').debug``.
+    :returns int: return code of first failing command, or 0 if all
+        commanbds succeed.
+    """
+    for cmd in cmds:
+        with log(logfun, f"> {' '.join(cmd)}", end_msg=None):
+            completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,env=env)
+            if not logfun is None:
+                if completed_process.stdout:
+                    logfun(' (stdout)\n' + completed_process.stdout.decode('utf-8'))
+                if completed_process.stderr:
+                    logfun(' (stderr)\n' + completed_process.stderr.decode('utf-8'))
+            if stop_on_error:
+                if completed_process.returncode:
+                    return completed_process.returncode
+    return 0
+
+
+def verbosity_to_loglevel(verbosity):
+    """
+    """
+    if verbosity==0:
+        return logging.CRITICAL
+    elif verbosity==1:
+        return logging.INFO
+    else:
+        return logging.DEBUG
+
+
+def static_vars(**kwargs):
+    """
+    Add static variables to a method.
+    """
+    def decorate(func):
+        for k in kwargs:
+            setattr(func, k, kwargs[k])
+        return func
+    return decorate
+
+
+def get_project_path(p='.'):
+    """
+    """
+    root = Path('/')
+    p = Path(p).resolve()
+    p0 = copy.copy(p)
+    while not is_project_directory(p):
+        p = p.parent
+        if p==root:
+            raise RuntimeError(f"Folder {p0} is not inside a Python project.")
     return p
 
 
-def verify_name(name,obj,force_python_name=False):
+# Use static vare to implement a singleton
+@static_vars(the_logger=None)
+def get_micc_logger(global_options): 
     """
-    Verifies ``name`` for module and app objects. 
+    Set up and store a micc logger that writes to the console (taking verbosity 
+    into account) and to a log file ``micc.log``.
     
-    :param str name: name of a module or app. If name is empty, the user is
-        prompted to provide a name.
-    :param str obj: either ``'module'`` or ``'app'``. if ``obj`` is ``'module'``,
-        or ``force_python_name`` is ``True``, then it is checked if name is a
-        valid name for a python_module. If not, name is converted 
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by (almost) all micc commands.
+    :returns: a logging.Logger object.
     """
-    valid_objects = ('module', 'app')
-    assert obj in valid_objects, f"invalid object {obj}, expecting {valid_objects}."
-    if not name:
-        name = click.prompt(f"Enter {obj} name (leave empty to quit)",default='',show_default=False)
-        if not name:
-            warning(f"No {obj} name provided, exiting.")
-            return CANCEL
-        
-    if obj=='module' or force_python_name:
-        while True:
-            py_name = convert_to_valid_module_name(name)
-            if py_name==name:
-                # name is ok 
-                return name
-            
-            msg = (f"Not a valid python name: {name}\n"
-                   f"Valid python names\n"
-                   f" - must be lower case,\n"
-                   f" - must not contain any special characters other than '_',\n"
-                   f" - must not start with a number.\n"
-                   f"Press Enter to use {py_name} instead.\n"
-                   f"Press a+Enter to abort\n"
-                   f"Any string + Enter to propose a new name:")
-            name = click.prompt(msg,default='',show_default=False)
-            if not name:
-                # accepting py_name
-                return py_name
-            elif name=='a':
-                warning(f"Exiting.")
-                return CANCEL
-            # continue with verifying new name provided.
-            
+    if not get_micc_logger.the_logger is None:
+        # verify that the current logger is for the current project directory\
+        current_logfile = get_micc_logger.the_logger.logfile
+        current_project_path = get_project_path()
+        print('&&& ',current_logfile)
+        print('&&& ',current_project_path)
+        if not current_logfile.parent == current_project_path:
+            print('reset')
+            get_micc_logger.the_logger = None
+        else:
+            print('no reset')
+    if get_micc_logger.the_logger is None:
+        # create a new logger object that will write to micc.log 
+        # in the current project directory
+        p = global_options.project_path / 'micc.log'
+        get_micc_logger.the_logger = create_logger(p)
+        get_micc_logger.the_logger.logfile = p
+        if global_options.verbosity>2:
+            print(f"micc_logger.logfile = {get_micc_logger.the_logger.logfile}")
+    # set the lever from the verbosity
+    get_micc_logger.the_logger.console_handler.setLevel(verbosity_to_loglevel(global_options.verbosity))
+    
+    return get_micc_logger.the_logger
 
-#===============================================================================
+
+def delete_micc_logger():
+    """
+    """
+    print("stop logging to :", get_micc_logger.the_logger.logfile)
+    get_micc_logger.the_logger = None
+
+
+def create_logger(filepath,filemode='a'):
+    """
+    create a logging.Logger object with a 
+    
+    * console handler
+    * file handler, writing to file ``filename``
+    """
+    # create a formatter and add it to the handlers
+    formatter = logging.Formatter('[%(levelname)s] %(message)s')
+    
+    # create and add a console handler 
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(1)
+    
+    # create and add a logfile handler
+    logfile_handler = logging.FileHandler(filepath,mode=filemode)
+    logfile_handler.setFormatter(formatter) 
+    logfile_handler.setLevel(logging.DEBUG)
+            
+    # create logger for micc
+    logger = logging.getLogger(filepath.name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logfile_handler)
+    logger.addHandler(console_handler)
+    
+    # add the handlers as a member, so we can still modify them on the fly.
+    logger.logfile_handler = logfile_handler
+    logger.console_handler = console_handler
+    
+    return logger
+
+
 @contextmanager
-def log(logfun, begin_msg='doing', end_msg='done.'):
+def log(logfun=None, begin_msg='doing', end_msg='done.'):
     """
     Print a start and stop message when executing a task.
 
@@ -293,6 +383,9 @@ def log(logfun, begin_msg='doing', end_msg='done.'):
         yield
         if not end_msg is None:
             logfun(f"{begin_msg} ... {end_msg}\n")
-#===============================================================================
+    else:
+        yield
+        pass
+
 
 # end of file

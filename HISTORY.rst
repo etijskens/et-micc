@@ -6,7 +6,16 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.13 (2019-09-19)
+v0.5.14 (2019-09-??)
+====================
+* Improved logging, added function ``micc.utils.get_micc_logger()`` to get the logger from 
+  everywhere, as well as a function ``micc.utils.create_logger()`` to create a new logger.
+
+* Added a function for executing and logging a list of commands.
+
+* Added a micc command for documentation generation
+
+v0.5.13 (2019-09-23)
 ====================
 improving tests. I am still rather uncomfortable with testing cli's. Most of the code is tested by 
 manual inspection. This unlucky patch number is for improving this situation.
@@ -16,7 +25,7 @@ manual inspection. This unlucky patch number is for improving this situation.
   e.g. /private/var/folders/rt/7h5lk6c955db20y1rzf1rjz00000gn/T/tmpa12gc_p9
   Good idea but the location of that directory is a bit hard to trace. (Note, that
   a temporary directory inside micc doesn't work, because micc refuses to create a 
-  project inside another project. 
+  project inside another project. a flag --allow-nesting is added (feature 
   
 refactoring: still not happy with the ``--simple`` argument for micc 
 
@@ -26,9 +35,16 @@ refactoring: still not happy with the ``--simple`` argument for micc
   * ``module/__init__.py`` is called a *package*
   
   Thus, our *modules* may be *modules* or sub-level *packages*, and
-  our *package* is actually the top-level package, which may contain
+  our *package* is actually the *top-level* *package*, which may contain
   other lower-level packages, as well as modules.
- 
+
+fixed issue #13 [feature] os.path -> pathlib
+fixed issue #12 common items in micc.json files
+fixed issue #14 [feature] --allow-nesting flag for creating projects
+implemented #6 [feature] decomposition
+fixed issue #10 micc files are part of the template
+
+
 v0.5.12 (2019-09-19)
 ====================
 Add logging to micc commands as we tried out in micc build

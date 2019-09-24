@@ -19,14 +19,8 @@ from pathlib import Path
 # import pytest
 from click import echo
 from click.testing import CliRunner
+import pytest
 
-from cookiecutter.main import logger
-logfile = logging.FileHandler("log.txt")
-logfile.setLevel(logging.DEBUG)
-logger.addHandler(logfile)
-
-# import toml
-# from importlib import import_module
 #===============================================================================
 # Make sure that the current directory is the project directory.
 # 'make test" and 'pytest' are generally run from the project directory.
@@ -48,7 +42,6 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 
 from micc import cli, commands
-import micc.commands
 import micc.utils
 #===============================================================================
 def report(result,assert_exit_code=True):
@@ -66,7 +59,10 @@ def report(result,assert_exit_code=True):
         
     if assert_exit_code:
         assert result.exit_code == 0
-    
+
+
+cleanup_empty_dir = False # use this if you want to check the contents of the directory after the run
+cleanup_empty_dir = True
     
 @contextlib.contextmanager
 def in_empty_tmp_dir():
@@ -86,11 +82,13 @@ def in_empty_tmp_dir():
     finally:
         print("Switching cwd back to", cwd)
         os.chdir(cwd)
-        try:
-            shutil.rmtree(tmp)
-        except (OSError, IOError):
-            pass
-
+        if cleanup_empty_dir:
+            try:
+                shutil.rmtree(tmp)
+            except (OSError, IOError):
+                pass
+        else:
+            print(f"Leftover: {tmp}")
     
 #===============================================================================
 # test scenario blocks
@@ -126,27 +124,40 @@ def test_scenario_1():
     runner = CliRunner()
 #     with runner.isolated_filesystem():
     with in_empty_tmp_dir():
-        print(os.getcwd())
-        run(runner, ['-vv', 'create','foo', '--allow-nesting'])
-        assert micc.utils.is_project_directory('foo')
-        assert not micc.utils.is_simple_project('foo')
+        run(runner, ['-p','foo','-vv', 'create', '--allow-nesting'])
+        foo = Path('foo')
+        assert micc.utils.is_project_directory(foo)
+        assert not micc.utils.is_module_project(foo)
+        assert     micc.utils.is_package_project(foo)
         
-        run(runner, ['-vv', 'app','my_app','-p','foo'])
+        run(runner, ['-p','foo','-vv', 'app','my_app'])
         assert Path('foo/foo/cli_my_app.py').exists()
         
-        run(runner, ['-vv', 'module','mod1','--structure','module','-p','foo'])
+        run(runner, ['-p','foo','-vv', 'module','mod1','--structure','module'])
         assert Path('foo/foo/mod1.py').exists()
         
-        run(runner, ['-vv', 'module','mod2','--structure','package','-p','foo'])
+        run(runner, ['-p','foo','-vv', 'module','mod2','--structure','package'])
         assert Path('foo/foo/mod2/__init__.py').exists()
 
-        run(runner, ['-vv', 'module','mod3','--f2py','-p','foo'])
+        run(runner, ['-p','foo','-vv', 'module','mod3','--f2py'])
         assert Path('foo/foo/f2py_mod3/mod3.f90').exists()
         print("f2py ok")
 
-        run(runner, ['-vv', 'module','mod4','--cpp','-p','foo'])
-        assert Path('foo/foo/cpp_mod3/mod4.cpp').exists()
-
+        run(runner, ['-p','foo','-vv', 'module','mod4','--cpp'])
+        assert Path('foo/foo/cpp_mod4/mod4.cpp').exists()
+        print("cpp ok")
+        
+        extension_suffix = micc.utils.get_extension_suffix()
+        run(runner, ['-p','foo','build'])
+        assert Path('foo/foo/mod3'+extension_suffix).exists()
+        assert Path('foo/foo/mod4'+extension_suffix).exists()
+        
+        run(runner, ['-p','foo','docs','--html','-l'])
+        assert Path('foo/docs/_build/html/index.html').exists()
+        assert Path('foo/docs/_build/latex/foo.pdf').exists()
+        print('make docs ok')
+        
+        micc.utils.delete_micc_logger()
 
 def test_module_to_package():
     with in_empty_tmp_dir():
@@ -158,8 +169,74 @@ def test_module_to_package():
         assert p.is_dir()
         assert (p / '__init__.py').is_file()
         
-        
 
+def test_cpp_module_exists():
+    with in_empty_tmp_dir():
+        p = Path('foo')
+        assert not micc.utils.cpp_module_exists(p,'module')
+        Path('foo/foo/cpp_module').mkdir(parents=True)
+        Path('foo/foo/cpp_module/module.cpp').touch()
+        assert micc.utils.cpp_module_exists(p,'module')
+                
+
+def test_f2py_module_exists():
+    with in_empty_tmp_dir():
+        p = Path('foo')
+        assert not micc.utils.f2py_module_exists(p,'module')
+        Path('foo/foo/f2py_module').mkdir(parents=True)
+        Path('foo/foo/f2py_module/module.f90').touch()
+        assert micc.utils.f2py_module_exists(p,'module')
+                
+
+def test_py_module_exists():
+    with in_empty_tmp_dir():
+        p = Path('foo')
+        assert not micc.utils.py_module_exists(p,'module')
+        Path('foo/foo/').mkdir(parents=True)
+        Path('foo/foo/module.py').touch()
+        assert micc.utils.py_module_exists(p,'module')
+                
+
+def test_py_package_exists():
+    with in_empty_tmp_dir():
+        p = Path('foo')
+        assert not micc.utils.py_module_exists(p,'module')
+        Path('foo/foo').mkdir(parents=True)
+        Path('foo/foo/module.py').touch()
+        assert micc.utils.py_module_exists(p,'module')
+               
+
+def test_log():
+    
+#     with micc.utils.log():
+#         print('test_log without logfun')
+    logfile = micc.utils.get_project_path() / 'micc.log'
+    print(logfile.resolve())
+    if logfile.exists():
+        logfile.unlink()
+    assert not logfile.exists()
+    micc_logger = micc.utils.get_micc_logger(3)
+    with micc.utils.log(micc_logger.info):
+        micc_logger.info('test_log with a logfun')
+        micc_logger.debug(' . debug message')
+    assert logfile.exists()
+    logtext = logfile.read_text()
+    print(logtext)
+    assert "doing ...\n" in logtext
+    assert "test_log with a logfun\n" in logtext
+    assert "  . debug message\n" in logtext
+    assert "doing ... done.\n" in logtext
+    
+    
+def test_get_project_path():
+    p = Path.home()
+    with pytest.raises(RuntimeError):
+        p = micc.utils.get_project_path(p)
+    p = Path.cwd()
+    p = micc.utils.get_project_path(p)
+    assert p==(Path.home() / 'software/dev/workspace/micc')
+    
+    
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)

@@ -3,15 +3,6 @@ Open Issues
 
 last issue = 13
 
-#12 [feature] os.path -> pathlib
---------------------------------
-more obvious manipulation of file paths
- 
-
-#12 [feature] add flag for nesting a project inside another project
--------------------------------------------------------------------
-mainly for running tests.
-
 #5 [feature] packaging and deployment
 -------------------------------------
 The `Python Packaging User Guide <https://packaging.python.org/guides/>`_
@@ -44,32 +35,10 @@ Poetry?
 +++++++
 how does poetry deal with binary extensions?
 
-#6 [feature] decomposition
---------------------------
-maybe it is usefull to limit the number of files in the cookiecutter_ templates. For now even the
-simples project contains 11 ``.rst`` files. For a beginner that may be too much to grasp. Maybe it is ]
-usefull to start with a ``README.rst`` only and have a ``micc doc [options]`` command that adds documentation
-topics one at a time::
-
-    > micc doc --authors
-    > micc doc --changelog|-c # or
-    > micc doc --history|-h
-    > micc doc --api|-a
-    > micc doc --installation|-i
-
-this is perhaps useful, but rather more complicated. E.g if we first create a package with several
-modules (python, f2py, cpp) and then start to add documentation. This is a more complicated situation
-and one in which errors will be easily made, and more difficult to maintain.
-
 issue #8 cookiecutter.json files
 --------------------------------
 These files are written in the template directories of the micc installation. If micc happens to be 
 installed in a location where the user has no write access, micc will not work.
-
-
-issue #10 micc files are part of the template
----------------------------------------------
-So they better live there.
 
 Closed Issues
 =============
@@ -99,9 +68,10 @@ Put more useful example code in
 
 as well as in the corresponding test files.
 
+v0.5.10
+
 #4 [bug] build commands for f2py and cpp modules
 ------------------------------------------------
-in 0.5.10
 ``<package_name>/Makefile`` contains wrong builder for f2py modules and no builder for
 cpp modules.
 
@@ -133,11 +103,15 @@ While workin on issue #2 I realized that these are in fact temporary files, whic
 in the template directories (although cookiecutter requires them). It is better to remove these files 
 when cookiecutter is done. 
 
+v0.5.11
+
 #2 [feature] simple python project
 ----------------------------------
 add ``--simple`` flag to ``micc create`` to create a simple (=unnested) python module ``<package_name>.py``
 instead of the nested ``<package_name/>__init__.py``
 a *simple* package should be convertible to a normal package
+
+v0.5.13
 
 issue #12 common items in micc.json files
 -----------------------------------------
@@ -146,3 +120,34 @@ items which are in fact copies. we need either a single ``micc.json`` or a way o
 the common parts in a single file.
 Fixed by itself. If there are multiple templates, every new template adds parameters to the original.
 
+#13 [feature] os.path -> pathlib
+--------------------------------
+more obvious manipulation of file paths
+
+#14 [feature] add flag for nesting a project inside another project
+-------------------------------------------------------------------
+mainly for running tests.
+
+#6 [feature] decomposition
+--------------------------
+maybe it is usefull to limit the number of files in the cookiecutter_ templates. For now even the
+simples project contains 11 ``.rst`` files. For a beginner that may be too much to grasp. Maybe it is ]
+usefull to start with a ``README.rst`` only and have a ``micc doc [options]`` command that adds documentation
+topics one at a time::
+
+    > micc doc --authors
+    > micc doc --changelog|-c # or
+    > micc doc --history|-h
+    > micc doc --api|-a
+    > micc doc --installation|-i
+
+this is perhaps useful, but rather more complicated. E.g if we first create a package with several
+modules (python, f2py, cpp) and then start to add documentation. This is a more complicated situation
+and one in which errors will be easily made, and more difficult to maintain.
+
+issue #10 micc files are part of the template
+---------------------------------------------
+So they better live there.
+
+
+v0.5.14
