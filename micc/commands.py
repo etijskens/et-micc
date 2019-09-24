@@ -21,46 +21,22 @@ from cleo.inputs.argv_input import ArgvInput
 from poetry.utils.toml_file import TomlFile
 from poetry.console.commands import VersionCommand 
 import toml
-#===============================================================================
+
 from micc import utils
 from micc.utils import in_directory
 
-
-def verbosity_to_loglevel(verbosity):
-    """
-    """
-    if verbosity==0:
-        return logging.CRITICAL
-    elif verbosity==1:
-        return logging.INFO
-    else:
-        return logging.DEBUG
-     
-     
-# create logger for micc
-micc_logger = logging.getLogger('micc_logger')
-micc_logger.setLevel(logging.DEBUG)
-# create a console handler 
-micc_console_loghandler = logging.StreamHandler(sys.stderr)
-micc_console_loghandler.setLevel(verbosity_to_loglevel(verbosity=1))
-micc_logger.addHandler(micc_console_loghandler)
-# create a logfile handler 
-micc_logfile_handler = logging.FileHandler('micc.log')
-micc_logger.addHandler(micc_logfile_handler)
-micc_logfile_handler.setLevel(logging.DEBUG)
-# create a formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s') # add formatter to micc_console_loghandler
-formatter = logging.Formatter('[%(levelname)s] %(message)s') # add formatter to micc_console_loghandler
-micc_console_loghandler.setFormatter(formatter) 
-micc_logfile_handler.setFormatter(formatter) 
+micc_logger = None
 
 EXIT_CANCEL = -1 # exit code used for action EXIT_CANCELled by user
+
+
 def exit_msg(exit_code):
     if exit_code==EXIT_CANCEL:
         micc_logger.warning("Command canceled, exiting!")
     elif exit_code!=0:
         micc_logger.error(f"Error {exit_code}, exiting!")
     return exit_code
+
 
 def resolve_template(template):
     """
@@ -255,35 +231,38 @@ def msg_CannotAddToSimpleProject(path):
     return f"Cannot add components to simple project ({path})."
 
 
-def micc_create( project_name
-               , output_dir
-               , templates
+def msg_NotAPackageProject(path):
+    return f"Not a package project ({path})."
+    
+def micc_create( templates
                , micc_file
                , global_options
-    ):
+               ):
     """
     Create a new project skeleton for a general Python project. This is a
     Python package with a ``<package_name>/__init__.py`` structure, to wich 
     other modules and applications can be added.
     
-    :param str project_name: the name of the project to be created.
-    :param str output_dir: path where the project will be created. 
     :param str templates: ordered list of paths to a Cookiecutter_ template. a single 
         path is ok too.
     :param str micc_file: name of the json file with the default values in the template directories. 
-    :param types.SimpleNamespace global_options: namespace object with options accepted by all micc commands. 
+    :param types.SimpleNamespace global_options: namespace object with options accepted by (almost) all micc commands. 
     """
+    project_path = global_options.project_path
+    project_path.mkdir(parents=True,exist_ok=True)
+    output_dir = project_path.parent
+    project_name  = project_path.name
     
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
     if global_options.structure=='module':
         structure = f" ({project_name}.py)" 
     elif global_options.structure=='package':
         structure = f" ({project_name}/__init__.py)"
     else:
-        structure = ''
-        
+        structure = '' 
+
+    global micc_logger
+    micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info, f"Creating Python package '{project_name}' as a {global_options.structure}{structure}"):
-        output_dir = Path(output_dir).resolve()
         project_path = output_dir / project_name
         assert not utils.is_project_directory(project_path),f"Project {project_path} exists already."
         # Prevent the creation of a project inside another project    
@@ -314,6 +293,7 @@ def micc_create( project_name
                        , ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
                        , ['git', 'push', '-u', 'origin', 'master']
                        ]
+                utils.execute(cmds, micc_logger.debug, stop_on_error=False)
                 for cmd in cmds:
                     cmdstr = ' '.join(cmd)
                     with utils.log(micc_logger.debug, f'> {cmdstr}', end_msg=None):
@@ -327,7 +307,6 @@ def micc_create( project_name
 
 
 def micc_app( app_name
-            , project_path
             , templates
             , micc_file
             , global_options
@@ -336,28 +315,27 @@ def micc_app( app_name
     Micc app subcommand, add a console script (app) to the package. 
     
     :param str app_name: name of the applicatiom to be added.
-    :param str project_path: path to the project where the app will be created. 
     :param str templates: ordered list of paths to a Cookiecutter_ template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
         template directories. 
     :param types.SimpleNamespace global_options: namespace object with options 
-        accepted by all micc commands.
+        accepted by (almost) all micc commands.
     """
-    project_path = Path(project_path).resolve()
+    project_path = global_options.project_path
     assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
     
-    project_name = os.path.basename(project_path)
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
-    with utils.log(micc_logger.info, f"Creating app {app_name} in Python package {Path(project_path).name}."):
+    global micc_logger
+    micc_logger = utils.get_micc_logger(global_options)
+    with utils.log(micc_logger.info, f"Creating app {app_name} in Python package {project_path.name}."):
     
         ( exit_code
         , _ # template_parameters
         ) = expand_templates( templates, micc_file, project_path, global_options
                             # extra template parameters:
-                            , project_name=project_name
-                            , package_name=utils.convert_to_valid_module_name(project_name)
+                            , project_name=project_path.name
+                            , package_name=utils.convert_to_valid_module_name(project_path.name)
                             , app_name=app_name
                             )                
         if exit_code:
@@ -366,7 +344,7 @@ def micc_app( app_name
     
         with in_directory(project_path):
             cli_app_name = 'cli_' + utils.convert_to_valid_module_name(app_name)
-            package_name =          utils.convert_to_valid_module_name(project_name)
+            package_name =          utils.convert_to_valid_module_name(project_path.name)
             
             # docs 
             with open('docs/api.rst',"r") as f:
@@ -395,7 +373,6 @@ def micc_app( app_name
 
 
 def micc_module_py( module_name
-                  , project_path
                   , templates
                   , micc_file
                   , global_options
@@ -404,26 +381,27 @@ def micc_module_py( module_name
     ``micc module`` subcommand, add a Python module to the package. 
     
     :param str module_name: name of the module to be added.
-    :param str project_path: path to the project where the app will be created. 
     :param bool simple: create simple (``<module_name>.py``) or general python module 
     :param str templates: ordered list of paths to a Cookiecutter_ template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
         template directories. 
     :param types.SimpleNamespace global_options: namespace object with options 
-        accepted by all micc commands.
+        accepted by (almost) all micc commands.
     """
-    project_path = Path(project_path).resolve()
+    project_path = global_options.project_path
     assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert     utils.is_package_project(project_path), msg_NotAPackageProject(project_path)
     assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
 
     package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'python module'
     
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
-
     source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}/__init__.py"
+    
+    global micc_logger
+    micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating python module {source_file} in Python package {project_path.name}."):
         
         ( exit_code
@@ -452,7 +430,6 @@ def micc_module_py( module_name
 
 
 def micc_module_f2py( module_name
-                    , project_path
                     , templates
                     , micc_file
                     , global_options
@@ -461,24 +438,24 @@ def micc_module_f2py( module_name
     ``micc module --f2py`` subcommand, add a f2py module to the package. 
     
     :param str module_name: name of the module to be added.
-    :param str project_path: path to the project where the app will be created. 
     :param str templates: ordered list of paths to a Cookiecutter_ template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
         template directories. 
     :param types.SimpleNamespace global_options: namespace object with options 
-        accepted by all micc commands.
+        accepted by (almost) all micc commands.
     """
-    project_path = Path(project_path).resolve()
+    project_path = global_options.project_path
     assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert     utils.is_package_project(project_path), msg_NotAPackageProject(project_path)
     assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
 
     package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
     
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
-
+    global micc_logger
+    micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
         
         ( exit_code
@@ -488,19 +465,17 @@ def micc_module_f2py( module_name
                             , project_name=project_path.name
                             , package_name=package_name
                             , module_name=module_name
-                            , path_to_cmake_tools=str(Path(__file__) / '..' / 'cmake_tools')
+                            , path_to_cmake_tools=utils.path_to_cmake_tools()
                             )
         if exit_code:
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
             
-#         project_name = template_parameters['project_name']
-#         package_name = template_parameters['package_name']
         with in_directory(project_path):
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
-            micc_logger.warning(f"    Documentation template for f2py module '{module_name}' added.\n"
+            micc_logger.warning(f" .  Documentation template for f2py module '{module_name}' added.\n"
                                 f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
                                 f"    you are required to enter the documentation manually in file\n"
                                 f"    '{project_path.name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
@@ -510,7 +485,6 @@ def micc_module_f2py( module_name
 
 
 def micc_module_cpp( module_name
-                   , project_path
                    , templates
                    , micc_file
                    , global_options
@@ -519,24 +493,24 @@ def micc_module_cpp( module_name
     ``micc module --cpp`` subcommand, add a C++ module to the package. 
     
     :param str module_name: name of the module to be added.
-    :param str project_path: path to the project where the app will be created. 
     :param str templates: ordered list of paths to a Cookiecutter_ template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
         template directories. 
     :param types.SimpleNamespace global_options: namespace object with options 
-        accepted by all micc commands.
+        accepted by (almost) all micc commands.
     """
-    project_path = Path(project_path).resolve()
+    project_path = global_options.project_path
     assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert     utils.is_package_project(project_path), msg_NotAPackageProject(project_path)
     assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
 
     package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
     
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
-
+    global micc_logger
+    micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
         
         ( exit_code
@@ -546,14 +520,12 @@ def micc_module_cpp( module_name
                             , project_name=project_path.name
                             , package_name=package_name
                             , module_name=module_name
-                            , path_to_cmake_tools=str(Path(__file__) / '..' / 'cmake_tools')
+                            , path_to_cmake_tools=utils.path_to_cmake_tools()
                             )
         if exit_code:
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
 
-#     project_name = template_parameters['project_name']
-#     package_name = template_parameters['package_name']
         with in_directory(project_path):
             # docs
             with open("API.rst","a") as f:
@@ -567,87 +539,31 @@ def micc_module_cpp( module_name
     return 0
 
 
-def _expand_module_templates( module_name
-                           , project_path
-                           , templates
-                           , micc_file
-                           , global_options
-                           ):
-    """
-    common part of 
-    
-    * ``micc_module_py``
-    * ``micc_module_f2py``
-    * ``micc_module_cpp``
-    
-    :param str module_name: name of the module to be added.
-    :param str project_path: path to the project where the app will be created. 
-    :param str templates: ordered list of paths to a Cookiecutter_ template. a 
-        single path is ok too.
-    :param str micc_file: name of the json file with the default values in the 
-        template directories. 
-    :param types.SimpleNamespace global_options: namespace object with options 
-        accepted by all micc commands.
-    """
-    project_path = os.path.abspath(project_path)
-    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_simple_project(project_path), msg_CannotAddToSimpleProject(project_path)
-    
-    project_name = os.path.basename(project_path)
-    package_name = utils.convert_to_valid_module_name(project_name)
-    module_name = utils.verify_name(module_name, 'module')
-    if not isinstance(module_name,str):
-        # return exit_code
-        return module_name
-        
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
-    
-    if global_options.module_kind=='python module':
-        if global_options.simple:
-            module_structure = f"{module_name}.py"
-        else:
-            module_structure = f"{module_name}/__init__.py"
-        micc_logger.info(f"Creating python module {module_structure} in Python package {project_name}.")
-    elif global_options.module_kind=='f2py module':
-        micc_logger.info(f"Creating f2py module {module_name} in Python package {project_name}\n"
-                         f"    Source files in {project_name}/{package_name}/f2py_{module_name}."
-                        )
-    elif global_options.module_kind=='cpp_module':
-        micc_logger.info(f"Creating C++ module {module_name} in Python package {project_name}\n"
-                         f"    Source files in {project_name}/{package_name}/cpp_{module_name}."
-                        )
-    return expand_templates( templates, micc_file, project_path, global_options
-                           # extra template parameters:
-                           , project_name=project_name
-                           , package_name=package_name
-                           , module_name=module_name
-                           )                
-
-
-def micc_version( project_path
-                , rule
-                , global_options
-                ):
+def micc_version( rule, global_options):
     """
     Bump the version according to *rule*, and modify the pyproject.toml in 
     *project_path*.
     
-    :param str project+path: path to a pyproject.toml file or its parent directory. 
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by (almost) all micc commands.
     """
+    project_path = global_options.project_path
     assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
 
-    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
-    pyproject_toml = toml.load(path_to_pyproject_toml)
+    project_path = Path(project_path)
+    pyproject_toml = toml.load(str(project_path /'pyproject.toml'))
     project_name    = pyproject_toml['tool']['poetry']['name']
     current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = utils.convert_to_valid_module_name(project_name)
 
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
+    global micc_logger
     if rule is None:
+        micc_logger = utils.get_micc_logger(verbosity=2)
         micc_logger.info(f"Current version: {project_name} v{current_version}")
     else:
+        micc_logger = utils.get_micc_logger(global_options)
         new_version = VersionCommand().increment_version(current_version, rule)
         msg = (f"Package {project_name} v{current_version}\n"
                f"Are you sure to move to v{new_version}'?")
@@ -674,32 +590,37 @@ def micc_version( project_path
             app = Application()
             app._auto_exit = False
             app.run(i)       
-        micc_logger.debug(f'    Updating : {path_to_pyproject_toml}')
+        micc_logger.debug(' . Updating : pyproject.toml)')
             
         # update version in package
-        if not utils.replace_version_in_file( os.path.join(project_path, package_name, '__init__.py')
-                                            , current_version, new_version):
-            if not utils.replace_version_in_file( os.path.join(project_path, package_name + '.py')
-                                                , current_version, new_version):
-                micc_logger.warning(f"Warning: No package {package_name}/__init__.py and no modute {package_name}.py found.")
+        files = [ project_path / package_name / '__init__.py'
+                , project_path / (package_name + '.py')
+                ]
+        for f in files:
+            if f.exists():
+                with utils.log(micc_logger.debug, f" . Updating {f.name}"):
+                    utils.replace_version_in_file( f, current_version, new_version)
     return 0
 
 
-def micc_tag( project_path
-            , global_options):
+def micc_tag( global_options):
     """
     Create and push a version tag ``vM.m.p`` for the current version.
     
-    :param str project_path: path to the project that must be tagged. 
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by (almost) all micc commands.
     """
+    project_path = global_options.project_path
     assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
             
-    path_to_pyproject_toml = os.path.join(project_path,'pyproject.toml')
-    pyproject_toml = toml.load(path_to_pyproject_toml)
+    path_to_pyproject_toml = project_path / 'pyproject.toml'
+    pyproject_toml = toml.load(str(path_to_pyproject_toml))
     project_name    = pyproject_toml['tool']['poetry']['name']
     current_version = pyproject_toml['tool']['poetry']['version']
     tag = f"v{current_version}"
-    micc_console_loghandler.setLevel(verbosity_to_loglevel(global_options.verbose))
+
+    global micc_logger
+    micc_logger = utils.get_micc_logger(global_options)
     
     with utils.in_directory(project_path):
     
@@ -723,8 +644,7 @@ def micc_tag( project_path
     return 0
 
 
-def micc_build( project_path
-              , module_to_build
+def micc_build( module_to_build
               , soft_link
               , global_options
               ):
@@ -732,82 +652,58 @@ def micc_build( project_path
     Build all binary extions, i.e. f2py modules and cpp modules.
     
     :param str module_to_build: name of the only module to build (the prefix cpp_ or f2py_ may be omitted)
-    :param str project_path: path to the project that must be built.
     :param bool soft_link: if False, the binary extension modules are copied
         into the package directory. Otherwise a soft link is provided.
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by (almost) all micc commands.
     """
+    project_path = global_options.project_path
     assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
     
-    project_path = os.path.abspath(project_path)
-    project_name = os.path.basename(project_path)
-    package_name = utils.convert_to_valid_module_name(project_name)
-    package_path = os.path.join(project_path,package_name)
-
-    build_log = logging.getLogger(f"micc-build")
-    build_log.setLevel(1)
-    # add a handler that accepts messages based on verbosity and writes to stderr
-    stderr_handler = logging.StreamHandler(sys.stderr)
-    if global_options.verbose==0:
-        stderr_handler.setLevel(logging.CRITICAL)
-    elif global_options.verbose==1:
-        stderr_handler.setLevel(logging.INFO)
-    else:
-        stderr_handler.setLevel(logging.DEBUG)
-    build_log.addHandler(stderr_handler)
+    package_path = project_path / utils.convert_to_valid_module_name(project_path.name)
         
     # get extension for binary extensions (depends on OS and python version)
-    extension_suffix = sysconfig.get_config_var('EXT_SUFFIX')
+    extension_suffix = utils.get_extension_suffix()
 
-    my_env = os.environ.copy()
     dirs = os.listdir(package_path)
     for d in dirs:
-        if os.path.isdir(os.path.join(package_path,d)) and (d.startswith("f2py_") or d.startswith("cpp_")):
-            
+        if (     (package_path / d).is_dir() 
+             and (d.startswith("f2py_") or d.startswith("cpp_"))
+           ):
             if module_to_build and not d.endswith(module_to_build): # build only this module
                 continue
 
-            logfile_name = f"micc-build-{d}.log"
-            if os.path.exists(logfile_name):
-                os.remove(logfile_name)
-            # add a handler that accepts all messages and can be consulted later in case of problems
-            logfile_handler = logging.FileHandler(logfile_name)
-            logfile_handler.setLevel(logging.DEBUG) # let all messags pass.
-            build_log.addHandler(logfile_handler)
+            filepath = utils.get_project_path() / f"micc-build-{d}.log"
+            build_logger = utils.create_logger(filepath, filemode='w')
  
             module_type,module_name = d.split('_',1)
-            build_dir = os.path.join(package_path,d,'build_')
-            build_log.info(f"\nBuilding {module_type} module {module_name} in directory '{build_dir}'\n    (see {logfile_name})\n")
-            os.makedirs(build_dir,exist_ok=True)
-            with utils.in_directory(build_dir):
-                cextension = module_name + extension_suffix
-                destination = os.path.join('..','..',cextension)
-                cmds = [ ['cmake','CMAKE_BUILD_TYPE','=','RELEASE', '..']
-                       , ['make']
-                       ]
-                if soft_link:
-                    cmds.append(['ln', '-sf', os.path.abspath(cextension), destination])
-                else:
-                    if os.path.exists(destination):
-                        build_log.debug(f">>> os.remove({destination})\n")
-                        os.remove(destination)
-                # WARNING: for these commands to work in eclipse, eclipse must have
-                # started from the shell with the appropriate environment activated.
-                # Otherwise subprocess starts out with the wrong environment. It 
-                # may not pick the right Python version, and may not find pybind11.
-                for cmd in cmds:
-                    build_log.debug(f"> {' '.join(cmd)}")
-                    completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)
-                    build_log.debug(completed_process.stdout.decode('utf-8'))
-                    if completed_process.stderr:
-                        build_log.error(completed_process.stderr.decode('utf-8'))
-                        build_log.removeHandler(logfile_handler)
-                        break
-                        
-                if not soft_link:
-                    build_log.debug(f">>> shutil.copyfile( '{cextension}', '{destination}' )\n")
-                    shutil.copyfile(cextension, destination)
-            build_log.removeHandler(logfile_handler)
-    build_log.info('build finished.')
+            build_dir = package_path / d / 'build_'
+            build_dir.mkdir(parents=True, exist_ok=True)
+
+            with utils.log(build_logger.info,f"\nBuilding {module_type} module {module_name} in directory '{build_dir}'"):
+                with utils.in_directory(build_dir):
+                    cextension = module_name + extension_suffix
+                    destination = (Path('../../') / cextension).resolve()
+                    cmds = [ ['cmake','CMAKE_BUILD_TYPE','=','RELEASE', '..']
+                           , ['make']
+                           ]
+                    if soft_link:
+                        cmds.append(['ln', '-sf', str(cextension), str(destination)])
+                    else:
+                        if destination.exists():
+                            build_logger.debug(f">>> os.remove({destination})\n")
+                            destination.unlink()
+                    # WARNING: for these commands to work in eclipse, eclipse must have
+                    # started from the shell with the appropriate environment activated.
+                    # Otherwise subprocess starts out with the wrong environment. It 
+                    # may not pick the right Python version, and may not find pybind11.
+                    returncode = utils.execute(cmds, build_logger.debug, stop_on_error=True, env=os.environ.copy())
+                    if not returncode:
+                        if not soft_link:
+                            build_logger.debug(f">>> shutil.copyfile( '{cextension}', '{destination}' )\n")
+                            shutil.copyfile(cextension, destination)
+            build_logger.info(f"Check {filepath.name} for details.\n")
+
     return 0
 
 
@@ -832,20 +728,20 @@ def module_to_package(module_py):
     utils.log(micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
 
 
-def micc_convert_simple(project_path, overwrite, global_options):
+def micc_convert_simple(global_options):
     """
     Convert simple python package to general python package.
-    
-    :param str project_path: path to the project that must be tagged. 
+
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by (almost) all micc commands.
     """
-    project_path = os.path.abspath(project_path)
-    project_name = os.path.basename(project_path)
+    project_path = global_options.project_path
     assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
-    assert utils.is_simple_project(project_path), f"Project {project_name} is already a general Python package."
+    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
+    assert     utils.is_package_project(project_path), msg_NotAPackageProject(project_path)
     
-    if global_options.verbose>0:
-        click.echo(f"Converting simple Python project {project_name} to general Python project.")
-    global_options.overwrite = overwrite
+    if global_options.verbosity>0:
+        click.echo(f"Converting simple Python project {project_path.name} to general Python project.")
     
     # add documentation files for general Python project
     tomlfile = TomlFile('pyproject.toml')
@@ -855,20 +751,40 @@ def micc_convert_simple(project_path, overwrite, global_options):
     , _ # template_parameters
     ) = expand_templates("template-package-general-docs", 'micc.json', project_path, global_options
                         # extra template parameters:
-                        , project_name=project_name
+                        , project_name=project_path.name
                         , project_short_description=content['tool']['poetry']['description']
                         )                
     if exit_code:
         return exit_code
     
-    package_name = utils.convert_to_valid_module_name(project_name)
-    package_path = os.path.join(project_path,package_name)
+    package_name = utils.convert_to_valid_module_name(project_path.name)
+    package_path = project_path / package_name
     os.makedirs(package_path)
-    src = os.path.join(project_path,package_name + '.py')
-    dst = os.path.join(project_path,package_name, '__init__.py')
+    src = project_path /(package_name + '.py')
+    dst = project_path / package_name / '__init__.py'
     shutil.move(src, dst)
     
-    if global_options.verbose>0:
-        click.echo("Done.")
-    
     return 0
+
+
+def micc_docs(formats, global_options):
+    """
+    Build documentation for the project.
+    :param list formats: list of formats to build documentation with. Valid
+        formats are ``'html'``, ``'latexpdf'``.
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by (almost) all micc commands.
+    """
+    project_path = global_options.project_path
+    assert formats, "No documentation format specified. "
+    cmds = []
+    for fmt in formats:
+        cmds.append(['make',fmt])
+        
+    global micc_logger
+    micc_logger = utils.get_micc_logger(global_options)
+    with utils.in_directory(project_path / 'docs'):
+        with utils.log(micc_logger.info,f"Building documentation for project {project_path.name}."):
+            utils.execute(cmds, micc_logger.debug, env=os.environ.copy())
+        
+# EOF #

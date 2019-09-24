@@ -17,7 +17,7 @@ Usage
 Global options
 **************
 
-* ``-v``, ``--verbose``: produce somewhat more output.
+* ``-v``, ``--verbosity``: produce somewhat more output.
 
 Commands
 ********
@@ -179,34 +179,35 @@ Options:
     --soft-link, -s             add a soft link to the extension library, rather than a copy.
 """
 
-import sys,os
+import sys
 from types import SimpleNamespace
+from pathlib import Path
 
 import click
 
 from micc.commands import micc_create, micc_version, micc_tag, micc_app, \
                           micc_module_py, micc_module_f2py, micc_module_cpp, \
-                          micc_build, micc_convert_simple
+                          micc_build, micc_convert_simple, micc_docs
                           
 from micc.utils import module_exists
 from micc import utils
 
 
 @click.group()
-@click.option('-v', '--verbose', count=True)
-# @click.option('-q', '--quiet'  , is_flag=True, default=False
-#              , help="Prompts the use for confirmation on most actions.")
+@click.option('-v', '--verbosity', count=True)
+@click.option('-p', '--project_path', default='.', type=Path
+             ,help="path to project directory")
 @click.pass_context
-def main(ctx, verbose):
+def main(ctx, verbosity, project_path):
     """
     Micc command line interface. Type ``micc --help`` on the command line for details.
     """
-    ctx.obj = SimpleNamespace(verbose=verbose)
+    ctx.obj = SimpleNamespace( verbosity=verbosity
+                             , project_path=project_path.resolve()
+                             )
 
 
 @main.command()
-@click.argument('project_name')
-@click.option('-o', '--output-dir', default='.', help="location of the new project")
 @click.option('-T', '--template',   default=[]
               , help="ordered list Python package cookiecutter templates, or a single template")
 @click.option('-m', '--micc-file',  default='micc.json'
@@ -218,8 +219,6 @@ def main(ctx, verbose):
               , help="allow to nest a project inside another project.")
 @click.pass_context
 def create( ctx
-          , output_dir
-          , project_name
           , template
           , micc_file
           , structure
@@ -229,9 +228,11 @@ def create( ctx
     Create a project skeleton. Prompts the user for all entries in the micc.json file
     that do not have a default.
     
-    :param str project_name: name of the project to be created. Current directory if 
+    :param str project_name: relative path of the project directory to the current working directoryname of the project to be created. Current directory if 
         omitted.
     """
+    ctx.obj.project_path = ctx.obj.project_path
+    
     if not template: # default, empty list
         if structure=='module':
             template = ['template-package-base'
@@ -251,9 +252,7 @@ def create( ctx
     ctx.obj.structure = structure
     ctx.obj.allow_nesting = allow_nesting
         
-    return micc_create( project_name
-                      , output_dir=output_dir
-                      , templates=template
+    return micc_create( templates=template
                       , micc_file=micc_file
                       , global_options=ctx.obj
                       )
@@ -261,8 +260,6 @@ def create( ctx
 
 @main.command()
 @click.argument('app_name',type=str)
-@click.option('-p', '--project_path', default='.'
-             ,help="path to project directory")
 @click.option('-T', '--template',   default='template-app'
              , help="ordered list Python package cookiecutter templates, or a single template")
 @click.option('-m', '--micc-file',  default='micc.json'
@@ -277,7 +274,6 @@ def create( ctx
 @click.pass_context
 def app( ctx
        , app_name
-       , project_path
        , template
        , micc_file
        , overwrite
@@ -287,10 +283,9 @@ def app( ctx
     
     :param str app_name: name of the cli application to be added to the package.
     """
-    assert not utils.app_exists(project_path, app_name), f"Project {os.path.basename(project_path)} has already an app named {app_name}."
+    assert not utils.app_exists(ctx.obj.project_path, app_name), f"Project {ctx.obj.project_path.name} has already an app named {app_name}."
     ctx.obj.overwrite = overwrite
     return micc_app( app_name
-                   , project_path=project_path
                    , templates=template
                    , micc_file=micc_file
                    , global_options=ctx.obj
@@ -299,8 +294,6 @@ def app( ctx
 
 @main.command()
 @click.argument('module_name', default='')
-@click.option( '-p', '--project_path', default='.'
-             , help="path to project." )
 @click.option( '--f2py', is_flag=True, default=False
              , help='create a f2py module.')
 @click.option( '--cpp', is_flag=True, default=False
@@ -322,7 +315,6 @@ def app( ctx
 @click.pass_context
 def module( ctx
           , module_name
-          , project_path
           , f2py, cpp, structure
           , template
           , micc_file
@@ -334,7 +326,7 @@ def module( ctx
     :param str module_name: name of the module to be added to the package.
     """
     assert not (cpp and f2py), "Flags '--f2py' and '--cpp' cannot be specified simultaneously."
-    assert not module_exists(project_path,module_name), f"Project {os.path.basename(project_path)} has already a module named {module_name}."
+    assert not module_exists(ctx.obj.project_path,module_name), f"Project {ctx.obj.project_path.name} has already a module named {module_name}."
 
     ctx.obj.structure = structure
     ctx.obj.overwrite = overwrite
@@ -343,7 +335,6 @@ def module( ctx
         if not template:
             template = 'template-module-f2py'
         return micc_module_f2py( module_name
-                               , project_path=project_path
                                , templates=template
                                , micc_file=micc_file
                                , global_options=ctx.obj
@@ -352,7 +343,6 @@ def module( ctx
         if not template:
             template = 'template-module-cpp'
         return micc_module_cpp( module_name
-                              , project_path=project_path
                               , templates=template
                               , micc_file=micc_file
                               , global_options=ctx.obj
@@ -361,7 +351,6 @@ def module( ctx
         if not template:
             template = 'template-module-py'
         return micc_module_py( module_name
-                             , project_path=project_path
                              , templates=template
                              , micc_file=micc_file
                              , global_options=ctx.obj
@@ -369,12 +358,11 @@ def module( ctx
 
 
 @main.command()
-@click.argument('project_path', default='.')
 @click.option('-M','--major', is_flag=True, default=False
              , help='increment major version number component')
 @click.option('-m','--minor', is_flag=True, default=False
              , help='increment minor version number component')
-@click.option('-p','--patch', is_flag=True, default=False
+@click.option('-q','--patch', is_flag=True, default=False
              , help='increment patch version number component')
 @click.option('-r','--poetry-version-rule', help='a "poetry version <rule>"'
              , type=click.Choice(['','patch', 'minor', 'major'
@@ -384,7 +372,13 @@ def module( ctx
 @click.option('-t', '--tag',  is_flag=True, default=False
              , help='if True, create a git tag for the new version, and push it')
 @click.pass_context
-def version(ctx, project_path, major, minor, patch, poetry_version_rule, tag):
+def version( ctx
+           , major
+           , minor
+           , patch
+           , poetry_version_rule
+           , tag
+           ):
     """
     ``micc version`` subcommand, similar to ``poetry version``. Increments the
     project's version number. 
@@ -398,41 +392,37 @@ def version(ctx, project_path, major, minor, patch, poetry_version_rule, tag):
         rule = 'minor'
     if major:
         rule = 'major'
-    return_code = micc_version(project_path, rule, global_options=ctx.obj)
+    return_code = micc_version(rule, global_options=ctx.obj)
     if return_code==0 and tag:
-        return micc_tag(project_path, global_options=ctx.obj)
+        return micc_tag(global_options=ctx.obj)
 
 
 @main.command()
-@click.argument('project_path', default='.')
 @click.pass_context
-def tag(ctx, project_path):
+def tag(ctx):
     """
     ``micc tag`` subcommand, create a git tag for the current version. 
     """
-    return micc_tag(project_path, global_options=ctx.obj)
+    return micc_tag(global_options=ctx.obj)
 
 
 @main.command()
-@click.argument('project_path', default='.')
 @click.option('-m','--module', default=''
              , help="Build only this module. The prefix ['cpp_','f2py'] may be omitted.")
 @click.option('-s', '--soft-link', is_flag=True, default=False
              , help="Create a soft link rather than a copy of the extension library.")
 @click.pass_context
-def build(ctx, project_path, module, soft_link):
+def build(ctx, module, soft_link):
     """
     ``micc build`` subcommand, builds all binary extension libraries (f2py and C++ modules. 
     """
-    return micc_build( project_path=project_path
-                     , module_to_build=module
+    return micc_build( module_to_build=module
                      , soft_link=soft_link
                      , global_options=ctx.obj
                      )
 
 
 @main.command()
-@click.argument('project_path', default='.')
 @click.option('--overwrite', is_flag=True, default=False
              , help="If True, any existing files are overwritten without backup."
                     "If False, micc verifies if there are existing files that"
@@ -441,7 +431,7 @@ def build(ctx, project_path, module, soft_link):
                     "files. The latter is equivalent to specifying overwrite=True."
              )
 @click.pass_context
-def convert_module_to_package(ctx, project_path, overwrite):
+def convert_module_to_package(ctx, overwrite):
     """
     ``micc convert_module_to_package`` subcommand, convert a python module project 
     (created as ``micc create <module_name> --structure module``) to 
@@ -450,7 +440,26 @@ def convert_module_to_package(ctx, project_path, overwrite):
     a AYTHORS.rst, HISTORY.rst and installation.rst to the documentation structure.
     """
     ctx.obj.overwrite = overwrite
-    return micc_convert_simple(project_path, global_options=ctx.obj)
+    return micc_convert_simple(global_options=ctx.obj)
+
+
+@main.command()
+@click.option('-h', '--html', is_flag=True, default=False
+             , help="request for html documentation.")
+@click.option('-l', '--latexpdf', is_flag=True, default=False
+             , help="request for pdf documentation.")
+@click.pass_context
+def docs(ctx, html, latexpdf):
+    """
+    ``micc docs`` subcommand, generate documentation
+    """    
+    formats = []
+    if html:
+        formats.append('html')
+    if latexpdf:
+        formats.append('latexpdf')
+    
+    return micc_docs(formats, global_options=ctx.obj)
 
 
 if __name__ == "__main__":
