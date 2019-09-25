@@ -20,6 +20,7 @@ from pathlib import Path
 from click import echo
 from click.testing import CliRunner
 import pytest
+import types
 
 #===============================================================================
 # Make sure that the current directory is the project directory.
@@ -157,7 +158,7 @@ def test_scenario_1():
         assert Path('foo/docs/_build/latex/foo.pdf').exists()
         print('make docs ok')
         
-        micc.utils.delete_micc_logger()
+        #micc.utils.delete_micc_logger()
 
 def test_module_to_package():
     with in_empty_tmp_dir():
@@ -215,7 +216,9 @@ def test_log():
     if logfile.exists():
         logfile.unlink()
     assert not logfile.exists()
-    micc_logger = micc.utils.get_micc_logger(3)
+
+    global_options = types.SimpleNamespace(verbosity=3,project_path=Path('.').resolve())
+    micc_logger = micc.utils.get_micc_logger(global_options)
     with micc.utils.log(micc_logger.info):
         micc_logger.info('test_log with a logfun')
         micc_logger.debug(' . debug message')
@@ -242,7 +245,7 @@ def test_get_project_path():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_scenario_1
+    the_test_you_want_to_debug = test_log # test_scenario_1
 
     from utils import taskcm
     with taskcm(f"__main__ running {the_test_you_want_to_debug}",
