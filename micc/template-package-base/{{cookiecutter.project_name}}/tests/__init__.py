@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+# By making tests a python package you can split off any helper functions inb
+# a separate source files, which can then be imported wherever you need them.
 """
-Unit test package for {{ cookiecutter.project_name }}.
+The tests package for {{ cookiecutter.project_name }}.
 """

@@ -673,8 +673,8 @@ def micc_build( module_to_build
             if module_to_build and not d.endswith(module_to_build): # build only this module
                 continue
 
-            filepath = project_path / f"micc-build-{d}.log"
-            build_logger = utils.create_logger(filepath, filemode='w')
+            build_log_file = project_path / f"micc-build-{d}.log"
+            build_logger = utils.create_logger( build_log_file, filemode='w' )
  
             module_type,module_name = d.split('_',1)
             build_dir = package_path / d / 'build_'
@@ -702,7 +702,7 @@ def micc_build( module_to_build
                         if not soft_link:
                             build_logger.debug(f">>> shutil.copyfile( '{cextension}', '{destination}' )\n")
                             shutil.copyfile(cextension, destination)
-            build_logger.info(f"Check {filepath.name} for details.\n")
+            build_logger.info(f"Check {build_log_file} for details.\n")
 
     return 0
 

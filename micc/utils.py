@@ -70,7 +70,8 @@ def replace_version_in_file(filepath,current_version,new_version):
         return True
     else:
         return False
-#===============================================================================
+
+
 def replace_in_file(filepath,old,new):
     """
     :param Path filepath: 
@@ -80,7 +81,8 @@ def replace_in_file(filepath,old,new):
     content_as_string = content_as_string.replace(old,new)
     with filepath.open(mode="w") as f:
         f.write(content_as_string)
-#===============================================================================
+
+
 def is_project_directory(path):
     """
     Verify that the directory ``path`` is a project directory. 
@@ -109,7 +111,8 @@ def is_project_directory(path):
         # simple python module found
     else:
         return False
-#===============================================================================
+
+
 def get_name_version(project_path):
     """
     Read name and version of this project from the pyproject.toml file.
@@ -119,7 +122,8 @@ def get_name_version(project_path):
     return ( pyproject_toml['tool']['poetry']['name']
            , pyproject_toml['tool']['poetry']['version']
            )
-#===============================================================================
+
+
 def convert_to_valid_module_name(name):
     """
     Convert a *name* to a python name:
