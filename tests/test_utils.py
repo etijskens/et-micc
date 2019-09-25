@@ -15,6 +15,7 @@ from pathlib import Path
 from click import echo
 import pytest
 import types
+from micc.utils import get_micc_logger
 
 #===============================================================================
 # Make sure that the current directory is the project directory.
@@ -40,7 +41,7 @@ from tests.helpers import report, in_empty_tmp_dir
 from micc import cli, commands
 import micc.utils
 
-    
+
 #===============================================================================
 # test scenario blocks
 #===============================================================================
@@ -58,10 +59,9 @@ def run(runner,arguments,input_='short description'):
 #===============================================================================
 #   Tests
 #===============================================================================
-
-
 def test_module_to_package():
     with in_empty_tmp_dir():
+        get_micc_logger(types.SimpleNamespace(verbosity=2,project_path=Path.cwd()))
         m = Path('m.py')
         m.touch()
         assert m.is_file()
@@ -140,13 +140,13 @@ def test_get_project_path():
     p = micc.utils.get_project_path(p)
     assert p==(Path.home() / 'software/dev/workspace/micc')
     
-    
+
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_log # test_scenario_1
+    the_test_you_want_to_debug = test_module_to_package # test_scenario_1
 
     from utils import taskcm
     with taskcm(f"__main__ running {the_test_you_want_to_debug}",

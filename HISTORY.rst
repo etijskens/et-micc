@@ -6,14 +6,30 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.14 (2019-09-??)
+v0.5.14 (2019-09-25)
+====================
+It would be nice to have an automatic way of generating documentation from our click 
+apps. Howver, the output of ``micc --help`` is not in .rst format...
+Here is an interesting stackoverflow issue 
+`for documenting click commands with sphinx <https://stackoverflow.com/questions/39392753/how-can-i-document-click-commands-using-sphinx>`_
+
+v0.5.14 (2019-09-25)
 ====================
 * Improved logging, added function ``micc.utils.get_micc_logger()`` to get the logger from 
   everywhere, as well as a function ``micc.utils.create_logger()`` to create a new logger.
-
 * Added a function for executing and logging a list of commands.
-
 * Added a micc command for documentation generation
+* improved testing
+* improved output of micc version
+* refactoring: the project_path is now a global_option accepted by all subcommands
+  
+this changes the commands::
+
+   > micc create foo
+
+becomes 
+
+   > micc -p path/to/foo create
 
 v0.5.13 (2019-09-23)
 ====================
@@ -87,7 +103,7 @@ Moreover, we split of the common parts of ``micc-package`` and ``micc-package-si
 * ``micc-package-general``, general package specific parts
 * ``micc-package-simple``, simple package specific parts
 
-we also change all names of cookiecutter template from ``micc-whatever>`` to ``template-<whatever>''
+we also change all names of cookiecutter template from ``micc-whatever>`` to ``template-<whatever>``
 Thus, when a general package is created, we must use the templates (in this order)
 
 * ``template-package``
@@ -613,7 +629,7 @@ v0.0.0 (2019-06-06)
 
 Start of development.
 
-.. include:: ./ISSUES.rst
-.. include:: ./TODO.rst
+.. include:: ../ISSUES.rst
+.. include:: ../TODO.rst
 
 .. _flit: https://github.com/takluyver/flit  

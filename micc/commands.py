@@ -4,13 +4,12 @@ Main module.
 """
 #===============================================================================
 import os
-import sysconfig
 import json
 import subprocess
 import shutil
 import platform
 import copy
-import logging,sys
+import contextlib,io
 from pathlib import Path
 #===============================================================================
 import click
@@ -25,16 +24,14 @@ import toml
 from micc import utils
 from micc.utils import in_directory
 
-micc_logger = None
-
 EXIT_CANCEL = -1 # exit code used for action EXIT_CANCELled by user
 
-
 def exit_msg(exit_code):
+    the_micc_logger = utils.get_micc_logger.the_logger
     if exit_code==EXIT_CANCEL:
-        micc_logger.warning("Command canceled, exiting!")
+        the_micc_logger.warning("Command canceled, exiting!")
     elif exit_code!=0:
-        micc_logger.error(f"Error {exit_code}, exiting!")
+        the_micc_logger.error  (f"Error {exit_code}, exiting!")
     return exit_code
 
 
@@ -63,15 +60,16 @@ def get_template_parameters(template, micc_file, **kwargs):
     
     :returns: a dict of (parameter,value) pairs.
     """
+    the_micc_logger = utils.get_micc_logger.the_logger
     micc_file = template / micc_file
     try:
         f = open(micc_file, 'r')
     except IOError:
-        micc_logger.debug(f" . getting template parameters from (None)")
+        the_micc_logger.debug(f" . getting template parameters from (None)")
         template_parameters = {}
     else:
         with f:
-            micc_logger.debug(f" . getting template parameters from {micc_file}.")
+            the_micc_logger.debug(f" . getting template parameters from {micc_file}.")
             template_parameters = json.load(f)
       
     for kw,arg in kwargs.items(): 
@@ -94,7 +92,7 @@ def get_template_parameters(template, micc_file, **kwargs):
                 value = click.prompt(**kwargs,show_default=False)
         template_parameters[key] = value
 
-    micc_logger.debug(f" . parameters used:\n{json.dumps(template_parameters,indent=4)}")
+    the_micc_logger.debug(f" . parameters used:\n{json.dumps(template_parameters,indent=4)}")
     return template_parameters
 
 
@@ -125,12 +123,13 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
         templates = [templates]
     project_path.mkdir(parents=True, exist_ok=True)
     output_dir = project_path.parent
+    the_micc_logger = utils.get_micc_logger.the_logger
 
     # get the template parameters,
     # list existing files that would be overwritten if global_options.overwrite==True
     existing_files = {}
     for template in templates:
-        micc_logger.debug(f" . Expanding template {template} in temporary directory")
+        the_micc_logger.debug(f" . Expanding template {template} in temporary directory")
         template = resolve_template(template)             
         template_parameters = get_template_parameters( template, micc_file
                                                      , **extra_parameters
@@ -180,7 +179,7 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
                 t = template.name
                 for f in files:
                     msg += f"    {t} : {f}\n"
-            micc_logger.warning(msg)
+            the_micc_logger.warning(msg)
             answer = click.prompt("Press 'c' to continue\n"
                                   "      'a' to abort\n"
                                   "      'b' to keep the original files with .bak extension\n"
@@ -189,24 +188,24 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
                                  ,show_choices=True
                                  ).lower()
             if answer=='a':
-                micc_logger.critical("Exiting.")
+                the_micc_logger.critical("Exiting.")
                 return EXIT_CANCEL,extra_parameters
             elif answer=='b':
-                micc_logger.warning(f"Making backup files in {project_path}:")
+                the_micc_logger.warning(f"Making backup files in {project_path}:")
                 for files in existing_files.values():
                     for src in files:
                         dst = src + '.bak'
                         shutil.copyfile(src, dst)
-                        micc_logger.warning(f"     created backup file: {dst}")
-                micc_logger.warning(f"Overwriting files ...")
+                        the_micc_logger.warning(f"     created backup file: {dst}")
+                the_micc_logger.warning(f"Overwriting files ...")
             else:
-                micc_logger.warning("Overwriting files ... (no backup)")
-            micc_logger.warning('Overwriting files ... Done.')
+                the_micc_logger.warning("Overwriting files ... (no backup)")
+            the_micc_logger.warning('Overwriting files ... Done.')
             
     # Now we can safely overwrite pre-existing files.
     for template in templates:
         template = resolve_template(template)
-        micc_logger.debug(f" . Expanding template {template} in project directory.")
+        the_micc_logger.debug(f" . Expanding template {template} in project directory.")
         cookiecutter( str(template)
                     , no_input=True
                     , overwrite_if_exists=True
@@ -249,21 +248,22 @@ def micc_create( templates
     :param types.SimpleNamespace global_options: namespace object with options accepted by (almost) all micc commands. 
     """
     project_path = global_options.project_path
-    project_path.mkdir(parents=True,exist_ok=True)
     output_dir = project_path.parent
     project_name  = project_path.name
     
+    package_name = utils.convert_to_valid_module_name(project_name)
+    relative_project_path = project_path.relative_to(Path.cwd())
     if global_options.structure=='module':
-        structure = f" ({project_name}.py)" 
+        structure = f"(.{os.sep}{relative_project_path}{os.sep}{package_name}.py)" 
     elif global_options.structure=='package':
-        structure = f" ({project_name}/__init__.py)"
+        structure = f"(.{os.sep}{relative_project_path}{os.sep}{package_name}{os.sep}__init__.py)"
     else:
         structure = '' 
-
-    global micc_logger
+    # must create the project directory before we can use a logger 
+    project_path.mkdir(parents=True,exist_ok=True)
     micc_logger = utils.get_micc_logger(global_options)
-    with utils.log(micc_logger.info, f"Creating Python package '{project_name}' as a {global_options.structure}{structure}"):
-        project_path = output_dir / project_name
+    with utils.log(micc_logger.info, f"\nCreating project {project_name} with"
+                                     f"\n  Python package {package_name} as a {global_options.structure} {structure}"):
         assert not utils.is_project_directory(project_path),f"Project {project_path} exists already."
         # Prevent the creation of a project inside another project    
         # (add a 'dummy' leaf so the first directory checked is output_dir itself)
@@ -325,8 +325,7 @@ def micc_app( app_name
     project_path = global_options.project_path
     assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
     assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
-    
-    global micc_logger
+
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info, f"Creating app {app_name} in Python package {project_path.name}."):
     
@@ -357,8 +356,16 @@ def micc_app( app_name
                     f.write(".. include:: ../APPS.rst\n\n")
                     f.write(".. include:: ../API.rst\n\n")
             with open("APPS.rst","a") as f:
-                f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
-                f.write( "   :members:\n\n")
+                # f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
+                # f.write( "   :members:\n\n")
+                title = f"Application {app_name}"
+                uline = len(title) * '='
+                f.write(title + '\n')
+                f.write(uline + '\n\n')
+                f.write(f".. click:: {package_name}.{cli_app_name}\n")
+                f.write(f"  :prog: {app_name}\n")
+                f.write(f"  :show-nested:\n\n")
+                
             micc_logger.debug(f" . documentation for application '{app_name}' added.")
             
             # pyproject.toml
@@ -400,7 +407,6 @@ def micc_module_py( module_name
     
     source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}/__init__.py"
     
-    global micc_logger
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating python module {source_file} in Python package {project_path.name}."):
         
@@ -454,7 +460,6 @@ def micc_module_f2py( module_name
     package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
     
-    global micc_logger
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
         
@@ -509,7 +514,6 @@ def micc_module_cpp( module_name
     package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
     
-    global micc_logger
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
         
@@ -558,20 +562,19 @@ def micc_version( rule, global_options):
     current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = utils.convert_to_valid_module_name(project_name)
 
-    global micc_logger
+    global_options.verbosity = max(1,global_options.verbosity)
+    # info and higher pass always now
     if rule is None:
-        micc_logger = utils.get_micc_logger(verbosity=2)
+        micc_logger = utils.get_micc_logger(global_options)
         micc_logger.info(f"Current version: {project_name} v{current_version}")
     else:
         micc_logger = utils.get_micc_logger(global_options)
         new_version = VersionCommand().increment_version(current_version, rule)
-        msg = (f"Package {project_name} v{current_version}\n"
-               f"Are you sure to move to v{new_version}'?")
+        msg = (f"\nPackage {project_name} v{current_version}, moving to v{new_version}'?")
         micc_logger.warning(msg)
         if not click.confirm("Confirm to continue",default=False):
-            micc_logger.warning(f"EXIT_CANCELed: 'micc version {rule}'")
+            micc_logger.warning(f"Canceled: 'micc version {rule}'")
             return EXIT_CANCEL
-        micc_logger.warning(f"{project_name} v{current_version} -> v{new_version}")
 
         # wrt poetry issue #1182. This issue is finally solved, boils down to 
         # tomlkit expecting the sections to appear grouped in pyproject.toml.
@@ -585,12 +588,14 @@ def micc_version( rule, global_options):
         # This took me quite a few days find out ...
          
         # update version in pyproject.toml (using poetry code for good :)
-        with utils.in_directory(project_path): 
-            i = ArgvInput(['poetry','version',rule])
-            app = Application()
-            app._auto_exit = False
-            app.run(i)       
-        micc_logger.debug(' . Updating : pyproject.toml)')
+        with utils.log(micc_logger.debug," . Updating pyproject.toml",end_msg=None):
+            with utils.in_directory(project_path): 
+                i = ArgvInput(['poetry','version',rule])
+                app = Application()
+                app._auto_exit = False
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    app.run(i)       
             
         # update version in package
         files = [ project_path / package_name / '__init__.py'
@@ -598,8 +603,10 @@ def micc_version( rule, global_options):
                 ]
         for f in files:
             if f.exists():
-                with utils.log(micc_logger.debug, f" . Updating {f.name}"):
+                with utils.log(micc_logger.debug, f" . Updating {f.relative_to(project_path)}",end_msg=None):
                     utils.replace_version_in_file( f, current_version, new_version)
+
+        micc_logger.info(f"Current_version is v{new_version}.")
     return 0
 
 
@@ -619,7 +626,6 @@ def micc_tag( global_options):
     current_version = pyproject_toml['tool']['poetry']['version']
     tag = f"v{current_version}"
 
-    global micc_logger
     micc_logger = utils.get_micc_logger(global_options)
     
     with utils.in_directory(project_path):
@@ -725,7 +731,9 @@ def module_to_package(module_py):
     package.mkdir()
     dst = str(package / '__init__.py')
     shutil.move(src, dst)
-    utils.log(micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
+
+    the_micc_logger = utils.get_micc_logger.the_logger
+    utils.log(the_micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
 
 
 def micc_convert_simple(global_options):
@@ -781,7 +789,6 @@ def micc_docs(formats, global_options):
     for fmt in formats:
         cmds.append(['make',fmt])
         
-    global micc_logger
     micc_logger = utils.get_micc_logger(global_options)
     with utils.in_directory(project_path / 'docs'):
         with utils.log(micc_logger.info,f"Building documentation for project {project_path.name}."):

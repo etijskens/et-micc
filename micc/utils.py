@@ -3,16 +3,9 @@
 Utility functions for micc.py
 """
 import os, sys, subprocess, logging, sysconfig, copy
-# import json
-# import shutil, platform
 from contextlib import contextmanager
-
-# import click
 import toml
 from pathlib import Path
-
-DEBUG = False
-CANCEL = -1
 
 
 def get_extension_suffix():

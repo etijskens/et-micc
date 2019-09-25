@@ -1,3 +1,6 @@
+Application micc
+================
 
-.. automodule:: micc.cli
-   :members:
+.. click:: micc.cli:main
+  :prog: micc
+  :show-nested:

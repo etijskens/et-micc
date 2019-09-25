@@ -29,6 +29,8 @@ def report(result,assert_exit_code=True):
         
     if assert_exit_code:
         assert result.exit_code == 0
+        
+    return result
 
 
 @contextlib.contextmanager
