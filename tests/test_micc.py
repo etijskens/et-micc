@@ -209,9 +209,10 @@ def test_py_package_exists():
 
 def test_log():
     
-#     with micc.utils.log():
-#         print('test_log without logfun')
-    logfile = micc.utils.get_project_path() / 'micc.log'
+    with micc.utils.log():
+        print('test_log without logfun')
+        
+    logfile = micc.utils.get_project_path('.') / 'micc.log'
     print(logfile.resolve())
     if logfile.exists():
         logfile.unlink()

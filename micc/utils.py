@@ -255,6 +255,7 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
 
 def verbosity_to_loglevel(verbosity):
     """
+    :param int verbosity:
     """
     if verbosity==0:
         return logging.CRITICAL
@@ -262,6 +263,21 @@ def verbosity_to_loglevel(verbosity):
         return logging.INFO
     else:
         return logging.DEBUG
+
+
+def get_project_path(p):
+    """
+    :param Path p:
+    :returns: the nearest directory above ``p`` that is project directory.
+    """
+    root = Path('/')
+    p = Path(p).resolve()
+    p0 = copy.copy(p)
+    while not is_project_directory(p):
+        p = p.parent
+        if p==root:
+            raise RuntimeError(f"Folder {p0} is not inside a Python project.")
+    return p
 
 
 def static_vars(**kwargs):
@@ -273,19 +289,6 @@ def static_vars(**kwargs):
             setattr(func, k, kwargs[k])
         return func
     return decorate
-
-
-def get_project_path(p='.'):
-    """
-    """
-    root = Path('/')
-    p = Path(p).resolve()
-    p0 = copy.copy(p)
-    while not is_project_directory(p):
-        p = p.parent
-        if p==root:
-            raise RuntimeError(f"Folder {p0} is not inside a Python project.")
-    return p
 
 
 # Use static vare to implement a singleton
@@ -300,16 +303,14 @@ def get_micc_logger(global_options):
     :returns: a logging.Logger object.
     """
     if not get_micc_logger.the_logger is None:
-        # verify that the current logger is for the current project directory\
+        # verify that the current logger is for the current project directory
+        # (When running pytest, micc commands are run in several different
+        # project directories created on the fly. the micc_logger must adjust
+        # to this situation and log to a micc.log file in the project directory.
         current_logfile = get_micc_logger.the_logger.logfile
-        current_project_path = get_project_path()
-        print('&&& ',current_logfile)
-        print('&&& ',current_project_path)
+        current_project_path = global_options.project_path
         if not current_logfile.parent == current_project_path:
-            print('reset')
             get_micc_logger.the_logger = None
-        else:
-            print('no reset')
     if get_micc_logger.the_logger is None:
         # create a new logger object that will write to micc.log 
         # in the current project directory
@@ -322,13 +323,6 @@ def get_micc_logger(global_options):
     get_micc_logger.the_logger.console_handler.setLevel(verbosity_to_loglevel(global_options.verbosity))
     
     return get_micc_logger.the_logger
-
-
-def delete_micc_logger():
-    """
-    """
-    print("stop logging to :", get_micc_logger.the_logger.logfile)
-    get_micc_logger.the_logger = None
 
 
 def create_logger(filepath,filemode='a'):

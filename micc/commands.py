@@ -673,7 +673,7 @@ def micc_build( module_to_build
             if module_to_build and not d.endswith(module_to_build): # build only this module
                 continue
 
-            filepath = utils.get_project_path() / f"micc-build-{d}.log"
+            filepath = project_path / f"micc-build-{d}.log"
             build_logger = utils.create_logger(filepath, filemode='w')
  
             module_type,module_name = d.split('_',1)
