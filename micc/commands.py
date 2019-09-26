@@ -566,15 +566,15 @@ def micc_version( rule, global_options):
     current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = utils.convert_to_valid_module_name(project_name)
 
+    global_options.verbosity = max(1,global_options.verbosity)
+    micc_logger = utils.get_micc_logger(global_options)
     # info and higher pass always now
     if rule is None:
-        micc_logger = utils.get_micc_logger(global_options)
         if global_options.verbosity==0:
             print(current_version)
         else:
             micc_logger.info(f"Current version: {project_name} v{current_version}")
     else:
-        micc_logger = utils.get_micc_logger(global_options)
         new_version = VersionCommand().increment_version(current_version, rule)
         msg = (f"\nPackage {project_name} v{current_version}, moving to v{new_version}'?")
         micc_logger.warning(msg)
@@ -586,7 +586,7 @@ def micc_version( rule, global_options):
         # tomlkit expecting the sections to appear grouped in pyproject.toml.
         # Our pyproject.toml contained a [tool.poetry.scripts] section AFTER 
         # the [build-system] section. when running E.g. poetry --version patch 
-        # the version stringiest is NOT updated, but pyproject.toml is REWRITTEN
+        # the version string is NOT updated, but pyproject.toml is REWRITTEN
         # and now the [tool.poetry.scripts] section appears BEFORE the [build-system] 
         # section, nicely grouped with the other [tool.poetry.*] sections. Running 
         # poetry --version patch a second time then updates the version string 
