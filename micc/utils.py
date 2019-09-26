@@ -329,17 +329,18 @@ def create_logger(filepath,filemode='a'):
     * console handler
     * file handler, writing to file ``filename``
     """
-    # create a formatter and add it to the handlers
-    formatter = logging.Formatter('[%(levelname)s] %(message)s')
-    
+    # create formatters and add it to the handlers
+    format_string = '[%(levelname)s] %(message)s'
+    console_formatter = logging.Formatter(format_string)
+    logfile_formatter = logging.Formatter('\n%(asctime)s\n' + format_string)
     # create and add a console handler 
     console_handler = logging.StreamHandler(sys.stderr)
-    console_handler.setFormatter(formatter)
+    console_handler.setFormatter(console_formatter)
     console_handler.setLevel(1)
     
     # create and add a logfile handler
     logfile_handler = logging.FileHandler(filepath,mode=filemode)
-    logfile_handler.setFormatter(formatter) 
+    logfile_handler.setFormatter(logfile_formatter) 
     logfile_handler.setLevel(logging.DEBUG)
             
     # create logger for micc
