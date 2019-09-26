@@ -16,16 +16,20 @@ from micc import utils
 
 
 @click.group()
-@click.option('-v', '--verbosity', count=True)
-@click.option('-p', '--project_path', default='.', type=Path
-             ,help="path to project directory")
+@click.option('-v', '--verbosity', count=True
+             , help="verbosity of program output.")
+@click.option('-p', '--project-path', default='.', type=Path
+             , help="Path to project directory")
+@click.option('--clear-log', is_flag=True, default=False
+             , help="Clear the project's micc.log file.")
 @click.pass_context
-def main(ctx, verbosity, project_path):
+def main(ctx, verbosity, project_path, clear_log):
     """
     Micc command line interface.
     """
     ctx.obj = SimpleNamespace( verbosity=verbosity
                              , project_path=project_path.resolve()
+                             , clear_log=clear_log
                              )
 
 

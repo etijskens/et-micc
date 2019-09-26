@@ -299,6 +299,7 @@ def get_micc_logger(global_options):
         accepted by (almost) all micc commands.
     :returns: a logging.Logger object.
     """
+    
     if not get_micc_logger.the_logger is None:
         # verify that the current logger is for the current project directory
         # (When running pytest, micc commands are run in several different
@@ -308,7 +309,16 @@ def get_micc_logger(global_options):
         current_project_path = global_options.project_path
         if not current_logfile.parent == current_project_path:
             get_micc_logger.the_logger = None
+            
     if get_micc_logger.the_logger is None:
+        
+        if global_options.clear_log:
+            logfile = global_options.project_path / 'micc.log'
+            if logfile.exists():
+                logfile.unlink()
+            else: 
+                global_options.clear_log = False
+                
         # create a new logger object that will write to micc.log 
         # in the current project directory
         p = global_options.project_path / 'micc.log'
@@ -316,8 +326,16 @@ def get_micc_logger(global_options):
         get_micc_logger.the_logger.logfile = p
         if global_options.verbosity>2:
             print(f"micc_logger.logfile = {get_micc_logger.the_logger.logfile}")
-    # set the lever from the verbosity
+
+            
+            
+    # set the log level from the verbosity
     get_micc_logger.the_logger.console_handler.setLevel(verbosity_to_loglevel(global_options.verbosity))
+
+    if global_options.clear_log:
+        global_options.clear_log = False
+        get_micc_logger.the_logger.debug("The log file was cleared.")
+
     
     return get_micc_logger.the_logger
 

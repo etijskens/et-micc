@@ -38,7 +38,7 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 
 from tests.helpers import report, in_empty_tmp_dir 
-from micc import commands
+from micc import cli,commands
 import micc.utils
 
 
@@ -61,7 +61,10 @@ def run(runner,arguments,input_='short description'):
 #===============================================================================
 def test_module_to_package():
     with in_empty_tmp_dir():
-        get_micc_logger(types.SimpleNamespace(verbosity=2,project_path=Path.cwd()))
+        get_micc_logger(types.SimpleNamespace(verbosity=2
+                                             ,project_path=Path.cwd()
+                                             ,clear_log=False
+                                             ))
         m = Path('m.py')
         m.touch()
         assert m.is_file()
@@ -118,7 +121,10 @@ def test_log():
         logfile.unlink()
     assert not logfile.exists()
 
-    global_options = types.SimpleNamespace(verbosity=3,project_path=Path('.').resolve())
+    global_options = types.SimpleNamespace(verbosity=3
+                                          ,project_path=Path('.').resolve()
+                                          ,clear_log=False
+                                          )
     micc_logger = micc.utils.get_micc_logger(global_options)
     with micc.utils.log(micc_logger.info):
         micc_logger.info('test_log with a logfun')
