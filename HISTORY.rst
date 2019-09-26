@@ -6,12 +6,14 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.14 (2019-09-25)
+v0.5.15 (2019-09-25)
 ====================
 It would be nice to have an automatic way of generating documentation from our click 
 apps. Howver, the output of ``micc --help`` is not in .rst format...
 Here is an interesting stackoverflow issue 
 `for documenting click commands with sphinx <https://stackoverflow.com/questions/39392753/how-can-i-document-click-commands-using-sphinx>`_
+(see the answer on sphinx-click
+works like a charm
 
 v0.5.14 (2019-09-25)
 ====================

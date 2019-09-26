@@ -38,7 +38,7 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 
 from tests.helpers import report, in_empty_tmp_dir 
-from micc import cli, commands
+from micc import commands
 import micc.utils
 
 

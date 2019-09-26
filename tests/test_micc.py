@@ -128,7 +128,7 @@ def test_scenario_2():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_scenario_1
+    the_test_you_want_to_debug = test_scenario_2
 
     from utils import taskcm
     with taskcm(f"__main__ running {the_test_you_want_to_debug}",
