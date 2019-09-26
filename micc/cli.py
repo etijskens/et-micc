@@ -14,18 +14,39 @@ import micc.commands as cmds
 from micc.utils import module_exists
 from micc import utils
 
+__template_help =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
+__micc_file_help = ("Name of the micc-file in the cookiecutter templates (typically, ``micc.json``). "
+                    "Micc does not use the standard ``cookiecutter.json`` file to provide the "
+                    "template parameters, but uses a micc-file, usually named ``micc.json`` to "
+                    "generate a ``cookiecutter.json`` file. Unlike the ``cookiecutter.json`` file, "
+                    "the ``micc.json`` file can contain default values for the template parameters. "
+                    "You will be prompted to provide a value for all parameters without default value. "
+                    "The micc-file must be found in the template directory."
+                   )
+__overwrite_help = ("If specified, any existing files are overwritten without backup."
+                    "Otherwise, micc will verify if there are existing files that"
+                    "would be overwritten and gives you three options: \n\n"
+                    "* abort,\n"
+                    "* make backup files and continue, and \n"
+                    "* continue without backup files. This is equivalent to specifying ``--overwrite``."
+                   )
+__structure_help = ("Create a python project structure ``<module_name>.py`` (``-s`` ``module``),"
+                    " or ``<module_name>/__init__.py`` (``-s`` ``package``)."
+                   )
 
 @click.group()
 @click.option('-v', '--verbosity', count=True
-             , help="verbosity of program output.")
+             , help="Verbosity of program output.")
 @click.option('-p', '--project-path', default='.', type=Path
-             , help="Path to project directory")
+             , help="Path to the project directory.")
 @click.option('--clear-log', is_flag=True, default=False
-             , help="Clear the project's micc.log file.")
+             , help="Clear the project's ``micc.log`` file.")
 @click.pass_context
 def main(ctx, verbosity, project_path, clear_log):
     """
-    Micc command line interface.
+    Micc command line interface. 
+    
+    See below for (sub)commands.
     """
     ctx.obj = SimpleNamespace( verbosity=verbosity
                              , project_path=project_path.resolve()
@@ -34,15 +55,12 @@ def main(ctx, verbosity, project_path, clear_log):
 
 
 @main.command()
-@click.option('-T', '--template',   default=[]
-              , help="ordered list Python package cookiecutter templates, or a single template")
-@click.option('-m', '--micc-file',  default='micc.json'
-              , help="name of the micc-file in the cookiecutter templates")
+@click.option('-T', '--template',   default=[], help=__template_help)
+@click.option('-m', '--micc-file',  default='micc.json', help=__micc_file_help)
 @click.option('-s', '--structure', type=click.Choice(['module','package']), default='package'
-              , help="create a python project structure ``<module_name>.py`` (module),"
-                     " or ``<module_name>/__init__.py`` (package).")
+              , help=__structure_help)
 @click.option('-n', '--allow-nesting',  is_flag=True, default=False
-              , help="allow to nest a project inside another project.")
+              , help="Allow to nest a project inside another project.")
 @click.pass_context
 def create( ctx
           , template
@@ -53,13 +71,30 @@ def create( ctx
     """
     Create a project skeleton. 
     
-    Prompts the user for all entries in the micc.json file
-    that do not have a default.
+    The project name is taken to be the last directory of the *<project_path>*.
+    The package name is the derived from the project name, taking the 
+    `PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_
+    into account:
+    
+    * all lowercase.
+    * dashes ``'-'`` and spaces ``' '`` replaced with underscores ``'_'``.
+    * in case the project name has a leading number, an underscore is prepended ``' '``.
+    
+    If no *<project_path>* is provided, or if it is the same as the current working
+    directory, the user is prompted to enter one. 
+    
+    Prompts the user for all entries in the micc-file file
+    that do not have a default value.
     """
     if ctx.obj.project_path==Path.cwd():
-        answer = click.prompt("Enter [path/to/] project_name",default='',show_default=False)
+        answer = click.prompt(f"Enter {click.style('[path/to/]',fg='yellow')} project_name\n"
+                              f"(relative to CWD (={Path.cwd()}) or absolute)\n"
+                              f"or just press Enter to cancel the command"
+                             , default=''
+                             , show_default=False
+                             )
         if not answer:
-            click.echo("Command cancelled")
+            click.secho("Command cancelled",fg='red')
             return cmds.EXIT_CANCEL
         else:
             ctx.obj.project_path = ctx.obj.project_path / answer
@@ -92,15 +127,10 @@ def create( ctx
 @main.command()
 @click.argument('app_name',type=str)
 @click.option('-T', '--template',   default='template-app'
-             , help="ordered list Python package cookiecutter templates, or a single template")
-@click.option('-m', '--micc-file',  default='micc.json'
-              , help="name of the micc-file in the cookiecutter templates")
+             , help=__template_help)
+@click.option('-m', '--micc-file',  default='micc.json', help=__micc_file_help)
 @click.option('--overwrite', is_flag=True, default=False
-             , help="If True, any existing files are overwritten without backup."
-                    "If False, micc verifies if there are existing files that"
-                    "would be overwritten and gives you three options: abort, "
-                    "continue with backup files, and continue without backup "
-                    "files. The latter is equivalent to specifying overwrite=True."
+             , help=__overwrite_help
              )
 @click.pass_context
 def app( ctx
@@ -110,9 +140,10 @@ def app( ctx
        , overwrite
        ):
     """
-    Add an app (console script) to the package. 
+    Add an app (console script) with name *<app_name>* to the package. 
     
-    :param str app_name: name of the cli application to be added to the package.
+    *<app_name>* is also the name of the executable when the package is installed.
+    The source code is in ``<project_name>/<package_name>/cli_<app_name>.py``. 
     """
     assert not utils.app_exists(ctx.obj.project_path, app_name), f"Project {ctx.obj.project_path.name} has already an app named {app_name}."
     ctx.obj.overwrite = overwrite
@@ -126,23 +157,16 @@ def app( ctx
 @main.command()
 @click.argument('module_name', default='')
 @click.option( '--f2py', is_flag=True, default=False
-             , help='create a f2py module.')
+             , help='Create a f2py module.')
 @click.option( '--cpp', is_flag=True, default=False
-             , help='create a C++ module.')
+             , help='Create a C++ module.')
 @click.option('-s', '--structure', type=click.Choice(['module','package']), default='module'
-              , help="create a python project structure ``<module_name>.py`` (module),"
-                     " or ``<module_name>/__init__.py`` (package).")
+              , help=__structure_help)
 @click.option( '--overwrite', is_flag=True, default=False
-             , help="If True, any existing files are overwritten without backup."
-                    "If False, micc verifies if there are existing files that"
-                    "would be overwritten and gives you three options: abort, "
-                    "continue with backup files, and continue without backup "
-                    "files. The latter is equivalent to specifying overwrite=True."
+             , help=__overwrite_help
              )
-@click.option( '-T', '--template',   default=''
-              , help="ordered list Python package cookiecutter templates, or a single template")
-@click.option( '-m', '--micc-file',  default='micc.json'
-             , help="the micc-file for the cookiecutter template")
+@click.option( '-T', '--template',   default='', help=__template_help)
+@click.option( '-m', '--micc-file',  default='micc.json', help=__micc_file_help)
 @click.pass_context
 def module( ctx
           , module_name
@@ -152,9 +176,12 @@ def module( ctx
           , overwrite
           ):
     """
-    Add a module to the package (Python, Fortran, C++). 
+    Add a module with name *<module_name>* to the package (Python, Fortran, C++). 
+    The source code is in 
     
-    :param str module_name: name of the module to be added to the package.
+    * *<module_name>.py* or <*module_name>/__init__.py* for python modules (depending on the *<structure>* parameter.
+    * directory *f2py_<module_name>.py* for f2py extension modules (Fortran source code).
+    * directory *cpp_<module_name>.py* for cpp extension modules (C++ source code).
     """
     assert not (cpp and f2py), "Flags '--f2py' and '--cpp' cannot be specified simultaneously."
     assert not module_exists(ctx.obj.project_path,module_name), f"Project {ctx.obj.project_path.name} has already a module named {module_name}."
@@ -190,18 +217,18 @@ def module( ctx
 
 @main.command()
 @click.option('-M','--major', is_flag=True, default=False
-             , help='increment major version number component')
+             , help='Increment the major version number component and set minor and patch components to 0.')
 @click.option('-m','--minor', is_flag=True, default=False
-             , help='increment minor version number component')
+             , help='Increment the minor version number component and set minor and patch component to 0.')
 @click.option('-p','--patch', is_flag=True, default=False
-             , help='increment patch version number component')
-@click.option('-r','--poetry-version-rule', help='a "poetry version <rule>"'
+             , help='Increment the patch version number component.')
+@click.option('-r','--poetry-version-rule', help='Increment the version number using the poetry command ``poetry version <rule>``.'
              , type=click.Choice(['','patch', 'minor', 'major'
                                  , 'prepatch', 'preminor'
                                  , 'premajor', 'prerelease'])
              )
 @click.option('-t', '--tag',  is_flag=True, default=False
-             , help='if True, create a git tag for the new version, and push it')
+             , help='Create a git tag for the new version, and push it to the remote repo.')
 @click.pass_context
 def version( ctx
            , major
@@ -211,7 +238,8 @@ def version( ctx
            , tag
            ):
     """
-    Increment the project's version number. 
+    Increment the project's version number, or just show the current version number 
+    if no arguments were given.
     """
     rule = None
     if poetry_version_rule:
@@ -233,20 +261,20 @@ def version( ctx
 @click.pass_context
 def tag(ctx):
     """
-    ``micc tag`` subcommand, create a git tag for the current version. 
+    Create a git tag for the current version and push it to the remote repo. 
     """
     return cmds.micc_tag(global_options=ctx.obj)
 
 
 @main.command()
 @click.option('-m','--module', default=''
-             , help="Build only this module. The prefix ['cpp_','f2py'] may be omitted.")
+             , help="Build only this module. The prefix [``cpp_``, ``f2py_``] may be omitted.")
 @click.option('-s', '--soft-link', is_flag=True, default=False
              , help="Create a soft link rather than a copy of the extension library.")
 @click.pass_context
 def build(ctx, module, soft_link):
     """
-    Build binary extension libraries (f2py and C++ modules). 
+    Build binary extension libraries (f2py and cpp modules). 
     """
     return cmds.micc_build( module_to_build=module
                           , soft_link=soft_link
@@ -265,14 +293,16 @@ def build(ctx, module, soft_link):
 @click.pass_context
 def convert_to_package(ctx, overwrite):
     """
-    Convert a python module project to a package.
+    Convert a Python module project to a package.
 
-    A Python module project has only a ``package_name.py`` file, whereas
-    a Python package project is structured  as ``package_name/__init__.py``.
-    Only the latter can contain submodules (python and binary) and applications.
+    A Python *module* project has only a ``<package_name>.py`` file, whereas
+    a Python *package* project has ``<package_name>/__init__.py``.
+    Only the latter can contain submodules, such as python modules or packages 
+    and binary extension modules, and applications.
 
-    This also expands the micc-template-general-docs in this project which adds
-    a AUTHORS.rst, HISTORY.rst and installation.rst to the documentation structure.
+    This also expands the ``micc-template-general-docs`` template in this project,
+    which adds a AUTHORS.rst, HISTORY.rst and installation.rst to the documentation 
+    structure.
     """
     ctx.obj.overwrite = overwrite
     return cmds.micc_convert_simple(global_options=ctx.obj)
@@ -280,13 +310,13 @@ def convert_to_package(ctx, overwrite):
 
 @main.command()
 @click.option('-h', '--html', is_flag=True, default=False
-             , help="request for html documentation.")
+             , help="Request building html documentation.")
 @click.option('-l', '--latexpdf', is_flag=True, default=False
-             , help="request for pdf documentation.")
+             , help="Request building pdf documentation.")
 @click.pass_context
 def docs(ctx, html, latexpdf):
     """
-    Generate documentation.
+    Generate documentation for the project using Sphinx.
     """    
     formats = []
     if html:
@@ -301,7 +331,7 @@ def docs(ctx, html, latexpdf):
 @click.pass_context
 def info(ctx):
     """
-    Show info on a project. Use verbosity to produce more detailed info.
+    Show info on the project. Use verbosity to produce more detailed info.
     """    
     return cmds.micc_info(global_options=ctx.obj)
 

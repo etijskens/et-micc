@@ -242,7 +242,7 @@ def micc_create( templates
     Python package with a ``<package_name>/__init__.py`` structure, to wich 
     other modules and applications can be added.
     
-    :param str templates: ordered list of paths to a Cookiecutter_ template. a single 
+    :param str templates: ordered list of paths to a Cookiecutter template. a single 
         path is ok too.
     :param str micc_file: name of the json file with the default values in the template directories. 
     :param types.SimpleNamespace global_options: namespace object with options accepted by (almost) all micc commands. 
@@ -315,7 +315,7 @@ def micc_app( app_name
     Micc app subcommand, add a console script (app) to the package. 
     
     :param str app_name: name of the applicatiom to be added.
-    :param str templates: ordered list of paths to a Cookiecutter_ template. a 
+    :param str templates: ordered list of paths to a Cookiecutter template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
         template directories. 
@@ -363,8 +363,8 @@ def micc_app( app_name
                 f.write(title + '\n')
                 f.write(uline + '\n\n')
                 f.write(f".. click:: {package_name}.{cli_app_name}\n")
-                f.write(f"  :prog: {app_name}\n")
-                f.write(f"  :show-nested:\n\n")
+                f.write(f"   :prog: {app_name}\n")
+                f.write(f"   :show-nested:\n\n")
                 
             micc_logger.debug(f" . documentation for application '{app_name}' added.")
             
@@ -389,7 +389,7 @@ def micc_module_py( module_name
     
     :param str module_name: name of the module to be added.
     :param bool simple: create simple (``<module_name>.py``) or general python module 
-    :param str templates: ordered list of paths to a Cookiecutter_ template. a 
+    :param str templates: ordered list of paths to a Cookiecutter template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
         template directories. 
@@ -444,7 +444,7 @@ def micc_module_f2py( module_name
     ``micc module --f2py`` subcommand, add a f2py module to the package. 
     
     :param str module_name: name of the module to be added.
-    :param str templates: ordered list of paths to a Cookiecutter_ template. a 
+    :param str templates: ordered list of paths to a Cookiecutter template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
         template directories. 
@@ -498,7 +498,7 @@ def micc_module_cpp( module_name
     ``micc module --cpp`` subcommand, add a C++ module to the package. 
     
     :param str module_name: name of the module to be added.
-    :param str templates: ordered list of paths to a Cookiecutter_ template. a 
+    :param str templates: ordered list of paths to a Cookiecutter template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
         template directories. 
@@ -663,7 +663,8 @@ def micc_build( module_to_build
     """
     Build all binary extions, i.e. f2py modules and cpp modules.
     
-    :param str module_to_build: name of the only module to build (the prefix cpp_ or f2py_ may be omitted)
+    :param str module_to_build: name of the only module to build (the prefix 
+        ``cpp_`` or ``f2py_`` may be omitted)
     :param bool soft_link: if False, the binary extension modules are copied
         into the package directory. Otherwise a soft link is provided.
     :param types.SimpleNamespace global_options: namespace object with options 
@@ -784,18 +785,24 @@ def micc_convert_simple(global_options):
 def micc_docs(formats, global_options):
     """
     Build documentation for the project.
+    
     :param list formats: list of formats to build documentation with. Valid
         formats are ``'html'``, ``'latexpdf'``.
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by (almost) all micc commands.
     """
+    
     project_path = global_options.project_path
-    assert formats, "No documentation format specified. "
+    micc_logger = utils.get_micc_logger(global_options)
+    if not formats:
+        micc_logger.info("No documentation format specified, using --html")
+        formats.append('html')
+        
+    # this is still using the Makefile
     cmds = []
     for fmt in formats:
         cmds.append(['make',fmt])
         
-    micc_logger = utils.get_micc_logger(global_options)
     with utils.in_directory(project_path / 'docs'):
         with utils.log(micc_logger.info,f"Building documentation for project {project_path.name}."):
             utils.execute(cmds, micc_logger.debug, env=os.environ.copy())
