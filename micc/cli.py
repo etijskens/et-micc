@@ -10,11 +10,7 @@ from pathlib import Path
 
 import click
 
-from micc.commands import micc_create, micc_version, micc_tag, micc_app, \
-                          micc_module_py, micc_module_f2py, micc_module_cpp, \
-                          micc_build, micc_convert_simple, micc_docs, \
-                          EXIT_CANCEL, exit_msg
-                          
+import micc.commands as cmds
 from micc.utils import module_exists
 from micc import utils
 
@@ -59,7 +55,8 @@ def create( ctx
     if ctx.obj.project_path==Path.cwd():
         answer = click.prompt("Enter [path/to/] project_name",default='',show_default=False)
         if not answer:
-            return exit_msg(EXIT_CANCEL)
+            click.echo("Command cancelled")
+            return cmds.EXIT_CANCEL
         else:
             ctx.obj.project_path = ctx.obj.project_path / answer
     
@@ -82,10 +79,10 @@ def create( ctx
     ctx.obj.structure = structure
     ctx.obj.allow_nesting = allow_nesting
         
-    return micc_create( templates=template
-                      , micc_file=micc_file
-                      , global_options=ctx.obj
-                      )
+    return cmds.micc_create( templates=template
+                           , micc_file=micc_file
+                           , global_options=ctx.obj
+                           )
 
 
 @main.command()
@@ -115,11 +112,11 @@ def app( ctx
     """
     assert not utils.app_exists(ctx.obj.project_path, app_name), f"Project {ctx.obj.project_path.name} has already an app named {app_name}."
     ctx.obj.overwrite = overwrite
-    return micc_app( app_name
-                   , templates=template
-                   , micc_file=micc_file
-                   , global_options=ctx.obj
-                   )
+    return cmds.micc_app( app_name
+                        , templates=template
+                        , micc_file=micc_file
+                        , global_options=ctx.obj
+                        )
 
 
 @main.command()
@@ -164,27 +161,27 @@ def module( ctx
     if f2py:
         if not template:
             template = 'template-module-f2py'
-        return micc_module_f2py( module_name
-                               , templates=template
-                               , micc_file=micc_file
-                               , global_options=ctx.obj
-                               )
+        return cmds.micc_module_f2py( module_name
+                                    , templates=template
+                                    , micc_file=micc_file
+                                    , global_options=ctx.obj
+                                    )
     elif cpp:
         if not template:
             template = 'template-module-cpp'
-        return micc_module_cpp( module_name
-                              , templates=template
-                              , micc_file=micc_file
-                              , global_options=ctx.obj
-                              )
+        return cmds.micc_module_cpp( module_name
+                                   , templates=template
+                                   , micc_file=micc_file
+                                   , global_options=ctx.obj
+                                   )
     else:
         if not template:
             template = 'template-module-py'
-        return micc_module_py( module_name
-                             , templates=template
-                             , micc_file=micc_file
-                             , global_options=ctx.obj
-                             )
+        return cmds.micc_module_py( module_name
+                                  , templates=template
+                                  , micc_file=micc_file
+                                  , global_options=ctx.obj
+                                  )
 
 
 @main.command()
@@ -221,9 +218,11 @@ def version( ctx
         rule = 'minor'
     if major:
         rule = 'major'
-    return_code = micc_version(rule, global_options=ctx.obj)
+    return_code = cmds.micc_version(rule, global_options=ctx.obj)
     if return_code==0 and tag:
-        return micc_tag(global_options=ctx.obj)
+        return cmds.micc_tag(global_options=ctx.obj)
+    else:
+        return return_code
 
 
 @main.command()
@@ -232,7 +231,7 @@ def tag(ctx):
     """
     ``micc tag`` subcommand, create a git tag for the current version. 
     """
-    return micc_tag(global_options=ctx.obj)
+    return cmds.micc_tag(global_options=ctx.obj)
 
 
 @main.command()
@@ -245,10 +244,10 @@ def build(ctx, module, soft_link):
     """
     Build binary extension libraries (f2py and C++ modules). 
     """
-    return micc_build( module_to_build=module
-                     , soft_link=soft_link
-                     , global_options=ctx.obj
-                     )
+    return cmds.micc_build( module_to_build=module
+                          , soft_link=soft_link
+                          , global_options=ctx.obj
+                          )
 
 
 @main.command()
@@ -272,7 +271,7 @@ def convert_to_package(ctx, overwrite):
     a AUTHORS.rst, HISTORY.rst and installation.rst to the documentation structure.
     """
     ctx.obj.overwrite = overwrite
-    return micc_convert_simple(global_options=ctx.obj)
+    return cmds.micc_convert_simple(global_options=ctx.obj)
 
 
 @main.command()
@@ -291,7 +290,16 @@ def docs(ctx, html, latexpdf):
     if latexpdf:
         formats.append('latexpdf')
     
-    return micc_docs(formats, global_options=ctx.obj)
+    return cmds.micc_docs(formats, global_options=ctx.obj)
+
+
+@main.command()
+@click.pass_context
+def info(ctx):
+    """
+    Show info on a project. Use verbosity to produce more detailed info.
+    """    
+    return cmds.micc_info(global_options=ctx.obj)
 
 
 if __name__ == "__main__":

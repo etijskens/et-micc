@@ -77,6 +77,14 @@ def test_scenario_1():
         run(runner, ['-vv', 'create', '--allow-nesting'],input_='sandbox/FOO\nshort description')
         assert Path('sandbox/FOO/foo').exists()
 
+def test_scenario_1b():
+    """
+    """
+    runner = CliRunner()
+#     with runner.isolated_filesystem():
+    with in_empty_tmp_dir():
+        run(runner, ['-vv', 'create', '--allow-nesting'],input_='\n')
+
 def test_scenario_2():
     """
     """
@@ -122,6 +130,7 @@ def test_scenario_2():
         assert Path('foo/docs/_build/latex/foo.pdf').exists()
         print('make docs ok')
         
+        run(runner, ['-p','foo','-vv','info'])
 
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.

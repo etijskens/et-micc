@@ -22,7 +22,7 @@ from poetry.console.commands import VersionCommand
 import toml
 
 from micc import utils
-from micc.utils import in_directory
+from micc.utils import in_directory, is_project_directory
 
 EXIT_CANCEL = -1 # exit code used for action EXIT_CANCELled by user
 
@@ -545,8 +545,12 @@ def micc_module_cpp( module_name
 
 def micc_version( rule, global_options):
     """
-    Bump the version according to *rule*, and modify the pyproject.toml in 
-    *project_path*.
+    Bump the version according to ``rule`` or show the current version if no
+    ``rule`` was specified
+    
+    The version is stored in pyproject.toml in the project directory, and in
+    ``__version__`` variable of the top-level package (which is either in file
+    ``<package_name>.py`` or ``<package_name>/__init__.py`` 
     
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
@@ -562,11 +566,13 @@ def micc_version( rule, global_options):
     current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = utils.convert_to_valid_module_name(project_name)
 
-    global_options.verbosity = max(1,global_options.verbosity)
     # info and higher pass always now
     if rule is None:
         micc_logger = utils.get_micc_logger(global_options)
-        micc_logger.info(f"Current version: {project_name} v{current_version}")
+        if global_options.verbosity==0:
+            print(current_version)
+        else:
+            micc_logger.info(f"Current version: {project_name} v{current_version}")
     else:
         micc_logger = utils.get_micc_logger(global_options)
         new_version = VersionCommand().increment_version(current_version, rule)
@@ -793,5 +799,80 @@ def micc_docs(formats, global_options):
     with utils.in_directory(project_path / 'docs'):
         with utils.log(micc_logger.info,f"Building documentation for project {project_path.name}."):
             utils.execute(cmds, micc_logger.debug, env=os.environ.copy())
-        
+
+
+def micc_info(global_options):
+    """
+    Output info on the project.
+
+    * If global_options.verbosity is 0, outputs the project name, the project location, 
+      the package name and the version number
+    * If global_options.verbosity is 1, lists also the structure and the applications
+      and submodulesn it contains
+    * If global_options.verbosity is 2, lists also the detailed structure of the package
+    
+    :param types.SimpleNamespace global_options: namespace object with options 
+        accepted by (almost) all micc commands.
+    """
+    micc_logger = utils.get_micc_logger(global_options)
+    project_path = global_options.project_path
+    assert is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
+    package_name = utils.convert_to_valid_module_name(project_path.name)
+    pyproject_toml = toml.load(str(project_path / 'pyproject.toml'))
+
+    if global_options.verbosity>=0:
+        global_options.verbosity = 10
+
+    if global_options.verbosity>=1:
+        click.echo("Project " + click.style(str(project_path.name),fg='green')+" located at "+click.style(str(project_path),fg='green'))
+        click.echo("  package: " + click.style(str(package_name),fg='green'))
+        click.echo("  version: " + click.style(pyproject_toml['tool']['poetry']['version'],fg='green'))
+                  
+    if global_options.verbosity>=2:
+        has_py_module  = utils.is_module_project (project_path)
+        has_py_package = utils.is_package_project(project_path)
+        if has_py_module:
+            structure = package_name + ".py"
+            kind = " (Python module)"
+        if has_py_package:
+            structure = package_name + os.sep + "__init__.py"
+            kind = " (Python package)"
+        click.echo("  structure: " + click.style(structure,fg='green')+kind)
+        if has_py_module and has_py_package:
+            utils.log(micc_logger.warning, "\nFound both module and package structure."
+                                           "\nThis will give import problems.")
+    if global_options.verbosity>=3:
+        click.echo("  contents:")
+        package_path = project_path / package_name
+        files = []
+        files.extend(package_path.glob('**/*.py'))
+        files.extend(package_path.glob('**/cpp_*/'))
+        files.extend(package_path.glob('**/f2py_*'))
+        for f in files:
+            # filters
+            if '{' in str(f):
+                continue
+            if 'template-package-' in str(f): # very ad hoc solution, only relevant to the micc project itself
+                continue
+            if f.name=="__init__.py" and f.parent.samefile(package_path): # ignore the top-level __init__.py
+                continue
+            if 'build_' in str(f):
+                continue
+            
+            fg = 'green'
+            extra = ''
+            if f.name.startswith('cli'):
+                kind = "application "
+                fg = 'blue'
+            elif f.name.startswith('cpp_'):
+                kind = "C++ module  "
+                extra = f"{os.sep}{f.name.split('_',1)[1]}.cpp"
+            elif f.name.startswith('f2py_'):
+                kind = "f2py module "
+                extra = f"{os.sep}{f.name.split('_',1)[1]}.f90"
+            elif f.name=='__init__.py':
+                kind = "package     "
+            else:
+                kind = "module      "
+            click.echo("    " + kind + click.style(str(f.relative_to(package_path)) + extra,fg=fg))
 # EOF #

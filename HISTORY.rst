@@ -6,6 +6,10 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.5.16 (2019-09-25)
+====================
+adding a ``micc info`` command that lists information on the project
+
 v0.5.15 (2019-09-25)
 ====================
 It would be nice to have an automatic way of generating documentation from our click 
