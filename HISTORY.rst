@@ -6,9 +6,10 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.5.18 (2019-09-27)
-====================
-code review by codacy
+v0.6.0 (2019-09-27)
+===================
+* looks as most things are working smoothly now..., so we move to 0.6.0
+* code review by codacy
 
 v0.5.17 (2019-09-26)
 ====================
