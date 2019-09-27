@@ -118,10 +118,10 @@ def is_project_directory(path,raise_if=None):
         return rv
     # must raise in all other cases
     elif raise_if==True:
-        x = RuntimeError(f"Project path '{path}' refers to an existing project.")
+        x = RuntimeError(f"Project path '{path}' is a project directory.")
         x.path = path
     elif raise_if==False:
-        x = RuntimeError(f"Project path '{path}' is NOT an existing project.")
+        x = RuntimeError(f"Project path '{path}' is NOT an project directory.")
         x.path = path
     raise x
 

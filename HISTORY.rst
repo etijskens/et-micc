@@ -6,6 +6,15 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.6.1 (2019-09-27)
+===================
+* modified dependencies of micc. all tests succeed. 
+  Created empty conda environment::
+
+   > make reinstall
+   > pytest tests 
+
+
 v0.6.0 (2019-09-27)
 ===================
 * looks as most things are working smoothly now..., so we move to 0.6.0
