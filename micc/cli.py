@@ -45,14 +45,14 @@ __overwrite_help = ("If specified, any existing files are overwritten without ba
 @click.pass_context
 def main(ctx, verbosity, project_path, clear_log):
     """
-    Micc command line interface. 
+    Micc command line interface.
     
-    All commands that change the state of the project produce some output that 
-    is send to the console (taking verbosity into account). It is also sent to 
+    All commands that change the state of the project produce some output that
+    is send to the console (taking verbosity into account). It is also sent to
     a logfile ``micc.log`` in the project directory. All output is always appended
-    to the logfile. If you think the file has gotten too big, or you are no more 
+    to the logfile. If you think the file has gotten too big, or you are no more
     interested in the history of your project, you can specify the ``--clear-log``
-    flag to clear the logfile before any command is executed. In this way the 
+    flag to clear the logfile before any command is executed. In this way the
     command you execute is logged to an empty logfile.
     
     See below for (sub)commands.
@@ -73,7 +73,7 @@ def main(ctx, verbosity, project_path, clear_log):
                     "Default = ``package``."
              )
 @click.option('-n', '--allow-nesting',  is_flag=True, default=False
-             , help="If specified allows to nest a project inside another project. "
+             , help="If specified allows to nest a project inside another project."
              )
 @click.pass_context
 def create( ctx
@@ -83,10 +83,10 @@ def create( ctx
           , allow_nesting
           ):
     """
-    Create a project skeleton. 
+    Create a project skeleton.
     
     The project name is taken to be the last directory of the *<project_path>*.
-    The package name is the derived from the project name, taking the 
+    The package name is the derived from the project name, taking the
     `PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_
     into account:
     
@@ -95,7 +95,7 @@ def create( ctx
     * in case the project name has a leading number, an underscore is prepended ``'_'``.
     
     If no *<project_path>* is provided, or if it is the same as the current working
-    directory, the user is prompted to enter one. 
+    directory, the user is prompted to enter one.
     
     If the *<project_path>* refers to an existing project, *micc* refuses to continu.
     
