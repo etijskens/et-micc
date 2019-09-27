@@ -22,7 +22,6 @@ from poetry.console.commands import VersionCommand
 import toml
 
 from micc import utils
-from micc.utils import in_directory, is_project_directory
 
 EXIT_CANCEL = -1 # exit code used for action EXIT_CANCELled by user
 
@@ -46,7 +45,10 @@ def resolve_template(template):
     else:
         # just the template name 
         template = Path(__file__).parent / template
-    assert template.exists(), f"Inexisting template {template}"
+
+    if not template.exists():
+        raise AssertionError(f"Inexisting template {template}")
+    
     return template
 
 
@@ -264,13 +266,15 @@ def micc_create( templates
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info, f"\nCreating project {project_name} with"
                                      f"\n  Python package {package_name} as a {global_options.structure} {structure}"):
-        assert not utils.is_project_directory(project_path),f"Project {project_path} exists already."
+        if utils.is_project_directory(project_path):
+            raise AssertionError(f"Project {project_path} exists already.")
         # Prevent the creation of a project inside another project    
         # (add a 'dummy' leaf so the first directory checked is output_dir itself)
         if not global_options.allow_nesting:
             p = copy.copy(output_dir)
             while not p.samefile('/'):
-                assert not utils.is_project_directory(p),f"Cannot create a project inside another project ({p})."
+                if utils.is_project_directory(p):
+                    raise AssertionError(f"Cannot create a project inside another project ({p}).")
                 p = p.parent
             
         global_options.overwrite = False
@@ -323,8 +327,10 @@ def micc_app( app_name
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
-    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
+
+    utils.is_project_directory(project_path, raise_if=False)
+    utils.is_package_project  (project_path, raise_if=False)
+    utils.is_module_project   (project_path, raise_if=True )
 
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info, f"Creating app {app_name} in Python package {project_path.name}."):
@@ -341,7 +347,7 @@ def micc_app( app_name
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
     
-        with in_directory(project_path):
+        with utils.in_directory(project_path):
             cli_app_name = 'cli_' + utils.convert_to_valid_module_name(app_name)
             package_name =          utils.convert_to_valid_module_name(project_path.name)
             
@@ -397,10 +403,13 @@ def micc_module_py( module_name
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
-    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
-    assert     utils.is_package_project(project_path), msg_NotAPackageProject(project_path)
-    assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
+    
+    utils.is_project_directory(project_path, raise_if=False)
+    utils.is_package_project  (project_path, raise_if=False)
+    utils.is_module_project   (project_path, raise_if=True )
+    
+    if not module_name==utils.convert_to_valid_module_name(module_name):
+        raise AssertionError(f"Not a valid module_name: {module_name}")
 
     package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'python module'
@@ -425,7 +434,7 @@ def micc_module_py( module_name
         if global_options.structure=='package':
             module_to_package(project_path / package_name / (module_name + '.py'))
 
-        with in_directory(project_path):    
+        with utils.in_directory(project_path):    
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. automodule:: {package_name}.{module_name}"
@@ -452,10 +461,13 @@ def micc_module_f2py( module_name
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
-    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
-    assert     utils.is_package_project(project_path), msg_NotAPackageProject(project_path)
-    assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
+    
+    utils.is_project_directory(project_path, raise_if=False)
+    utils.is_package_project  (project_path, raise_if=False)
+    utils.is_module_project   (project_path, raise_if=True )
+    
+    if not module_name==utils.convert_to_valid_module_name(module_name):
+        raise AssertionError(f"Not a valid module_name {module_name}")
 
     package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
@@ -476,7 +488,7 @@ def micc_module_f2py( module_name
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
             
-        with in_directory(project_path):
+        with utils.in_directory(project_path):
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
@@ -506,10 +518,13 @@ def micc_module_cpp( module_name
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
-    assert utils.is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
-    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
-    assert     utils.is_package_project(project_path), msg_NotAPackageProject(project_path)
-    assert module_name==utils.convert_to_valid_module_name(module_name), f"Not a valid module_name {module_name}" 
+
+    utils.is_project_directory(project_path, raise_if=False)
+    utils.is_package_project  (project_path, raise_if=False)
+    utils.is_module_project   (project_path, raise_if=True )
+
+    if not module_name==utils.convert_to_valid_module_name(module_name):
+        raise AssertionError(f"Not a valid module_name {module_name}")
 
     package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
@@ -530,7 +545,7 @@ def micc_module_cpp( module_name
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
 
-        with in_directory(project_path):
+        with utils.in_directory(project_path):
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
@@ -558,7 +573,7 @@ def micc_version( rule, global_options):
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
-    assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
+    utils.is_project_directory(project_path, raise_if=False)
 
     project_path = Path(project_path)
     pyproject_toml = toml.load(str(project_path /'pyproject.toml'))
@@ -624,7 +639,7 @@ def micc_tag( global_options):
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
-    assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
+    utils.is_project_directory(project_path, raise_if=False)
             
     path_to_pyproject_toml = project_path / 'pyproject.toml'
     pyproject_toml = toml.load(str(path_to_pyproject_toml))
@@ -671,7 +686,10 @@ def micc_build( module_to_build
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
-    assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
+
+    utils.is_project_directory(project_path, raise_if=False)
+    utils.is_package_project  (project_path, raise_if=False)
+    utils.is_module_project   (project_path, raise_if=True )
     
     package_path = project_path / utils.convert_to_valid_module_name(project_path.name)
         
@@ -751,9 +769,10 @@ def micc_convert_simple(global_options):
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
-    assert utils.is_project_directory(project_path),msg_NotAProjectDirectory(project_path)
-    assert not utils.is_module_project(project_path), msg_CannotAddToSimpleProject(project_path)
-    assert     utils.is_package_project(project_path), msg_NotAPackageProject(project_path)
+
+    utils.is_project_directory(project_path, raise_if=False)
+    utils.is_package_project  (project_path, raise_if=False)
+    utils.is_module_project   (project_path, raise_if=True )
     
     if global_options.verbosity>0:
         click.echo(f"Converting simple Python project {project_path.name} to general Python project.")
@@ -793,6 +812,8 @@ def micc_docs(formats, global_options):
     """
     
     project_path = global_options.project_path
+    utils.is_project_directory(project_path, raise_if=False)
+
     micc_logger = utils.get_micc_logger(global_options)
     if not formats:
         micc_logger.info("No documentation format specified, using --html")
@@ -821,9 +842,9 @@ def micc_info(global_options):
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by (almost) all micc commands.
     """
-    micc_logger = utils.get_micc_logger(global_options)
     project_path = global_options.project_path
-    assert is_project_directory(project_path), msg_NotAProjectDirectory(project_path)
+    utils.is_project_directory(project_path, raise_if=False)
+    micc_logger = utils.get_micc_logger(global_options)
     package_name = utils.convert_to_valid_module_name(project_path.name)
     pyproject_toml = toml.load(str(project_path / 'pyproject.toml'))
 

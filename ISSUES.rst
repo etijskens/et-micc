@@ -21,7 +21,7 @@ There, two interesting links are found:
 
 Note that the setup.py approach can become rather convoluted: https://github.com/zeromq/pyzmq/blob/master/setup.py.
 
-The scikit-build approach is further mentioned `here <https://github.com/pypa/packaging.python.org/issues/381>`_.
+The `scikit-build approach <https://github.com/pypa/packaging.python.org/issues/381>`_ is mentioned .
 
 These approaches request the user that installs your package to also build the binary Python
 extensions (f2py, C++), which may be challenging on Windows.

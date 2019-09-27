@@ -1,4 +1,4 @@
-micc
+Micc
 ====
 
 This is work in progress!

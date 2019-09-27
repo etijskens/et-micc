@@ -93,9 +93,9 @@ def test_scenario_2():
     with in_empty_tmp_dir():
         run(runner, ['-p','foo','-vv', 'create', '--allow-nesting'],input_='short description')
         foo = Path('foo')
-        assert micc.utils.is_project_directory(foo)
-        assert not micc.utils.is_module_project(foo)
-        assert     micc.utils.is_package_project(foo)
+        micc.utils.is_project_directory(foo,raise_if=False)
+        micc.utils.is_module_project   (foo,raise_if=True)
+        micc.utils.is_package_project  (foo,raise_if=False)
 
         run(runner, ['-p','foo','version'])
         run(runner, ['-p','foo','version', '-p'],input_='y\n')

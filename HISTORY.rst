@@ -6,9 +6,19 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.5.18 (2019-09-27)
+====================
+code review by codacy
+
+v0.5.17 (2019-09-26)
+====================
+modified assertions
+
 v0.5.16 (2019-09-25)
 ====================
-adding a ``micc info`` command that lists information on the project
+
+* adding a ``micc info`` command that lists information on the project
+* improved the documentation.
 
 v0.5.15 (2019-09-25)
 ====================
@@ -21,6 +31,7 @@ works like a charm
 
 v0.5.14 (2019-09-25)
 ====================
+
 * Improved logging, added function ``micc.utils.get_micc_logger()`` to get the logger from 
   everywhere, as well as a function ``micc.utils.create_logger()`` to create a new logger.
 * Added a function for executing and logging a list of commands.
@@ -557,7 +568,7 @@ v0.2.3 (2019-06-11)
   avoid. There is not pyproject.toml file sofar... 
   
 Moving away from setup.py and going down the pyproject.toml road, we can choose 
-between `poetry`_ and `flit`_.
+between ``poetry`` and ``flit``.
   
 Although, I am having some trouble with reusing some poetry code, i have the
 impression that it is better developed, and has a more active community 
@@ -565,8 +576,8 @@ impression that it is better developed, and has a more active community
 
 A pyproject.toml was added (used ``poetry init`` to generate pyproject.toml). 
 First issue is how to automatically transfer the version number to our python 
-project. `Here <https://github.com/sdispater/poetry/issues/273>`_
-is a good post about that. 
+project. `This is a good post <https://github.com/sdispater/poetry/issues/273>`_
+about that. 
   
 * using pkg_resources implies a dependence on setuptools = no go
 * using tomlkit for reading the pyproject.toml file implies that the 
@@ -622,7 +633,6 @@ But take care, uninstalling like this::
 
 removed the source files. 
 See `this post <https://stackoverflow.com/questions/17346619/how-to-uninstall-editable-packages-with-pip-installed-with-e>`_.
-
 
    
 v0.1.21 (2019-06-11)

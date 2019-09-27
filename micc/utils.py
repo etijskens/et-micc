@@ -6,6 +6,7 @@ import os, sys, subprocess, logging, sysconfig, copy
 from contextlib import contextmanager
 import toml
 from pathlib import Path
+from docutils.parsers.rst.directives import path
 
 
 def get_extension_suffix():
@@ -76,7 +77,7 @@ def replace_in_file(filepath,old,new):
         f.write(content_as_string)
 
 
-def is_project_directory(path):
+def is_project_directory(path,raise_if=None):
     """
     Verify that the directory ``path`` is a project directory. 
     As a sufficident condition, we request that 
@@ -85,6 +86,11 @@ def is_project_directory(path):
     * that there is a python package or module with that name.
     
     :param Path path:
+    :param bool raise_if: If True, raise ``RuntimeError`` if the test succeeds.
+        If False, raise ``RuntimeError`` if the test fails.
+        If None, do not raise.
+    :returns: bool.
+    :raises: RuntimeError.
     """
     if not isinstance(path, Path):
         path = Path(path)
@@ -92,18 +98,33 @@ def is_project_directory(path):
     
     try:
         project_name = toml.load(path_to_pyproject_toml)['tool']['poetry']['name']
+        rv = True
     except:
-        return False
+        rv = False
+
+    if rv:    
+        package_name = convert_to_valid_module_name(project_name)
+        if (path / package_name / '__init__.py').exists():
+            # python package found
+            rv = True
+        elif (path / (package_name + '.py')).exists():
+            rv = True
+        else:
+            rv = False
     
-    package_name = convert_to_valid_module_name(project_name)
-    if (path / package_name / '__init__.py').exists():
-        # python package found
-        return True
-    elif (path / (package_name + '.py')).exists():
-        return True
-        # simple python module found
-    else:
-        return False
+    # the stuff below could be achieve through a decorator, but it is a bit
+    # complex, and we need it only three times
+    if raise_if is None or raise_if!=rv:
+        # must not raise
+        return rv
+    # must raise in all other cases
+    elif raise_if==True:
+        x = RuntimeError(f"Project path '{path}' refers to an existing project.")
+        x.path = path
+    elif raise_if==False:
+        x = RuntimeError(f"Project path '{path}' is NOT an existing project.")
+        x.path = path
+    raise x
 
 
 def get_name_version(project_path):
@@ -208,22 +229,46 @@ def app_exists(project_path, app_name):
     return (project_path / convert_to_valid_module_name(project_path.name) / f"cli_{app_name}.py").is_file()
     
 
-def is_module_project(project_path):
+def is_module_project(project_path, raise_if=None):
     """Find out if this project is a simple or general python project.
     
     :param Path project_path: project path
+    :param bool raise_if: If True, raise ``RuntimeError`` if the test succeeds.
+        If False, raise ``RuntimeError`` if the test fails.
+        If None, do not raise.
+    :returns: bool.
+    :raises: RuntimeError.
     """
     package_name = convert_to_valid_module_name(project_path.name)
-    return (project_path / f'{package_name}.py').is_file()
+    rv = (project_path / f'{package_name}.py').is_file()
+    if raise_if is None or raise_if!=rv:
+        return rv
+    elif raise_if==True:
+        x = RuntimeError(f"Directory '{project_path}' is a module project")
+        x.path = project_path
+    elif raise_if==False:
+        x = RuntimeError(f"Directory '{project_path}' is NOT a module project")
+        x.path = project_path
+    raise x
+    
 
-
-def is_package_project(project_path):
+def is_package_project(project_path, raise_if=None):
     """Find out if this project is a simple or general python project.
     
     :param Path project_path: project path
     """    
     package_name = convert_to_valid_module_name(project_path.name)
-    return (project_path / package_name / '__init__.py').is_file()
+    rv = (project_path / package_name / '__init__.py').is_file()
+
+    if raise_if is None or raise_if!=rv:
+        return rv
+    elif raise_if==True:
+        x = RuntimeError(f"Directory '{project_path}' is a package project")
+        x.path = project_path
+    elif raise_if==False:
+        x = RuntimeError(f"Directory '{project_path}' is NOT a package     project")
+        x.path = project_path
+    raise x
 
 
 def execute(cmds,logfun=None,stop_on_error=True,env=None):
