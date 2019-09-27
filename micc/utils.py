@@ -6,7 +6,6 @@ import os, sys, subprocess, logging, sysconfig, copy
 from contextlib import contextmanager
 import toml
 from pathlib import Path
-from docutils.parsers.rst.directives import path
 
 
 def get_extension_suffix():
@@ -102,7 +101,7 @@ def is_project_directory(path,raise_if=None):
     except:
         rv = False
 
-    if rv:    
+    if rv:
         package_name = convert_to_valid_module_name(project_name)
         if (path / package_name / '__init__.py').exists():
             # python package found

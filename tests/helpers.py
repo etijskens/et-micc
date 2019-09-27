@@ -28,7 +28,8 @@ def report(result,assert_exit_code=True):
         print(result.exc_info[2])
         
     if assert_exit_code:
-        assert result.exit_code == 0
+        if result.exit_code:
+            raise AssertionError(f"result.exit_code = {result.exit_code}")
         
     return result
 

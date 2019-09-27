@@ -153,10 +153,10 @@ def app( ctx
        , overwrite
        ):
     """
-    Add an app (console script) with name *<app_name>* to the package. 
+    Add an app (console script) with name *<app_name>* to the package.
     
     *<App_name>* is also the name of the executable when the package is installed.
-    The source code of the app resides in ``<project_name>/<package_name>/cli_<app_name>.py``. 
+    The source code of the app resides in ``<project_name>/<package_name>/cli_<app_name>.py``.
     """
     
     if utils.app_exists(ctx.obj.project_path, app_name):
@@ -193,8 +193,8 @@ def module( ctx
           ):
     """
     Add a sub-module with name *<module_name>* to the package. This can be a Python
-    module, or a binary extension module (Fortran or C++). 
-    The source code is in 
+    module, or a binary extension module (Fortran or C++).
+    The source code is in
     
     * *<module_name>.py* or *<module_name>/__init__.py* for python modules, depending on the *<structure>* parameter.
     * directory *f2py_<module_name>.py* for f2py extension modules (Fortran source code).
@@ -257,7 +257,7 @@ def version( ctx
            , tag
            ):
     """
-    Increment the project's version number, or just show the current version number 
+    Increment the project's version number, or just show the current version number
     if no arguments were given.
     """
     rule = None
@@ -280,7 +280,7 @@ def version( ctx
 @click.pass_context
 def tag(ctx):
     """
-    Create a git tag for the current version and push it to the remote repo. 
+    Create a git tag for the current version and push it to the remote repo.
     """
     return cmds.micc_tag(global_options=ctx.obj)
 
@@ -312,13 +312,13 @@ def convert_to_package(ctx, overwrite):
     Convert a Python module project to a package.
 
     A Python *module* project has only a ``<package_name>.py`` file, whereas
-    a Python *package* project has ``<package_name>/__init__.py`` and can contain 
+    a Python *package* project has ``<package_name>/__init__.py`` and can contain
     submodules, such as Python modules, packages and applications, as well as
     binary extension modules.
 
-    This command also expands the ``micc-template-general-docs`` template in this project,
-    which adds a ``AUTHORS.rst``, ``HISTORY.rst`` and ``installation.rst`` to the 
-    documentation structure.
+    This command also expands the ``micc-template-general-docs`` template in this
+    project, which adds a ``AUTHORS.rst``, ``HISTORY.rst`` and ``installation.rst``
+    to the documentation structure.
     """
     ctx.obj.overwrite = overwrite
     return cmds.micc_convert_simple(global_options=ctx.obj)
@@ -347,7 +347,7 @@ def docs(ctx, html, latexpdf):
 @click.pass_context
 def info(ctx):
     """
-    Show info on the project. 
+    Show info on the project.
         
     * file location
     * name
