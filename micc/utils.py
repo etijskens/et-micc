@@ -274,12 +274,16 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
     """
     Executes a list of OS commands, and log with logfun.
     
-    :param list cmds: list of OS commands (=list of list of str)
+    :param list cmds: list of OS commands (=list of list of str) or a single command (list of str)
     :parma callable logfun: a function to write output, typically 
         ``logging.getLogger('micc').debug``.
     :returns int: return code of first failing command, or 0 if all
         commanbds succeed.
     """
+    if is instance(cmds[0],str):
+        # this is a single command
+        cmds = [cmds]
+        
     for cmd in cmds:
         with log(logfun, f"> {' '.join(cmd)}", end_msg=None):
             completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,env=env)
