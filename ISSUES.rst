@@ -1,10 +1,34 @@
 Open Issues
 ===========
 
-last issue = 13
+#17 [issue] poetry 1.0.0b1 does not play well with conda
+--------------------------------------------------------
+after creating a clean conda environment::
 
-#5 [feature] packaging and deployment
--------------------------------------
+   > conda create --name ws3
+   
+all dependencies were installed in ``~/miniconda3/lib/python3.7/site-packages`` instead
+of ``~/miniconda3/envs/ws3/lib/python3.7/site-packages``. Thus, it wrecked all my current
+conda environments.
+
+Annoying as this is, activating the virtual environment ``micc/.venv`` before running::
+
+   > cd micc
+   > conda activate py37
+   > poetry_ install # creates virtual environment (.venv) with poetry 1.0.0b1 and its dependencies 
+   > 
+   > cd poetry
+   > cd ../micc
+   > poetry build
+   > pip install dist/micc-0.6.1-py3-none-any.whl # install micc in poetry's virtual environment
+
+seems to work. Note that ``poetry_`` refers to ``v0.12.17`` in ``~/.poetry/bin/poetry_`` whereas
+ ``poetry`` is the development branch (``1.0.0b1``), so we are using the old poetry to build the
+new one.
+
+
+#5 [feature] packaging and deployment, and the use of poetry in general
+-----------------------------------------------------------------------
 The `Python Packaging User Guide <https://packaging.python.org/guides/>`_
 has a section `Packaging binary extensions <https://packaging.python.org/guides/packaging-binary-extensions/>`_,
 with two interesting subsections `Publishing binary extensions <https://packaging.python.org/guides/packaging-binary-extensions/#publishing-binary-extensions>`_ and
@@ -150,4 +174,16 @@ issue #10 micc files are part of the template
 So they better live there.
 
 
-v0.5.14
+v0.6.2
+
+#16 [issue] poetry 1.0.0b1 uses different cleo than 0.12.17
+-----------------------------------------------------------
+this break our code for retrieving the current version number.
+
+#15 [issue] using poetry bumping the version in pyproject.toml
+--------------------------------------------------------------
+currently we do this by using poetry's source code (import). As poetry recommends a singly 
+installation of poetry system-wide, this adds an extra dependency (i.e. poetry itself) on
+top of the single installation. There is no way of guaranteeing that both versions are the 
+same. Ideally, we would rely on only the system version of poetry.
+

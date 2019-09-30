@@ -6,15 +6,33 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.6.2 (2019-09-??)
+===================
+* Sofar, we added the dependencies manually, by editing pyproject.toml. We should 
+  normally add dependencies through poetry. That seems to work well, though
+  you need to be connected to the internet for this. There was one issue: 
+  ``sphinx-click`` adds ``pytest="^4.4.2"`` as a dependency. This prevents the
+  use of ``pytest ^5.2.0``. Conclusion: **do not add pytest as a dependency**.
+  In addition ``sphinx-click`` depends on ``sphinx``, but seems to be request 
+  with ``sphinx-2.1.2`` rather than ``sphinx-2.2.0``. Of course it slips in with
+  ``sphinx-click`` 
+  
+* While trying to run the micc tests with ``poetry 1.0.0b1`` installed, the tests
+  fail because this poetry version depends on ``cleo-7.5.0`` rather than ``cleo-6.8.0``.
+  Conclusion: **we do not want our code to depend on poetry, or any of its dependencies** 
+  **except for its command line interface** because it is too volatile.
+
+* fixed issue #16 
+  
 v0.6.1 (2019-09-27)
 ===================
-* modified dependencies of micc. all tests succeed. 
-  Created empty conda environment::
+* modified dependencies of micc. Created empty conda environment::
 
    > make reinstall
    > pytest tests 
 
-
+All tests succeed.
+ 
 v0.6.0 (2019-09-27)
 ===================
 * looks as most things are working smoothly now..., so we move to 0.6.0

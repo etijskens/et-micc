@@ -7,7 +7,7 @@ Application micc
 import sys
 from types import SimpleNamespace
 from pathlib import Path
-
+import subprocess
 import click
 
 import micc.commands as cmds
@@ -235,40 +235,39 @@ def module( ctx
 
 
 @main.command()
-@click.option('-M','--major', is_flag=True, default=False
-             , help='Increment the major version number component and set minor and patch components to 0.')
-@click.option('-m','--minor', is_flag=True, default=False
-             , help='Increment the minor version number component and set minor and patch component to 0.')
-@click.option('-p','--patch', is_flag=True, default=False
-             , help='Increment the patch version number component.')
-@click.option('-r','--poetry-version-rule', help='Increment the version number using the poetry command ``poetry version <rule>``.'
-             , type=click.Choice(['','patch', 'minor', 'major'
-                                 , 'prepatch', 'preminor'
-                                 , 'premajor', 'prerelease'])
-             )
+@click.argument( 'rule', default='')
+#                , type=click.Choice(['','patch', 'minor', 'major'
+#                                    , 'prepatch', 'preminor'
+#                                    , 'premajor', 'prerelease'])
+#                )
+# @click.option('-M','--major', is_flag=True, default=False
+#              , help='Increment the major version number component and set minor and patch components to 0.')
+# @click.option('-m','--minor', is_flag=True, default=False
+#              , help='Increment the minor version number component and set minor and patch component to 0.')
+# @click.option('-p','--patch', is_flag=True, default=False
+#              , help='Increment the patch version number component.')
+# @click.option('-r','--poetry-version-rule', help='Increment the version number using the poetry command ``poetry version <rule>``.'
+#              , type=click.Choice(['','patch', 'minor', 'major'
+#                                  , 'prepatch', 'preminor'
+#                                  , 'premajor', 'prerelease'])
+#              )
 @click.option('-t', '--tag',  is_flag=True, default=False
              , help='Create a git tag for the new version, and push it to the remote repo.')
 @click.pass_context
-def version( ctx
-           , major
-           , minor
-           , patch
-           , poetry_version_rule
+def version( ctx, rule
+#            , major
+#            , minor
+#            , patch
+#            , poetry_version_rule
            , tag
            ):
     """
-    Increment the project's version number, or just show the current version number
-    if no arguments were given.
+    Increment or show the project's version number.
+    
+    :param str rule: any string that is also accepted by poetry version. Typically, the empty
+        string (show current version), a valid rule: patch, minor, major, prepatch, preminor, 
+        premajor, prerelease, or any valid version string.  
     """
-    rule = None
-    if poetry_version_rule:
-        rule = poetry_version_rule
-    if patch:
-        rule = 'patch'
-    if minor:
-        rule = 'minor'
-    if major:
-        rule = 'major'
     return_code = cmds.micc_version(rule, global_options=ctx.obj)
     if return_code==0 and tag:
         return cmds.micc_tag(global_options=ctx.obj)

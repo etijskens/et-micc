@@ -280,7 +280,7 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
     :returns int: return code of first failing command, or 0 if all
         commanbds succeed.
     """
-    if is instance(cmds[0],str):
+    if isinstance(cmds[0],str):
         # this is a single command
         cmds = [cmds]
         

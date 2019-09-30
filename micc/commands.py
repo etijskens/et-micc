@@ -9,16 +9,11 @@ import subprocess
 import shutil
 import platform
 import copy
-import contextlib,io
 from pathlib import Path
 #===============================================================================
 import click
 from cookiecutter.main import cookiecutter
 
-from poetry.console.application import Application
-from cleo.inputs.argv_input import ArgvInput
-from poetry.utils.toml_file import TomlFile
-from poetry.console.commands import VersionCommand 
 import toml
 
 from micc import utils
@@ -575,59 +570,36 @@ def micc_version( rule, global_options):
     project_path = global_options.project_path
     utils.is_project_directory(project_path, raise_if=False)
 
-    project_path = Path(project_path)
     pyproject_toml = toml.load(str(project_path /'pyproject.toml'))
-    project_name    = pyproject_toml['tool']['poetry']['name']
     current_version = pyproject_toml['tool']['poetry']['version']
-    package_name    = utils.convert_to_valid_module_name(project_name)
+    package_name    = utils.convert_to_valid_module_name(project_path.name)
 
+    cmd = ['poetry','version']
+    myenv = os.environ.copy()
     global_options.verbosity = max(1,global_options.verbosity)
-    micc_logger = utils.get_micc_logger(global_options)
-    # info and higher pass always now
-    if rule is None:
-        if global_options.verbosity==0:
-            print(current_version)
-        else:
-            micc_logger.info(f"Current version: {project_name} v{current_version}")
-    else:
-        new_version = VersionCommand().increment_version(current_version, rule)
-        msg = (f"\nPackage {project_name} v{current_version}, moving to v{new_version}'?")
-        micc_logger.warning(msg)
-        if not click.confirm("Confirm to continue",default=False):
-            micc_logger.warning(f"Canceled: 'micc version {rule}'")
-            return EXIT_CANCEL
+    if rule: # bump version
+        micc_logger = utils.get_micc_logger(global_options)
+        cmd.append(rule)
 
-        # wrt poetry issue #1182. This issue is finally solved, boils down to 
-        # tomlkit expecting the sections to appear grouped in pyproject.toml.
-        # Our pyproject.toml contained a [tool.poetry.scripts] section AFTER 
-        # the [build-system] section. when running E.g. poetry --version patch 
-        # the version string is NOT updated, but pyproject.toml is REWRITTEN
-        # and now the [tool.poetry.scripts] section appears BEFORE the [build-system] 
-        # section, nicely grouped with the other [tool.poetry.*] sections. Running 
-        # poetry --version patch a second time then updates the version string 
-        # correctly. 
-        # This took me quite a few days find out ...
-         
         # update version in pyproject.toml (using poetry code for good :)
-        with utils.log(micc_logger.debug," . Updating pyproject.toml",end_msg=None):
-            with utils.in_directory(project_path): 
-                i = ArgvInput(['poetry','version',rule])
-                app = Application()
-                app._auto_exit = False
-                output = io.StringIO()
-                with contextlib.redirect_stdout(output):
-                    app.run(i)
-                    
-        # update version in package
+        result = subprocess.run(cmd,env=myenv,capture_output=True)
+        micc_logger.warning(result.stdout.decode('utf-8'))
+        micc_logger.debug(" . Updated pyproject.toml")
+        
+        pyproject_toml = toml.load(str(project_path /'pyproject.toml'))
+        new_version = pyproject_toml['tool']['poetry']['version']
+        
+        # update version in package                    
         files = [ project_path / package_name / '__init__.py'
                 , project_path / (package_name + '.py')
                 ]
         for f in files:
             if f.exists():
-                with utils.log(micc_logger.debug, f" . Updating {f.relative_to(project_path)}",end_msg=None):
-                    utils.replace_version_in_file( f, current_version, new_version)
+                utils.replace_version_in_file(f, current_version, new_version)
+                micc_logger.debug(f" . Updated {f.relative_to(project_path)}")
 
-        micc_logger.info(f"Current_version is v{new_version}.")
+    else: # show version
+        result = subprocess.run(cmd,env=myenv)
     return 0
 
 
