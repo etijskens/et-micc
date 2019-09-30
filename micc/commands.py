@@ -616,8 +616,8 @@ def micc_version( rule, global_options):
                 app._auto_exit = False
                 output = io.StringIO()
                 with contextlib.redirect_stdout(output):
-                    app.run(i)       
-            
+                    app.run(i)
+                    
         # update version in package
         files = [ project_path / package_name / '__init__.py'
                 , project_path / (package_name + '.py')
