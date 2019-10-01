@@ -15,6 +15,7 @@ import click
 from cookiecutter.main import cookiecutter
 
 import toml
+from micc.tomlfile import TomlFile
 
 from micc import utils
 
@@ -372,7 +373,7 @@ def micc_app( app_name
             # pyproject.toml
             # in the [toolpoetry.scripts] add a line 
             #    {app_name} = "{package_name}:{cli_app_name}"
-            tomlfile = TomlFile('pyproject.toml')
+            tomlfile = TomlFile(project_path / 'pyproject.toml')
             content = tomlfile.read()
             content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
             tomlfile.write(content)
@@ -574,32 +575,62 @@ def micc_version( rule, global_options):
     current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = utils.convert_to_valid_module_name(project_path.name)
 
-    cmd = ['poetry','version']
-    myenv = os.environ.copy()
     global_options.verbosity = max(1,global_options.verbosity)
-    if rule: # bump version
-        micc_logger = utils.get_micc_logger(global_options)
-        cmd.append(rule)
-
-        # update version in pyproject.toml (using poetry code for good :)
-        result = subprocess.run(cmd,env=myenv,capture_output=True)
-        micc_logger.warning(result.stdout.decode('utf-8'))
-        micc_logger.debug(" . Updated pyproject.toml")
-        
-        pyproject_toml = toml.load(str(project_path /'pyproject.toml'))
-        new_version = pyproject_toml['tool']['poetry']['version']
-        
-        # update version in package                    
-        files = [ project_path / package_name / '__init__.py'
-                , project_path / (package_name + '.py')
-                ]
-        for f in files:
-            if f.exists():
-                utils.replace_version_in_file(f, current_version, new_version)
-                micc_logger.debug(f" . Updated {f.relative_to(project_path)}")
-
-    else: # show version
-        result = subprocess.run(cmd,env=myenv)
+    micc_logger = utils.get_micc_logger(global_options)
+    
+    if utils.is_conda_python():
+        tomlfile = TomlFile(project_path / 'pyproject.toml')
+        content = tomlfile.read()
+        current_version = content['tool']['poetry']['version']
+        if rule:
+            files = [ project_path / 'pyproject.toml'
+                    , project_path / package_name / '__init__.py'
+                    , project_path / (package_name + '.py')
+                    ]
+            bumped = []
+            for f in files:
+                if f.exists():
+                    cmd = ['bumpversion','--allow-dirty','--verbose'
+                          ,'--current-version',current_version,rule,str(f)]
+                    result = utils.execute(cmd)
+                    if result:
+                        return result
+                    bumped.append(f)
+            
+            tomlfile = TomlFile(project_path / 'pyproject.toml')
+            content = tomlfile.read()
+            new_version = content['tool']['poetry']['version']
+            micc_logger.warning(f"bumping version ({current_version}) -> ({new_version})")
+            for f in bumped:
+                micc_logger.debug(f"  . Updated ({f})")
+            return 0
+        else:
+            micc_logger.info(f"Project ({project_path.name} version ({current_version}))")
+    else:
+        cmd = ['poetry','version']
+        myenv = os.environ.copy()
+        if rule: # bump version
+            cmd.append(rule)
+    
+            # update version in pyproject.toml (using poetry code for good :)
+            result = subprocess.run(cmd,capture_output=True,cwd=str(project_path),env=myenv)
+            micc_logger.warning(result.stdout.decode('utf-8'))
+            micc_logger.debug(" . Updated pyproject.toml")
+            
+            pyproject_toml = toml.load(str(project_path /'pyproject.toml'))
+            new_version = pyproject_toml['tool']['poetry']['version']
+            
+            # update version in package                    
+            files = [ project_path / package_name / '__init__.py'
+                    , project_path / (package_name + '.py')
+                    ]
+            for f in files:
+                if f.exists():
+                    utils.replace_version_in_file(f, current_version, new_version)
+                    micc_logger.debug(f" . Updated {f.relative_to(project_path)}")
+    
+        else: # show version
+            result = subprocess.run(cmd,env=myenv,cwd=str(project_path))
     return 0
 
 
@@ -750,7 +781,7 @@ def micc_convert_simple(global_options):
         click.echo(f"Converting simple Python project {project_path.name} to general Python project.")
     
     # add documentation files for general Python project
-    tomlfile = TomlFile('pyproject.toml')
+    tomlfile = TomlFile(project_path / 'pyproject.toml')
     content = tomlfile.read()
 
     ( exit_code

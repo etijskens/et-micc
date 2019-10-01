@@ -98,10 +98,10 @@ def test_scenario_2():
         micc.utils.is_package_project  (foo,raise_if=False)
 
         run(runner, ['-p','foo','version'])
-        run(runner, ['-p','foo','version', '-p'],input_='y\n')
-        run(runner, ['-p','foo','version', '-m'],input_='y\n')
-        run(runner, ['-p','foo','version', '-M'],input_='y\n')
-        run(runner, ['-p','foo','version', '-M'],input_='N\n')
+        run(runner, ['-p','foo','version', 'patch'])
+        run(runner, ['-p','foo','version', 'minor'])
+        run(runner, ['-p','foo','version', 'major'])
+        run(runner, ['-p','foo','version', 'major'])
         
         run(runner, ['-p','foo','-vv', 'app','my_app'])
         assert Path('foo/foo/cli_my_app.py').exists()
@@ -137,10 +137,9 @@ def test_scenario_2():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
+    print(sys.version_info)
     the_test_you_want_to_debug = test_scenario_2
 
-    from utils import taskcm
-    with taskcm(f"__main__ running {the_test_you_want_to_debug}",
-               '-*# finished #*-', singleline=False, combine=False):
+    with micc.utils.log(print,f"__main__ running {the_test_you_want_to_debug}",'-*# finished #*-'):
         the_test_you_want_to_debug()
 # ==============================================================================

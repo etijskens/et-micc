@@ -1,31 +1,34 @@
 Open Issues
 ===========
 
+#20 [issue] install dependencies in current conda environment
+-------------------------------------------------------------
+
+#19 [issue] avoiding poetry
+---------------------------
+Poetry is currently used for bumping versions only. As poetry does not play well with conda,
+(see issue #18) relying on poetry (and therefore adding it as a dependency of micc) is a ticking time bomb 
+because when poetry is there users will use it, even if it is documented that it does not work.
+So i propose to use bump(2)version for bumping versions by default. This will always work well 
+with Anaconda Python versions.
+
+interesting links:
+
+* `https://github.com/peritus/bumpversion`_
+* `https://github.com/c4urself/bump2version`_
+* `https://blog.developer.atlassian.com/bumpversion-is-automation-for-semantic-versioning/`_
+
+#18 [issue] two tools for reading/writing toml files
+----------------------------------------------------
+Currently, we are using both tomlkit and toml for reading and writing toml files.
+Better stick to one.
+
 #17 [issue] poetry 1.0.0b1 does not play well with conda
 --------------------------------------------------------
-after creating a clean conda environment::
-
-   > conda create --name ws3
-   
-all dependencies were installed in ``~/miniconda3/lib/python3.7/site-packages`` instead
-of ``~/miniconda3/envs/ws3/lib/python3.7/site-packages``. Thus, it wrecked all my current
-conda environments.
-
-Annoying as this is, activating the virtual environment ``micc/.venv`` before running::
-
-   > cd micc
-   > conda activate py37
-   > poetry_ install # creates virtual environment (.venv) with poetry 1.0.0b1 and its dependencies 
-   > 
-   > cd poetry
-   > cd ../micc
-   > poetry build
-   > pip install dist/micc-0.6.1-py3-none-any.whl # install micc in poetry's virtual environment
-
-seems to work. Note that ``poetry_`` refers to ``v0.12.17`` in ``~/.poetry/bin/poetry_`` whereas
- ``poetry`` is the development branch (``1.0.0b1``), so we are using the old poetry to build the
-new one.
-
+Poetry made me a virtual environment for micc, based on ``miniconda3``'s active python version
+(which was 3.7.3). However, it did not pickup the correct python standard library (used 3.6.whatever
+instead), obviously a nightmare. Thus, if we want to use poetry, we must use a non-conda Python, or
+if we want to use conda python versions, we must refrain from poetry.
 
 #5 [feature] packaging and deployment, and the use of poetry in general
 -----------------------------------------------------------------------

@@ -16,7 +16,8 @@ def path_to_cmake_tools():
     """
     return the path to the folder with the CMake tools.
     """
-    return str(Path(__file__) / 'cmake_tools')
+    p = (Path(__file__) / '..' / 'cmake_tools').resolve()
+    return str(p)
 
 
 def file_not_found_msg(path, looking_for='File'):
@@ -445,5 +446,14 @@ def log(logfun=None, begin_msg='doing', end_msg='done.'):
         yield
         pass
 
+
+def is_conda_python():
+    """
+    :returns: test if user's python environment is anaconda.
+    
+    see `https://stackoverflow.com/questions/21282363/any-way-to-tell-if-users-python-environment-is-anaconda`_
+    """
+    is_conda = os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
+    return is_conda
 
 # end of file
