@@ -35,7 +35,7 @@ if not ('.' in sys.path or os.getcwd() in sys.path):
 echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 
-from tests.helpers import in_empty_tmp_dir,report
+from tests.helpers import in_empty_tmp_dir,report,get_version
 from micc import cli
 import micc.utils
 
@@ -96,12 +96,36 @@ def test_scenario_2():
         micc.utils.is_project_directory(foo,raise_if=False)
         micc.utils.is_module_project   (foo,raise_if=True)
         micc.utils.is_package_project  (foo,raise_if=False)
+        expected = '0.0.0'
+        assert get_version(foo / 'pyproject.toml')==expected
+        assert get_version(foo / 'foo' / '__init__.py')==expected
+        
+        run(runner, ['-vv','-p','foo','version'])
+        assert get_version(foo / 'pyproject.toml')==expected
+        assert get_version(foo / 'foo' / '__init__.py')==expected
 
-        run(runner, ['-p','foo','version'])
         run(runner, ['-p','foo','version', 'patch'])
+        expected = '0.0.1'
+        assert get_version(foo / 'pyproject.toml')==expected
+        assert get_version(foo / 'foo' / '__init__.py')==expected
+        
         run(runner, ['-p','foo','version', 'minor'])
+        expected = '0.1.0'
+        assert get_version(foo / 'pyproject.toml')==expected
+        assert get_version(foo / 'foo' / '__init__.py')==expected
+
         run(runner, ['-p','foo','version', 'major'])
+        expected = '1.0.0'
+        assert get_version(foo / 'pyproject.toml')==expected
+        assert get_version(foo / 'foo' / '__init__.py')==expected
+
         run(runner, ['-p','foo','version', 'major'])
+        expected = '2.0.0'
+        assert get_version(foo / 'pyproject.toml')==expected
+        assert get_version(foo / 'foo' / '__init__.py')==expected
+        
+        result = run(runner, ['-p','foo','version', '-s'])
+        assert expected in result.stdout
         
         run(runner, ['-p','foo','-vv', 'app','my_app'])
         assert Path('foo/foo/cli_my_app.py').exists()

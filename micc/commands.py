@@ -554,7 +554,7 @@ def micc_module_cpp( module_name
     return 0
 
 
-def micc_version( rule, global_options):
+def micc_version( rule, short, global_options):
     """
     Bump the version according to ``rule`` or show the current version if no
     ``rule`` was specified
@@ -565,23 +565,26 @@ def micc_version( rule, global_options):
     
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
+    :param bool short: if true only prints the current version to stdout.
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by (almost) all micc commands.
     """
     project_path = global_options.project_path
     utils.is_project_directory(project_path, raise_if=False)
 
-    pyproject_toml = toml.load(str(project_path /'pyproject.toml'))
-    current_version = pyproject_toml['tool']['poetry']['version']
+    pyproject_toml = TomlFile(project_path / 'pyproject.toml')
+    content = pyproject_toml.read()
+    current_version = content['tool']['poetry']['version']
     package_name    = utils.convert_to_valid_module_name(project_path.name)
 
     global_options.verbosity = max(1,global_options.verbosity)
     micc_logger = utils.get_micc_logger(global_options)
     
+    if short:
+        print(current_version)
+        return
+    
     if utils.is_conda_python():
-        tomlfile = TomlFile(project_path / 'pyproject.toml')
-        content = tomlfile.read()
-        current_version = content['tool']['poetry']['version']
         if rule:
             files = [ project_path / 'pyproject.toml'
                     , project_path / package_name / '__init__.py'
@@ -600,12 +603,12 @@ def micc_version( rule, global_options):
             tomlfile = TomlFile(project_path / 'pyproject.toml')
             content = tomlfile.read()
             new_version = content['tool']['poetry']['version']
-            micc_logger.warning(f"bumping version ({current_version}) -> ({new_version})")
+            micc_logger.info(f"bumping version ({current_version}) -> ({new_version})")
             for f in bumped:
-                micc_logger.debug(f"  . Updated ({f})")
+                micc_logger.debug(f". Updated ({f})")
             return 0
         else:
-            micc_logger.info(f"Project ({project_path.name} version ({current_version}))")
+            micc_logger.info(f"Project ({project_path.name}) version ({current_version})")
     else:
         cmd = ['poetry','version']
         myenv = os.environ.copy()

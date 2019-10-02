@@ -287,7 +287,7 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
         
     for cmd in cmds:
         with log(logfun, f"> {' '.join(cmd)}", end_msg=None):
-            completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,env=env)
+            completed_process = subprocess.run(cmd, capture_output=True,env=env)
             if not logfun is None:
                 if completed_process.stdout:
                     logfun(' (stdout)\n' + completed_process.stdout.decode('utf-8'))

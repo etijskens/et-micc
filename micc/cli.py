@@ -7,7 +7,7 @@ Application micc
 import sys
 from types import SimpleNamespace
 from pathlib import Path
-import subprocess
+
 import click
 
 import micc.commands as cmds
@@ -236,31 +236,18 @@ def module( ctx
 
 @main.command()
 @click.argument( 'rule', default='')
-#                , type=click.Choice(['','patch', 'minor', 'major'
-#                                    , 'prepatch', 'preminor'
-#                                    , 'premajor', 'prerelease'])
-#                )
-# @click.option('-M','--major', is_flag=True, default=False
-#              , help='Increment the major version number component and set minor and patch components to 0.')
-# @click.option('-m','--minor', is_flag=True, default=False
-#              , help='Increment the minor version number component and set minor and patch component to 0.')
-# @click.option('-p','--patch', is_flag=True, default=False
-#              , help='Increment the patch version number component.')
-# @click.option('-r','--poetry-version-rule', help='Increment the version number using the poetry command ``poetry version <rule>``.'
-#              , type=click.Choice(['','patch', 'minor', 'major'
-#                                  , 'prepatch', 'preminor'
-#                                  , 'premajor', 'prerelease'])
-#              )
+@click.option('-M','--major', is_flag=True, default=False
+             , help='Increment the major version number component and set minor and patch components to 0.')
+@click.option('-m','--minor', is_flag=True, default=False
+             , help='Increment the minor version number component and set minor and patch component to 0.')
+@click.option('-p','--patch', is_flag=True, default=False
+             , help='Increment the patch version number component.')
 @click.option('-t', '--tag',  is_flag=True, default=False
              , help='Create a git tag for the new version, and push it to the remote repo.')
+@click.option('-s', '--short',  is_flag=True, default=False
+             , help='Print the version on stdout.')
 @click.pass_context
-def version( ctx, rule
-#            , major
-#            , minor
-#            , patch
-#            , poetry_version_rule
-           , tag
-           ):
+def version( ctx, rule, major, minor, patch, tag, short):
     """
     Increment or show the project's version number.
     
@@ -268,7 +255,10 @@ def version( ctx, rule
         string (show current version), a valid rule: patch, minor, major, prepatch, preminor, 
         premajor, prerelease, or any valid version string.  
     """
-    return_code = cmds.micc_version(rule, global_options=ctx.obj)
+    if rule and (major or minor or patch):
+        raise RuntimeError("Ambiguous arguments:\n  specify either 'rule' argments,\n  or one of [--major,--minor--patch], not both.")
+        
+    return_code = cmds.micc_version(rule, short, global_options=ctx.obj)
     if return_code==0 and tag:
         return cmds.micc_tag(global_options=ctx.obj)
     else:

@@ -6,13 +6,14 @@ Tests for micc package.
 """
 #===============================================================================
 
-import os
+import os,re
 import shutil
 import contextlib
 import uuid
 import traceback
 from pathlib import Path
 
+from micc.tomlfile import TomlFile
 
 def report(result,assert_exit_code=True):
     """
@@ -63,6 +64,27 @@ def in_empty_tmp_dir(cleanup=True):
         else:
             print(f"Leftover: {tmp}")
         
+
+def get_version(path_to_file,verbose=False):
+    version = '?'
+    p = str(path_to_file)
+    if p.endswith('.toml'):
+        tomlfile = TomlFile(path_to_file)
+        content = tomlfile.read()
+        version = content['tool']['poetry']['version']
+    else:
+        if p.endswith('.py'):
+            with open(str(p)) as f:
+                lines = f.readlines() 
+                ptrn = re.compile(r"__version__\s*=\s*['\"](.*)['\"]\s*")
+                for line in lines:
+                    mtch = ptrn.match(line)
+                    if mtch:
+                        version = mtch[1]
+    if verbose:
+        print(f"%% {path_to_file} : version : ({version})")
+    return version
+
     
 # ==============================================================================
 # ==============================================================================
