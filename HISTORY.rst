@@ -6,7 +6,10 @@ History
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.6.2 (2019-09-??)
+v0.6.2 (2019-10-??)
+===================
+
+v0.6.2 (2019-10-02)
 ===================
 * Sofar, we added the dependencies manually, by editing pyproject.toml. We should 
   normally add dependencies through poetry. That seems to work well, though

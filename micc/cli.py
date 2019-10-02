@@ -260,13 +260,13 @@ def module( ctx
 @click.pass_context
 def version( ctx, rule, major, minor, patch, tag, short, poetry):
     """
-    Increment or show the project's version number.  By default micc uses 
+    Increment or show the project's version number.  By default micc uses
     *bumpversion* for this, but it can also use *poetry*, by specifiying ``--poetry``.
     
     You can also avoide using ``micc version`` and using *bumpversion* directly. Note,
     however, that the version string appears in both ``pyproject.toml`` and in the top-level
     package (``<mopdule_name>.py`` or ``<mopdule_name>/__init__.py``). Since, currently,
-    *poetry* is incapable of bumping the version string in any other file than *pyproject.tom.*, 
+    *poetry* is incapable of bumping the version string in any other file than *pyproject.tom.*,
     using ``poetry version ...`` is not recommented.
     
     :param str rule: any string that is also accepted by poetry version. Typically, the empty
@@ -369,7 +369,10 @@ def info(ctx):
 
 @main.command()
 @click.argument('args',nargs=-1)
-@click.option('--system',is_flag=True,default=False,help="use the poetry version installed in the system, not the python environmebt")
+@click.option('--system',is_flag=True,default=False
+             , help="Use the poetry version installed in the system, instead "
+                    "of that in the python environment."
+             )
 @click.pass_context
 def poetry(ctx,args,system):
     """

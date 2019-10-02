@@ -463,13 +463,13 @@ def is_poetry_available(system):
     if system:
         cmd=['which','poetry_']
     else:
-        cmd=['which','poetry']        
+        cmd=['which','poetry']
     result = subprocess.run(cmd,capture_output=True,env=myenv)
     return result.returncode==0
 
 
 def is_bumpversion_available():
-    """Test if poetry is available in the environment."""    
+    """Test if poetry is available in the environment."""
     myenv=os.environ.copy()
     cmd=['which','bumpversion']
     result = subprocess.run(cmd,capture_output=True,env=myenv)
