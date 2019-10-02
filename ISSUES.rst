@@ -1,35 +1,6 @@
 Open Issues
 ===========
 
-#20 [issue] install dependencies in current conda environment
--------------------------------------------------------------
-
-#19 [issue] avoiding poetry
----------------------------
-Poetry is currently used for bumping versions only. As poetry does not play well with conda,
-(see issue #18) relying on poetry (and therefore adding it as a dependency of micc) is a ticking time bomb 
-because when poetry is there users will use it, even if it is documented that it does not work.
-So i propose to use bump(2)version for bumping versions by default. This will always work well 
-with Anaconda Python versions.
-
-interesting links:
-
-* `https://github.com/peritus/bumpversion`_
-* `https://github.com/c4urself/bump2version`_
-* `https://blog.developer.atlassian.com/bumpversion-is-automation-for-semantic-versioning/`_
-
-#18 [issue] two tools for reading/writing toml files
-----------------------------------------------------
-Currently, we are using both tomlkit and toml for reading and writing toml files.
-Better stick to one.
-
-#17 [issue] poetry 1.0.0b1 does not play well with conda
---------------------------------------------------------
-Poetry made me a virtual environment for micc, based on ``miniconda3``'s active python version
-(which was 3.7.3). However, it did not pickup the correct python standard library (used 3.6.whatever
-instead), obviously a nightmare. Thus, if we want to use poetry, we must use a non-conda Python, or
-if we want to use conda python versions, we must refrain from poetry.
-
 #5 [feature] packaging and deployment, and the use of poetry in general
 -----------------------------------------------------------------------
 The `Python Packaging User Guide <https://packaging.python.org/guides/>`_
@@ -189,4 +160,46 @@ currently we do this by using poetry's source code (import). As poetry recommend
 installation of poetry system-wide, this adds an extra dependency (i.e. poetry itself) on
 top of the single installation. There is no way of guaranteeing that both versions are the 
 same. Ideally, we would rely on only the system version of poetry.
+
+#19 [issue] avoiding poetry
+---------------------------
+Poetry is currently used for bumping versions only. As poetry does not play well with conda,
+(see issue #18) relying on poetry (and therefore adding it as a dependency of micc) is a ticking time bomb 
+because when poetry is there users will use it, even if it is documented that it does not work.
+So i propose to use bump(2)version for bumping versions by default. This will always work well 
+with Anaconda Python versions.
+
+interesting links:
+
+* `https://github.com/peritus/bumpversion`_
+* `https://github.com/c4urself/bump2version`_
+* `https://blog.developer.atlassian.com/bumpversion-is-automation-for-semantic-versioning/`_
+
+#21 [issue] micc create
+-----------------------
+raises exception (cannot create project inside another project) when run from a project
+directory with a relative path. E.g.::
+
+    ~/path/to/micc/ > micc create 
+   
+fails when given the path ../foo although this would be created in ``~/path/to/soep``.
+
+#20 [issue] install dependencies in current conda environment
+-------------------------------------------------------------
+As poetry build works, and pip install dist/<wheel> too, even in a conda python
+environment, this is no longer an issue,.
+
+#18 [issue] two tools for reading/writing toml files
+----------------------------------------------------
+Currently, we are using both tomlkit and toml for reading and writing toml files.
+Better stick to one.
+
+#17 [issue] poetry 1.0.0b1 does not play well with conda
+--------------------------------------------------------
+Poetry made me a virtual environment for micc, based on ``miniconda3``'s active python version
+(which was 3.7.3). However, it did not pickup the correct python standard library (used 3.6.whatever
+instead), obviously a nightmare. Thus, if we want to use poetry, we must use a non-conda Python, or
+if we want to use conda python versions, we must refrain from poetry.
+solved: only ``poetry install`` does not work well with a conda python environment,
+``poetry build`` does fine 
 

@@ -62,6 +62,15 @@ def main(ctx, verbosity, project_path, clear_log):
                              , clear_log=clear_log
                              )
 
+    if utils.is_conda_python():
+        click.echo( click.style("==========================================================\n"
+                                "WARNING: You are running in a conda Python environment.\n"
+                                "         Note that poetry does not play well with conda.\n",   fg='yellow')
+                  + click.style("         Especially, do NOT use:\n"
+                                "         >  poetry install\n",                                 fg='bright_red')
+                  + click.style("==========================================================\n", fg='yellow')
+                  )
+    
 
 @main.command()
 @click.option('-T', '--template',  default=[]         , help=__template_help)
@@ -246,8 +255,10 @@ def module( ctx
              , help='Create a git tag for the new version, and push it to the remote repo.')
 @click.option('-s', '--short',  is_flag=True, default=False
              , help='Print the version on stdout.')
+@click.option('--poetry',  is_flag=True, default=False
+             , help='Use poetry instead of bumpversion for bumping the version.')
 @click.pass_context
-def version( ctx, rule, major, minor, patch, tag, short):
+def version( ctx, rule, major, minor, patch, tag, short, poetry):
     """
     Increment or show the project's version number.
     
@@ -258,7 +269,7 @@ def version( ctx, rule, major, minor, patch, tag, short):
     if rule and (major or minor or patch):
         raise RuntimeError("Ambiguous arguments:\n  specify either 'rule' argments,\n  or one of [--major,--minor--patch], not both.")
         
-    return_code = cmds.micc_version(rule, short, global_options=ctx.obj)
+    return_code = cmds.micc_version(rule, short, poetry, global_options=ctx.obj)
     if return_code==0 and tag:
         return cmds.micc_tag(global_options=ctx.obj)
     else:

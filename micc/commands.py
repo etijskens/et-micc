@@ -14,7 +14,7 @@ from pathlib import Path
 import click
 from cookiecutter.main import cookiecutter
 
-import toml
+# import toml
 from micc.tomlfile import TomlFile
 
 from micc import utils
@@ -267,7 +267,7 @@ def micc_create( templates
         # Prevent the creation of a project inside another project    
         # (add a 'dummy' leaf so the first directory checked is output_dir itself)
         if not global_options.allow_nesting:
-            p = copy.copy(output_dir)
+            p = copy.copy(output_dir).resolve()
             while not p.samefile('/'):
                 if utils.is_project_directory(p):
                     raise AssertionError(f"Cannot create a project inside another project ({p}).")
@@ -373,10 +373,10 @@ def micc_app( app_name
             # pyproject.toml
             # in the [toolpoetry.scripts] add a line 
             #    {app_name} = "{package_name}:{cli_app_name}"
-            tomlfile = TomlFile(project_path / 'pyproject.toml')
-            content = tomlfile.read()
-            content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
-            tomlfile.write(content)
+            pyproject_toml = TomlFile(project_path / 'pyproject.toml')
+            pyproject_toml_content = pyproject_toml.read()
+            pyproject_toml_content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
+            pyproject_toml.write(pyproject_toml_content)
 
     return 0
 
@@ -554,7 +554,7 @@ def micc_module_cpp( module_name
     return 0
 
 
-def micc_version( rule, short, global_options):
+def micc_version( rule, short, poetry, global_options):
     """
     Bump the version according to ``rule`` or show the current version if no
     ``rule`` was specified
@@ -566,6 +566,7 @@ def micc_version( rule, short, global_options):
     :param str rule: one of the valid arguments for the ``poetry version <rule>``
         command.
     :param bool short: if true only prints the current version to stdout.
+    :param bool poetry: use poetry instead of bumpversion to bump the version.
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by (almost) all micc commands.
     """
@@ -573,8 +574,8 @@ def micc_version( rule, short, global_options):
     utils.is_project_directory(project_path, raise_if=False)
 
     pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-    content = pyproject_toml.read()
-    current_version = content['tool']['poetry']['version']
+    pyproject_toml_content = pyproject_toml.read()
+    current_version = pyproject_toml_content['tool']['poetry']['version']
     package_name    = utils.convert_to_valid_module_name(project_path.name)
 
     global_options.verbosity = max(1,global_options.verbosity)
@@ -582,58 +583,57 @@ def micc_version( rule, short, global_options):
     
     if short:
         print(current_version)
-        return
+        return 0
     
-    if utils.is_conda_python():
-        if rule:
-            files = [ project_path / 'pyproject.toml'
-                    , project_path / package_name / '__init__.py'
-                    , project_path / (package_name + '.py')
-                    ]
-            bumped = []
-            for f in files:
-                if f.exists():
-                    cmd = ['bumpversion','--allow-dirty','--verbose'
-                          ,'--current-version',current_version,rule,str(f)]
-                    result = utils.execute(cmd)
-                    if result:
-                        return result
-                    bumped.append(f)
-            
-            tomlfile = TomlFile(project_path / 'pyproject.toml')
-            content = tomlfile.read()
-            new_version = content['tool']['poetry']['version']
-            micc_logger.info(f"bumping version ({current_version}) -> ({new_version})")
-            for f in bumped:
-                micc_logger.debug(f". Updated ({f})")
-            return 0
-        else:
-            micc_logger.info(f"Project ({project_path.name}) version ({current_version})")
-    else:
-        cmd = ['poetry','version']
+    if not rule:
+        micc_logger.info(f"Project ({project_path.name}) version ({current_version})")
+        return 0
+
+    files = [ project_path / 'pyproject.toml'
+            , project_path / package_name / '__init__.py'
+            , project_path / (package_name + '.py')
+            ]
+    
+    bumpversion = not poetry
+    if bumpversion:
+        # Use bump(2)version for bumping versions
+        bumped_files = []
+        for f in files:
+            if f.exists():
+                cmd = ['bumpversion','--allow-dirty','--verbose'
+                      ,'--current-version',current_version,rule,str(f)]
+                rc = utils.execute(cmd)
+                if rc:
+                    return rc
+                bumped_files.append(f)
+        
+        pyproject_toml = TomlFile(project_path / 'pyproject.toml')
+        pyproject_toml_content = pyproject_toml.read()
+        new_version = pyproject_toml_content['tool']['poetry']['version']
+        micc_logger.info(f"bumping version ({current_version}) -> ({new_version})")
+        for f in bumped_files:
+            micc_logger.debug(f". Updated ({f})")
+    
+    else:    
+        # Use poetry to update version in pyproject.toml
         myenv = os.environ.copy()
-        if rule: # bump version
-            cmd.append(rule)
-    
-            # update version in pyproject.toml (using poetry code for good :)
-            result = subprocess.run(cmd,capture_output=True,cwd=str(project_path),env=myenv)
-            micc_logger.warning(result.stdout.decode('utf-8'))
-            micc_logger.debug(" . Updated pyproject.toml")
+        cmd = ['poetry','version',rule]
+        result = subprocess.run(cmd, capture_output=True, cwd=str(project_path), env=myenv)
+        if result.returncode:
+            return result.returncode
+        micc_logger.warning(result.stdout.decode('utf-8'))
+        micc_logger.debug(" . Updated pyproject.toml")
+                    
+        pyproject_toml = TomlFile(project_path / 'pyproject.toml')
+        pyproject_toml_content = pyproject_toml.read()
+        new_version = pyproject_toml['tool']['poetry']['version']
             
-            pyproject_toml = toml.load(str(project_path /'pyproject.toml'))
-            new_version = pyproject_toml['tool']['poetry']['version']
-            
-            # update version in package                    
-            files = [ project_path / package_name / '__init__.py'
-                    , project_path / (package_name + '.py')
-                    ]
-            for f in files:
-                if f.exists():
-                    utils.replace_version_in_file(f, current_version, new_version)
-                    micc_logger.debug(f" . Updated {f.relative_to(project_path)}")
-    
-        else: # show version
-            result = subprocess.run(cmd,env=myenv,cwd=str(project_path))
+        # update version in package                    
+        for f in files[1:]: # skip pyproject.toml
+            if f.exists():
+                utils.replace_version_in_file(f, current_version, new_version)
+                micc_logger.debug(f" . Updated {f.relative_to(project_path)}")
+
     return 0
 
 
@@ -647,10 +647,10 @@ def micc_tag( global_options):
     project_path = global_options.project_path
     utils.is_project_directory(project_path, raise_if=False)
             
-    path_to_pyproject_toml = project_path / 'pyproject.toml'
-    pyproject_toml = toml.load(str(path_to_pyproject_toml))
-    project_name    = pyproject_toml['tool']['poetry']['name']
-    current_version = pyproject_toml['tool']['poetry']['version']
+    pyproject_toml = TomlFile(project_path / 'pyproject.toml')
+    pyproject_toml_content = pyproject_toml.read()
+    project_name    = pyproject_toml_content['tool']['poetry']['name']
+    current_version = pyproject_toml_content['tool']['poetry']['version']
     tag = f"v{current_version}"
 
     micc_logger = utils.get_micc_logger(global_options)
@@ -784,15 +784,15 @@ def micc_convert_simple(global_options):
         click.echo(f"Converting simple Python project {project_path.name} to general Python project.")
     
     # add documentation files for general Python project
-    tomlfile = TomlFile(project_path / 'pyproject.toml')
-    content = tomlfile.read()
+    pyproject_toml = TomlFile(project_path / 'pyproject.toml')
+    pyproject_toml_content = pyproject_toml.read()
 
     ( exit_code
     , _ # template_parameters
     ) = expand_templates("template-package-general-docs", 'micc.json', project_path, global_options
                         # extra template parameters:
                         , project_name=project_path.name
-                        , project_short_description=content['tool']['poetry']['description']
+                        , project_short_description=pyproject_toml_content['tool']['poetry']['description']
                         )                
     if exit_code:
         return exit_code
@@ -852,7 +852,8 @@ def micc_info(global_options):
     utils.is_project_directory(project_path, raise_if=False)
     micc_logger = utils.get_micc_logger(global_options)
     package_name = utils.convert_to_valid_module_name(project_path.name)
-    pyproject_toml = toml.load(str(project_path / 'pyproject.toml'))
+    pyproject_toml = TomlFile(project_path / 'pyproject.toml')
+    pyproject_toml_content = pyproject_toml.read()
 
     if global_options.verbosity>=0:
         global_options.verbosity = 10
@@ -860,7 +861,7 @@ def micc_info(global_options):
     if global_options.verbosity>=1:
         click.echo("Project " + click.style(str(project_path.name),fg='green')+" located at "+click.style(str(project_path),fg='green'))
         click.echo("  package: " + click.style(str(package_name),fg='green'))
-        click.echo("  version: " + click.style(pyproject_toml['tool']['poetry']['version'],fg='green'))
+        click.echo("  version: " + click.style(pyproject_toml_content['tool']['poetry']['version'],fg='green'))
                   
     if global_options.verbosity>=2:
         has_py_module  = utils.is_module_project (project_path)

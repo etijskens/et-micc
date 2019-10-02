@@ -22,7 +22,19 @@ v0.6.2 (2019-09-??)
   Conclusion: **we do not want our code to depend on poetry, or any of its dependencies** 
   **except for its command line interface** because it is too volatile.
 
+* fixed issue #15
 * fixed issue #16 
+* fixed issue #17
+* fixed issue #18
+* fixed issue #19
+* fixed issue #20
+* fixed issue #21
+
+micc now no longer needs poetry and can run in a conda environment. 
+
+* poetry install is problematic and should not be used in a conda environment.
+* poetry build seems to work well and the Makefile commands for installing 
+  and reinstalling locally work well too.
   
 v0.6.1 (2019-09-27)
 ===================
