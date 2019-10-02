@@ -147,7 +147,6 @@ issue #10 micc files are part of the template
 ---------------------------------------------
 So they better live there.
 
-
 v0.6.2
 
 #16 [issue] poetry 1.0.0b1 uses different cleo than 0.12.17

@@ -910,4 +910,31 @@ def micc_info(global_options):
             else:
                 kind = "module      "
             click.echo("    " + kind + click.style(str(f.relative_to(package_path)) + extra,fg=fg))
+
+
+def micc_poetry(*args, global_options):
+    """
+    """
+    system = global_options.system
+    if utils.is_poetry_available(system):
+        if utils.is_conda_python():
+            if 'install' in args:
+                click.secho("WARNING: The command\n"
+                            "  >  poetry install\n"
+                            "is strongly discouraged in a conda Python environment!"
+                           , fg='bright_red'
+                           )
+                return 1
+        if system:
+            cmd = ['poetry_',*args]
+        else:
+            cmd = ['poetry',*args]
+        print(cmd)
+        myenv = os.environ.copy()
+        subprocess.run(cmd,env=myenv)
+    else:
+        click.secho("WARNING: poetry is not available in the environment."
+                   , fg='bright_red'
+                   )
+        return 1
 # EOF #

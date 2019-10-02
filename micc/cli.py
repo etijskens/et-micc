@@ -260,7 +260,14 @@ def module( ctx
 @click.pass_context
 def version( ctx, rule, major, minor, patch, tag, short, poetry):
     """
-    Increment or show the project's version number.
+    Increment or show the project's version number.  By default micc uses 
+    *bumpversion* for this, but it can also use *poetry*, by specifiying ``--poetry``.
+    
+    You can also avoide using ``micc version`` and using *bumpversion* directly. Note,
+    however, that the version string appears in both ``pyproject.toml`` and in the top-level
+    package (``<mopdule_name>.py`` or ``<mopdule_name>/__init__.py``). Since, currently,
+    *poetry* is incapable of bumping the version string in any other file than *pyproject.tom.*, 
+    using ``poetry version ...`` is not recommented.
     
     :param str rule: any string that is also accepted by poetry version. Typically, the empty
         string (show current version), a valid rule: patch, minor, major, prepatch, preminor, 
@@ -360,5 +367,16 @@ def info(ctx):
     return cmds.micc_info(global_options=ctx.obj)
 
 
+@main.command()
+@click.argument('args',nargs=-1)
+@click.option('--system',is_flag=True,default=False,help="use the poetry version installed in the system, not the python environmebt")
+@click.pass_context
+def poetry(ctx,args,system):
+    """
+    A wrapper around poetry that warns for dangerous poetry commands in a conda environment.
+    """
+    ctx.obj.system = system
+    cmds.micc_poetry( *args, global_options=ctx.obj)
+    
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover

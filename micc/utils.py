@@ -456,4 +456,23 @@ def is_conda_python():
     is_conda = os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
     return is_conda
 
+
+def is_poetry_available(system):
+    """Test if poetry is available in the environment."""    
+    myenv=os.environ.copy()
+    if system:
+        cmd=['which','poetry_']
+    else:
+        cmd=['which','poetry']        
+    result = subprocess.run(cmd,capture_output=True,env=myenv)
+    return result.returncode==0
+
+
+def is_bumpversion_available():
+    """Test if poetry is available in the environment."""    
+    myenv=os.environ.copy()
+    cmd=['which','bumpversion']
+    result = subprocess.run(cmd,capture_output=True,env=myenv)
+    return result.returncode==0
+
 # end of file
