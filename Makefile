@@ -90,7 +90,7 @@ release: dist ## package and upload a release
 #-------------------------------------------------------------------------------
 # Create distribution wheel
 dist: clean ## builds source and wheel package
-	poetry build
+	poetry_ build
 
 #-------------------------------------------------------------------------------
 # Install package micc and its requirements in the current Python
