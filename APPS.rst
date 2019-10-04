@@ -1,5 +1,5 @@
-Application micc
-================
+micc
+====
 
 .. click:: micc.cli:main
    :prog: micc

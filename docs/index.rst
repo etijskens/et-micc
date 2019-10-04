@@ -11,6 +11,7 @@ Welcome to micc's documentation!
    usage
    apps
    api
+   tutorials
    authors
    history
 

@@ -1,13 +1,33 @@
-
-*******
-History
-*******
-
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.6.2 (2019-10-??)
+v0.6.3 (2019-10-??)
 ===================
+* started tutorial writing. They will help the user to learn how to use *micc*, 
+  and help me in improving the functionality of *micc*. 
+  
+Using *micc* myself encouraged me to
+
+* command line interfaces are best non-interactive., i.e. they better 
+  not ask extra information. If information is missing, they better quit
+  with a message. So, 
+  
+  * don't ask for project name,
+  * don't ask for short description
+  
+  This approach allows the cli to be used in scripts, and it eases the 
+  testing. 
+  
+  Note that this principle should make us revisit the ``micc.json`` template
+  parameter approach. see also issue #12, which was closed, but not entirely
+  satisfactory.
+  
+* modify ``micc create`` as to create a project in an empty directory. 
+
+* Fixed: return codes from commands are now propagated as exit code of the application.
+* Fixing: issue #12. Here is the new flow. 
+  # if 
+  
 
 v0.6.2 (2019-10-02)
 ===================
