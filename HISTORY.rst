@@ -1,7 +1,11 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.6.3 (2019-1004?)
+v0.6.4 (2019-10-??)
+===================
+
+
+v0.6.3 (2019-10-04)
 ===================
 * started tutorial writing. They will help the user to learn how to use *micc*, 
   and help me in improving the functionality of *micc*. 

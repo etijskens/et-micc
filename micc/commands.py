@@ -40,7 +40,7 @@ def resolve_template(template):
         template = Path.cwd() / template
     else:
         # just the template name 
-        template = Path(__file__).parent / template
+        template = Path(__file__).parent / 'templates' / template
 
     if not template.exists():
         raise AssertionError(f"Inexisting template {template}")
@@ -782,7 +782,7 @@ def micc_convert_simple(global_options):
     template_parameters = {'project_short_description' : pyproject_toml_content['tool']['poetry']['description']}
     template_parameters.update(global_options.template_parameters)
 
-    exit_code = expand_templates( "template-package-general-docs", template_parameters, global_options )                        
+    exit_code = expand_templates( "templates/package-general-docs", template_parameters, global_options )
     if exit_code:
         return exit_code
     
@@ -878,7 +878,7 @@ def micc_info(global_options):
                 # filters
                 if '{' in str(f):
                     continue
-                if 'template-package-' in str(f): # very ad hoc solution, only relevant to the micc project itself
+                if 'package-' in str(f): # very ad hoc solution, only relevant to the micc project itself
                     continue
                 if f.name=="__init__.py" and f.parent.samefile(package_path): # ignore the top-level __init__.py
                     continue

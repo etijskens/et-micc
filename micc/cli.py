@@ -141,15 +141,15 @@ def create( ctx
     
     if not template: # default, empty list
         if structure=='module':
-            template = ['template-package-base'
-                       ,'template-package-simple'
-                       ,'template-package-simple-docs'
+            template = ['package-base'
+                       ,'package-simple'
+                       ,'package-simple-docs'
                        ]
         else:
-            template = ['template-package-base'
-                       ,'template-package-general'
-                       ,'template-package-simple-docs'
-                       ,'template-package-general-docs'
+            template = ['package-base'
+                       ,'package-general'
+                       ,'package-simple-docs'
+                       ,'package-general-docs'
                        ]
     else:
         # ignore structure
@@ -168,7 +168,7 @@ def create( ctx
 
 @main.command()
 @click.argument('app_name',type=str)
-@click.option('-T', '--template', default='template-app', help=__template_help)
+@click.option('-T', '--template', default='app', help=__template_help)
 @click.option('--overwrite', is_flag=True
              , help="Overwrite pre-existing files (without backup)."
              , default=False
@@ -260,21 +260,21 @@ def module( ctx
     
     if f2py:
         if not template:
-            template = 'template-module-f2py'
+            template = 'module-f2py'
         rc = cmds.micc_module_f2py( module_name
                                   , templates=template
                                   , global_options=ctx.obj
                                   )
     elif cpp:
         if not template:
-            template = 'template-module-cpp'
+            template = 'module-cpp'
         rc = cmds.micc_module_cpp( module_name
                                  , templates=template
                                  , global_options=ctx.obj
                                  )
     else:
         if not template:
-            template = 'template-module-py'
+            template = 'module-py'
         rc = cmds.micc_module_py( module_name
                                 , templates=template
                                 , global_options=ctx.obj
@@ -366,7 +366,7 @@ def build(ctx, module, soft_link):
                         , global_options=ctx.obj
                         )
     if rc:
-        ctx.exit(rc) 
+        ctx.exit(rc)
       
 
 @main.command()
@@ -388,7 +388,7 @@ def convert_to_package(ctx, overwrite, backup):
     submodules, such as Python modules, packages and applications, as well as
     binary extension modules.
 
-    This command also expands the ``micc-template-general-docs`` template in this
+    This command also expands the ``package-general-docs`` template in this
     project, which adds a ``AUTHORS.rst``, ``HISTORY.rst`` and ``installation.rst``
     to the documentation structure.
     """
