@@ -3,6 +3,7 @@ including dead-ends.
 
 v0.6.4 (2019-10-??)
 ===================
+* improve documentation templates
 
 
 v0.6.3 (2019-10-04)

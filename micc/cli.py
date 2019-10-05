@@ -85,14 +85,14 @@ def main(ctx, verbosity, project_path, clear_log):
     
 
 @main.command()
-@click.option('-s', '--structure'
-             , help="Use module or package structure for this project's top-level:\n\n"
-                    "* ``module``: ``<module_name>.py`` \n"
-                    "* ``package``: ``<module_name>/__init__.py``\n\n"
+@click.option('-m', '--module'
+             , help="Create a Python project with a module structure rather than a package structure:\n\n"
+                    "* module  structure = ``<module_name>.py`` \n"
+                    "* package structure = ``<module_name>/__init__.py``\n\n"
                     "Default = ``package``."
-             , default='package', type=click.Choice(['module','package'])
+             , default=False, is_flag=True
              )
-@click.option('-m', '--micc-file'
+@click.option('--micc-file'
              , help="The file containing the descriptions of the template parameters used"
                     "in the *Cookiecutter* templates. "
              , default='',type=Path
@@ -108,7 +108,7 @@ def main(ctx, verbosity, project_path, clear_log):
              )
 @click.pass_context
 def create( ctx
-          , structure
+          , module
           , micc_file
           , description
           , template
@@ -138,7 +138,7 @@ def create( ctx
     Prompts the user for all entries in the *micc-file* file
     that do not have a default value.
     """
-    
+    structure = 'module' if module else 'package'
     if not template: # default, empty list
         if structure=='module':
             template = ['package-base'
@@ -215,12 +215,12 @@ def app( ctx
              , help='If specified creates a C++ module.'
              , default=False, is_flag=True
              )
-@click.option('-s', '--structure'
-             , help="Use module (default) or package structure for this sub-module :\n\n"
-                    "* module: ``<module_name>.py`` \n"
-                    "* package: ``<module_name>/__init__.py``\n\n"
-                    "This option is ignored if ``--cpp`` or ``--f2py`` is specified."
-             , default='module', type=click.Choice(['module','package'])
+@click.option('-p', '--package'
+             , help="Create a Python module with a package structure rather than a module structure:\n\n"
+                    "* module  structure = ``<module_name>.py`` \n"
+                    "* package structure = ``<module_name>/__init__.py``\n\n"
+                    "Default = module structure."
+             , default=False, is_flag=True
              )
 @click.option( '-T', '--template' , default='', help=__template_help)
 @click.option('--overwrite', is_flag=True
@@ -234,7 +234,7 @@ def app( ctx
 @click.pass_context
 def module( ctx
           , module_name
-          , f2py, cpp, structure
+          , f2py, cpp, package
           , template
           , overwrite
           , backup
@@ -253,7 +253,7 @@ def module( ctx
     if module_exists(ctx.obj.project_path,module_name):
         raise AssertionError(f"Project {ctx.obj.project_path.name} has already a module named {module_name}.")
 
-    ctx.obj.structure = structure
+    ctx.obj.structure = 'package' if package else 'module'
     ctx.obj.overwrite = overwrite
     ctx.obj.backup    = backup
     ctx.obj.template_parameters['path_to_cmake_tools'] = utils.path_to_cmake_tools()

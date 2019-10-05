@@ -135,10 +135,10 @@ def test_scenario_2():
         run(runner, ['-p','foo','-vv', 'app','my_app'])
         assert Path('foo/foo/cli_my_app.py').exists()
         
-        run(runner, ['-p','foo','-vv', 'module','mod1','--structure','module'])
+        run(runner, ['-p','foo','-vv', 'module','mod1'])
         assert Path('foo/foo/mod1.py').exists()
         
-        run(runner, ['-p','foo','-vv', 'module','mod2','--structure','package'])
+        run(runner, ['-p','foo','-vv', 'module','mod2','--package'])
         assert Path('foo/foo/mod2/__init__.py').exists()
 
         run(runner, ['-p','foo','-vv', 'module','mod3','--f2py'])

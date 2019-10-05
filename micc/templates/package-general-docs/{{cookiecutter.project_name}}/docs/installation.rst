@@ -1,12 +1,12 @@
 .. highlight:: shell
 
-============
+************
 Installation
-============
+************
 
 
 Stable release
---------------
+==============
 
 To install {{ cookiecutter.project_name }}, run this command in your terminal:
 
@@ -24,7 +24,7 @@ you through the process.
 
 
 From sources
-------------
+============
 
 The sources for {{ cookiecutter.project_name }} can be downloaded from the `Github repo`_.
 

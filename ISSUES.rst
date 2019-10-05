@@ -1,12 +1,41 @@
 Open Issues
 ===========
-#24
+#25
 
+#24 [feature] add indentation to logging
+----------------------------------------
+
+.. code-block:: bash
+
+   > micc -p foo create
+   
+   [INFO] Creating project (foo):
+          Python package (foo): structure = (foo/foo/__init__.py)
+   [INFO] Creating git repository
+   [INFO] ... done.
+   
+   [INFO] ... done.
+
+should look like:
+
+
+.. code-block:: bash
+
+   > micc -p foo create
+   
+   [INFO] Creating project (foo):
+          Python package (foo): structure = (foo/foo/__init__.py)
+          ...
+   [INFO]     Creating git repository 
+              ...
+   [INFO]     done.
+   [INFO] done.
+   
 #22 [issue] building cpp module fails when pybind11 is pip-installed
 --------------------------------------------------------------------
 (at least on a conda environment) it works however when it is conda-installed.
 
-.. code-block::
+.. code-block:: bash
 
    DEBUG    micc-build-cpp_mod4.log:utils.py:295  (stderr)
                                                  CMake Error at CMakeLists.txt:14 (find_package):

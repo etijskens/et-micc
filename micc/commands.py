@@ -360,19 +360,22 @@ def micc_app( app_name
         package_name = template_parameters['package_name']
         with utils.in_directory(project_path):            
             # docs 
-            with open('docs/api.rst',"r") as f:
+            with open('docs/index.rst',"r") as f:
                 lines = f.readlines()
             has_already_apps = False
-            for line in lines:
-                has_already_apps = has_already_apps or line.startswith(".. include:: ../APPS.rst")
-            if not has_already_apps:        
-                with open('docs/api.rst',"w") as f:
-                    f.write(".. include:: ../APPS.rst\n\n")
-                    f.write(".. include:: ../API.rst\n\n")
+            
+            api_line = -1
+            for l,line in enumerate(lines):
+                has_already_apps = has_already_apps or line.startswith("   apps")
+                if line.startswith('   api'):
+                    api_line = l
+            if not has_already_apps:
+                lines.insert(api_line,'   apps\n')
+                with open('docs/index.rst',"w") as f:
+                    for line in lines:
+                        f.write(line)
             with open("APPS.rst","a") as f:
-                # f.write(f".. automodule:: {package_name}.{cli_app_name}\n")
-                # f.write( "   :members:\n\n")
-                title = f"Application {app_name}"
+                title = f"\nApplication {app_name}"
                 uline = len(title) * '='
                 f.write(title + '\n')
                 f.write(uline + '\n\n')
