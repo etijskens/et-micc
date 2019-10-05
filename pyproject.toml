@@ -23,6 +23,7 @@ pytest = "^4.4.2"
 tomlkit =  "^0.5.5"
 pybind11 = "^2.2.4"
 numpy = "^1.17.0"
+bump2version="^0.5.11"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.4.2"

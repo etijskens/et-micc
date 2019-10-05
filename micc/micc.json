@@ -6,20 +6,10 @@
                       ,"text"   :"your e-mail address"
                       }
 , "github_username"	: {"default":"etijskens"
-               		  ,"text"   :"your github username"
+               		  ,"text"   :"your github username (leave empty if you do not have)"
                		  }
-, "project_name"	: {"default":""
-  					  ,"text"   :"the name of the project to be created"
-  					  }
-, "project_short_description":
-                      {"default":""
-  					  ,"text"   :"a short description of the project"
-  					  }
-, "package_name"    : {"default":"{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}"
-  					  ,"text"   :"the name of the project to be created"
-  					  }
 , "version"         : {"default":"0.0.0"
-  					  ,"text"   :"the initial version number of the project"
+  					  ,"text"   :"the initial version number of a new project"
   					  }
 , "github_repo"	    : {"default":"{{ cookiecutter.project_name }}"
 					  ,"text"   :"github repo for this project"
@@ -27,14 +17,6 @@
 , "default_branch"  : {"default":"master"
 					  ,"text"   :"default git branch"
 					  }
-, "python_major_version"
-  					: {"default":3
-  					  ,"text"   :"major Python version"
-  					  }
-, "python_minor_version" 					  
-  					: {"default":7
-  					  ,"text"   :"minor Python version"
-  					  }
 , "sphinx_html_theme"
 	 				: {"default":"sphinx_rtd_theme"
   					  ,"text"   :"Htlm theme for sphinx documentation"
@@ -42,6 +24,6 @@
 , "open_source_license"
   					: {"default":"MIT license"
   					  ,"type"   :"click.Choice(['MIT license', 'BSD license', 'ISC license', 'Apache Software License 2.0', 'GNU General Public License v3', 'Not open source'])"
-  					  ,"text"   :"choose open source license"
+  					  ,"text"   :"Choose open source license"
 					  }  					  
 }

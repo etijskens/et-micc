@@ -1,7 +1,7 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.6.3 (2019-10-??)
+v0.6.3 (2019-1004?)
 ===================
 * started tutorial writing. They will help the user to learn how to use *micc*, 
   and help me in improving the functionality of *micc*. 
@@ -25,9 +25,8 @@ Using *micc* myself encouraged me to
 * modify ``micc create`` as to create a project in an empty directory. 
 
 * Fixed: return codes from commands are now propagated as exit code of the application.
-* Fixing: issue #12. Here is the new flow. 
-  # if 
-  
+* Fixed: issue #12.
+
 
 v0.6.2 (2019-10-02)
 ===================

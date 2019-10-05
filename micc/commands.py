@@ -8,7 +8,6 @@ import json
 import subprocess
 import shutil
 import platform
-import copy
 from pathlib import Path
 #===============================================================================
 import click
@@ -18,8 +17,10 @@ from cookiecutter.main import cookiecutter
 from micc.tomlfile import TomlFile
 
 from micc import utils
+from micc.utils import get_project_path
 
-EXIT_CANCEL = -1 # exit code used for action EXIT_CANCELled by user
+EXIT_CANCEL = -1 # exit code used for action canceled by user
+EXIT_ABORT  = -2 # exit code used for action EXIT_CANCELled by user
 
 def exit_msg(exit_code):
     the_micc_logger = utils.get_micc_logger.the_logger
@@ -48,53 +49,72 @@ def resolve_template(template):
     return template
 
 
-def get_template_parameters(template, micc_file, **kwargs):
+def set_preferences(micc_file):
+    """Set the preferences in *micc_file*.
+    
+    (This function requires user interaction!)
+    
+    :param Path micc_file: path to a json file.
+    """        
+    with micc_file.open() as f:
+        preferences = json.load(f)
+        
+    for parameter,description in preferences.items():
+        if not description['default'].startswith('{{ '):
+            answer = click.prompt(**description)
+            preferences[parameter]['default'] = answer
+            
+    with micc_file.open(mode='w') as f:
+        json.dump(preferences,f)
+        
+    return preferences
+
+
+def get_preferences(micc_file):
+    """Get the preferences from *micc_file*.
+    
+    (This function requires user interaction if no *micc_file* was provided!)
+
+    :param Path micc_file: path to a json file.    
     """
-    Read the template parameter descriptions from the micc file, and
-    prompt the user for supplying the values for the parameters with an
-    empty string as default.     
-    
-    :param Path template:
-    
-    :returns: a dict of (parameter,value) pairs.
-    """
-    the_micc_logger = utils.get_micc_logger.the_logger
-    micc_file = template / micc_file
-    try:
-        f = open(micc_file, 'r')
-    except IOError:
-        the_micc_logger.debug(f" . getting template parameters from (None)")
-        template_parameters = {}
-    else:
-        with f:
-            the_micc_logger.debug(f" . getting template parameters from {micc_file}.")
-            template_parameters = json.load(f)
-      
-    for kw,arg in kwargs.items(): 
-        template_parameters[kw] = {} 
-        template_parameters[kw]['default'] = arg 
-    
-    for key,value in template_parameters.items():
-        default = value['default']
-        if bool(default):
-            value = default
+    if micc_file.samefile('.'):
+        # There is no micc file with preferences yet.
+        dotmicc = Path().home() / '.micc'
+        dotmicc.mkdir(exist_ok=True)
+        dotmicc_miccfile = dotmicc / 'micc.json'
+        if dotmicc_miccfile.exists():
+            preferences = get_preferences(dotmicc_miccfile)
         else:
-            kwargs = value
-#             text = kwargs['text']
-#             del kwargs['msg']
-            if 'type' in kwargs:
-                kwargs['type'] = eval(kwargs['type'])
-            click.echo('')
-            value = False
-            while not value:
-                value = click.prompt(**kwargs,show_default=False)
-        template_parameters[key] = value
+            micc_file_template = Path(__file__).parent / 'micc.json'
+            shutil.copyfile(str(micc_file_template),str(dotmicc_miccfile))
+            preferences = set_preferences(dotmicc_miccfile)
+    else:
+        with micc_file.open() as f:
+            preferences = json.load(f)
 
-    the_micc_logger.debug(f" . parameters used:\n{json.dumps(template_parameters,indent=4)}")
+    return preferences
+
+
+def get_template_parameters(preferences={}):
+    """Get the template parameters from the preferences.
+    
+    :param dict|Path preferenes:
+    :returns: dict of (parameter name,parameter value) pairs.
+    """
+    if isinstance(preferences,dict): 
+        template_parameters = {}
+        for parameter,description in preferences.items():
+            template_parameters[parameter] = description['default']
+    elif isinstance(preferences,Path):
+        with preferences.open() as f:
+            template_parameters = json.load(f)
+    else:
+        raise RuntimeError()
+    
     return template_parameters
-
-
-def expand_templates(templates, micc_file, project_path, global_options, **extra_parameters):
+    
+    
+def expand_templates(templates, template_parameters, global_options):
     """
     Expand a list of cookiecutter ``templates`` in directory ``project_path``. 
 
@@ -107,103 +127,85 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
     :param list templates: ordered list of (paths to) cookiecutter templates that 
         will be expanded as they appear. The template parameters are propagated 
         from each template to the next.
-    :param str micc_file: name of the micc file in all templates. Usually, this is
-        ``'micc.json'``.
-    :param Path project_path: path to the project directory where the templates 
-        will be expanded
+    :param dict template_parameters: the (template parameter,value) pairs.
     :param types.SimpleNamespace: command line options accessible to all micc
         commands
-    :param dict extra_parameters: extra template parameters that have to be set 
-        before 
-        expanding.
     """
+    
     if not isinstance(templates, list):
         templates = [templates]
+    project_path = global_options.project_path
     project_path.mkdir(parents=True, exist_ok=True)
     output_dir = project_path.parent
-    the_micc_logger = utils.get_micc_logger.the_logger
+    micc_logger = utils.get_micc_logger.the_logger
 
-    # get the template parameters,
     # list existing files that would be overwritten if global_options.overwrite==True
     existing_files = {}
     for template in templates:
-        the_micc_logger.debug(f" . Expanding template {template} in temporary directory")
         template = resolve_template(template)             
-        template_parameters = get_template_parameters( template, micc_file
-                                                     , **extra_parameters
-                                                     )
-        # Store the template parameters from this template for the the next
-        # template in the templates list
-        extra_parameters = template_parameters
         # write a cookiecutter.json file in the cookiecutter template directory
         cookiecutter_json = template / 'cookiecutter.json'
         with open(cookiecutter_json,'w') as f:
             json.dump(template_parameters, f, indent=2)
         
         # run cookiecutter in an empty temporary directory to check if there are any
-        # existing project files that woud be overwritten.
-        if not global_options.overwrite:
-            tmp = output_dir / '_cookiecutter_tmp_'
-            if tmp.exists():
-                shutil.rmtree(tmp)
-            tmp.mkdir(parents=True, exist_ok=True)
-    
-            # expand the Cookiecutter template in a temporary directory,
-            cookiecutter( str(template)
-                        , no_input=True
-                        , overwrite_if_exists=True
-                        , output_dir=str(tmp)
-                        )
-            
-            # find out if there are any files that would be overwritten.
-            os_name = platform.system()
-            for root, _, files in os.walk(tmp):
-                if root==tmp:
+        # existing project files that would be overwritten.
+        tmp = output_dir / '_cookiecutter_tmp_'
+        if tmp.exists():
+            shutil.rmtree(tmp)
+        tmp.mkdir(parents=True, exist_ok=True)
+
+        # expand the Cookiecutter template in a temporary directory,
+        cookiecutter( str(template)
+                    , no_input=True
+                    , overwrite_if_exists=True
+                    , output_dir=str(tmp)
+                    )
+        
+        # find out if there are any files that would be overwritten.
+        os_name = platform.system()
+        for root, _, files in os.walk(tmp):
+            if root==tmp:
+                continue
+            else:
+                root2 = os.path.relpath(root,tmp)
+            for f in files:
+                if os_name=="Darwin" and f==".DS_Store":
                     continue
-                else:
-                    root2 = os.path.relpath(root,tmp)
-                for f in files:
-                    if os_name=="Darwin" and f==".DS_Store":
-                        continue
-                    file = output_dir / root2 / f
-                    if file.exists():
-                        if not template in existing_files:
-                            existing_files[template] = []
-                        existing_files[template].append(file)
+                file = output_dir / root2 / f
+                if file.exists():
+                    if not template in existing_files:
+                        existing_files[template] = []
+                    existing_files[template].append(file)
     
         if existing_files:
-            msg = f"The following pre-existing files will be overwritten in {output_dir}:\n"
-            for template, files in existing_files.items():
-                t = template.name
-                for f in files:
-                    msg += f"    {t} : {f}\n"
-            the_micc_logger.warning(msg)
-            answer = click.prompt("Press 'c' to continue\n"
-                                  "      'a' to abort\n"
-                                  "      'b' to keep the original files with .bak extension\n"
-                                 ,type=click.Choice(['c', 'a','b'])
-                                 ,default='a'
-                                 ,show_choices=True
-                                 ).lower()
-            if answer=='a':
-                the_micc_logger.critical("Exiting.")
-                return EXIT_CANCEL,extra_parameters
-            elif answer=='b':
-                the_micc_logger.warning(f"Making backup files in {project_path}:")
+            if global_options.backup:
+                micc_logger.warning(f"'--backup' specified: pre-existing files in {output_dir} will be backed up (*.bak):\n")
                 for files in existing_files.values():
                     for src in files:
                         dst = src + '.bak'
                         shutil.copyfile(src, dst)
-                        the_micc_logger.warning(f"     created backup file: {dst}")
-                the_micc_logger.warning(f"Overwriting files ...")
+                        micc_logger.warning(f"     {src} -> {dst}")
+                
+            elif not global_options.overwrite:
+                click.secho("Aborting because 'overwrite==False'.\n"
+                            "  Rerun the command with the '--overwrite' flag to overwrite these files.\n"
+                            "  Rerun the command with the '--backup' flag to first backup these files (*.bak).\n"
+                            "Aborting."
+                           , fg='bright_red'
+                           )
+                return EXIT_ABORT
             else:
-                the_micc_logger.warning("Overwriting files ... (no backup)")
-            the_micc_logger.warning('Overwriting files ... Done.')
-            
+                micc_logger.warning(f"'--overwrite' specified: pre-existing files in {output_dir} will be overwritten WITHOUT backup:\n")
+                for files in existing_files.values():
+                    for src in files:
+                        micc_logger.warning(f"     overwriting {src}")
+                
     # Now we can safely overwrite pre-existing files.
+    micc_logger.debug(f" . Expanding templates using these parameters:\n{json.dumps(template_parameters,indent=11)}")
     for template in templates:
         template = resolve_template(template)
-        the_micc_logger.debug(f" . Expanding template {template} in project directory.")
+        micc_logger.debug(f" . Expanding template {template}.")
         cookiecutter( str(template)
                     , no_input=True
                     , overwrite_if_exists=True
@@ -217,7 +219,7 @@ def expand_templates(templates, micc_file, project_path, global_options, **extra
     if tmp.exists():
         shutil.rmtree(str(tmp))
         
-    return 0,extra_parameters
+    return 0
 
 
 def msg_NotAProjectDirectory(path):
@@ -246,44 +248,58 @@ def micc_create( templates
     :param types.SimpleNamespace global_options: namespace object with options accepted by (almost) all micc commands. 
     """
     project_path = global_options.project_path
-    output_dir = project_path.parent
-    project_name  = project_path.name
+    project_path.mkdir(parents=True,exist_ok=True)
+    contents = os.listdir(str(project_path))
+    if contents:
+        click.secho(f"Cannot create project in ({project_path}):\n"
+                    f"  Directory must be empty."
+                   , fg='bright_red'
+                   )
+        return 1
+    if not global_options.allow_nesting:
+        # Prevent the creation of a project inside another project    
+        p = project_path.parent.resolve()
+        while not p.samefile('/'):
+            if utils.is_project_directory(p):
+                click.secho(f"Cannot create project in ({project_path}):\n"
+                            f"  Specify '--allow-nesting' to create a micc project inside another micc project ({p})."
+                           , fg='bright_red'
+                           )
+            p = p.parent
     
+    project_name  = project_path.name    
     package_name = utils.convert_to_valid_module_name(project_name)
     relative_project_path = project_path.relative_to(Path.cwd())
     if global_options.structure=='module':
-        structure = f"(.{os.sep}{relative_project_path}{os.sep}{package_name}.py)" 
+        structure = f"({relative_project_path}{os.sep}{package_name}.py)"
     elif global_options.structure=='package':
-        structure = f"(.{os.sep}{relative_project_path}{os.sep}{package_name}{os.sep}__init__.py)"
+        structure = f"({relative_project_path}{os.sep}{package_name}{os.sep}__init__.py)"
     else:
-        structure = '' 
-    # must create the project directory before we can use a logger 
-    project_path.mkdir(parents=True,exist_ok=True)
+        structure = ''
+    
+    global_options.verbosity = max(1,global_options.verbosity)
     micc_logger = utils.get_micc_logger(global_options)
-    with utils.log(micc_logger.info, f"\nCreating project {project_name} with"
-                                     f"\n  Python package {package_name} as a {global_options.structure} {structure}"):
-        if utils.is_project_directory(project_path):
-            raise AssertionError(f"Project {project_path} exists already.")
-        # Prevent the creation of a project inside another project    
-        # (add a 'dummy' leaf so the first directory checked is output_dir itself)
-        if not global_options.allow_nesting:
-            p = copy.copy(output_dir).resolve()
-            while not p.samefile('/'):
-                if utils.is_project_directory(p):
-                    raise AssertionError(f"Cannot create a project inside another project ({p}).")
-                p = p.parent
-            
+    with utils.log( micc_logger.info
+                  , f"Creating project ({project_name}):"
+                    f"\n       Python {global_options.structure} ({package_name}): structure = {structure}"
+                  ):
+        template_parameters = { 'project_name' : project_name
+                              , 'package_name' : package_name
+                              }
+        template_parameters.update(global_options.template_parameters)
+        template_parameters.update(get_template_parameters(get_preferences(micc_file)))
         global_options.overwrite = False
      
-        ( exit_code
-        , template_parameters
-        ) = expand_templates( templates, micc_file, project_path, global_options
-                            # extra template parameters:
-                            , project_name=project_name
-                            )                
+        exit_code = expand_templates( templates, template_parameters, global_options  )                
+        
         if exit_code:
             return exit_msg(exit_code)
-
+        
+        my_micc_file = project_path / 'micc.json'
+        with my_micc_file.open('w') as f:
+            json.dump(template_parameters,f)
+            micc_logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
+    
         with utils.log(micc_logger.info,"Creating git repository"):
             with utils.in_directory(project_path):
                 cmds = [ ['git', 'init']
@@ -308,7 +324,6 @@ def micc_create( templates
 
 def micc_app( app_name
             , templates
-            , micc_file
             , global_options
             ):
     """
@@ -328,25 +343,23 @@ def micc_app( app_name
     utils.is_package_project  (project_path, raise_if=False)
     utils.is_module_project   (project_path, raise_if=True )
 
+    cli_app_name = 'cli_' + utils.convert_to_valid_module_name(app_name)
+    
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info, f"Creating app {app_name} in Python package {project_path.name}."):
-    
-        ( exit_code
-        , _ # template_parameters
-        ) = expand_templates( templates, micc_file, project_path, global_options
-                            # extra template parameters:
-                            , project_name=project_path.name
-                            , package_name=utils.convert_to_valid_module_name(project_path.name)
-                            , app_name=app_name
-                            )                
+        template_parameters = { 'app_name'     : app_name
+                              , 'cli_app_name' : cli_app_name
+                              }
+        template_parameters.update(global_options.template_parameters)
+     
+        exit_code = expand_templates( templates, template_parameters, global_options )                
+
         if exit_code:
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
-    
-        with utils.in_directory(project_path):
-            cli_app_name = 'cli_' + utils.convert_to_valid_module_name(app_name)
-            package_name =          utils.convert_to_valid_module_name(project_path.name)
-            
+
+        package_name = template_parameters['package_name']
+        with utils.in_directory(project_path):            
             # docs 
             with open('docs/api.rst',"r") as f:
                 lines = f.readlines()
@@ -383,7 +396,6 @@ def micc_app( app_name
 
 def micc_module_py( module_name
                   , templates
-                  , micc_file
                   , global_options
                   ):
     """
@@ -407,26 +419,21 @@ def micc_module_py( module_name
     if not module_name==utils.convert_to_valid_module_name(module_name):
         raise AssertionError(f"Not a valid module_name: {module_name}")
 
-    package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'python module'
     
     source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}/__init__.py"
     
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating python module {source_file} in Python package {project_path.name}."):
-        
-        ( exit_code
-        , _ #template_paraeters
-        ) = expand_templates( templates, micc_file, project_path, global_options
-                            # extra template parameters:
-                            , project_name=project_path.name
-                            , package_name=package_name
-                            , module_name=module_name
-                            )
+        template_parameters = { 'module_name' : module_name }
+        template_parameters.update(global_options.template_parameters)
+     
+        exit_code = expand_templates( templates, template_parameters, global_options )                        
         if exit_code:
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
-        
+
+        package_name = template_parameters['package_name']        
         if global_options.structure=='package':
             module_to_package(project_path / package_name / (module_name + '.py'))
 
@@ -442,7 +449,6 @@ def micc_module_py( module_name
 
 def micc_module_f2py( module_name
                     , templates
-                    , micc_file
                     , global_options
                     ):
     """
@@ -465,25 +471,19 @@ def micc_module_f2py( module_name
     if not module_name==utils.convert_to_valid_module_name(module_name):
         raise AssertionError(f"Not a valid module_name {module_name}")
 
-    package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
     
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
-        
-        ( exit_code
-        , _ #template_paraeters
-        ) = expand_templates( templates, micc_file, project_path, global_options
-                            # extra template parameters:
-                            , project_name=project_path.name
-                            , package_name=package_name
-                            , module_name=module_name
-                            , path_to_cmake_tools=utils.path_to_cmake_tools()
-                            )
+        template_parameters = { 'module_name' : module_name }
+        template_parameters.update(global_options.template_parameters)
+
+        exit_code = expand_templates( templates, template_parameters, global_options )                        
         if exit_code:
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
             
+        package_name = template_parameters['package_name']
         with utils.in_directory(project_path):
             # docs
             with open("API.rst","a") as f:
@@ -499,7 +499,6 @@ def micc_module_f2py( module_name
 
 def micc_module_cpp( module_name
                    , templates
-                   , micc_file
                    , global_options
                    ):
     """
@@ -522,25 +521,19 @@ def micc_module_cpp( module_name
     if not module_name==utils.convert_to_valid_module_name(module_name):
         raise AssertionError(f"Not a valid module_name {module_name}")
 
-    package_name = utils.convert_to_valid_module_name(project_path.name)
     global_options.module_kind = 'f2py module'
     
     micc_logger = utils.get_micc_logger(global_options)
     with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
-        
-        ( exit_code
-        , _ #template_paraeters
-        ) = expand_templates( templates, micc_file, project_path, global_options
-                            # extra template parameters:
-                            , project_name=project_path.name
-                            , package_name=package_name
-                            , module_name=module_name
-                            , path_to_cmake_tools=utils.path_to_cmake_tools()
-                            )
+        template_parameters = { 'module_name' : module_name }
+        template_parameters.update(global_options.template_parameters)
+
+        exit_code = expand_templates( templates, template_parameters, global_options )                        
         if exit_code:
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
 
+        package_name = template_parameters['package_name']
         with utils.in_directory(project_path):
             # docs
             with open("API.rst","a") as f:
@@ -763,8 +756,8 @@ def module_to_package(module_py):
     dst = str(package / '__init__.py')
     shutil.move(src, dst)
 
-    the_micc_logger = utils.get_micc_logger.the_logger
-    utils.log(the_micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
+    micc_logger = utils.get_micc_logger.the_logger
+    utils.log(micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
 
 
 def micc_convert_simple(global_options):
@@ -877,39 +870,40 @@ def micc_info(global_options):
             utils.log(micc_logger.warning, "\nFound both module and package structure."
                                            "\nThis will give import problems.")
     if global_options.verbosity>=3:
-        click.echo("  contents:")
         package_path = project_path / package_name
         files = []
         files.extend(package_path.glob('**/*.py'))
         files.extend(package_path.glob('**/cpp_*/'))
         files.extend(package_path.glob('**/f2py_*'))
-        for f in files:
-            # filters
-            if '{' in str(f):
-                continue
-            if 'template-package-' in str(f): # very ad hoc solution, only relevant to the micc project itself
-                continue
-            if f.name=="__init__.py" and f.parent.samefile(package_path): # ignore the top-level __init__.py
-                continue
-            if 'build_' in str(f):
-                continue
-            
-            fg = 'green'
-            extra = ''
-            if f.name.startswith('cli'):
-                kind = "application "
-                fg = 'blue'
-            elif f.name.startswith('cpp_'):
-                kind = "C++ module  "
-                extra = f"{os.sep}{f.name.split('_',1)[1]}.cpp"
-            elif f.name.startswith('f2py_'):
-                kind = "f2py module "
-                extra = f"{os.sep}{f.name.split('_',1)[1]}.f90"
-            elif f.name=='__init__.py':
-                kind = "package     "
-            else:
-                kind = "module      "
-            click.echo("    " + kind + click.style(str(f.relative_to(package_path)) + extra,fg=fg))
+        if files:
+            click.echo("  contents:")
+            for f in files:
+                # filters
+                if '{' in str(f):
+                    continue
+                if 'template-package-' in str(f): # very ad hoc solution, only relevant to the micc project itself
+                    continue
+                if f.name=="__init__.py" and f.parent.samefile(package_path): # ignore the top-level __init__.py
+                    continue
+                if 'build_' in str(f):
+                    continue
+                
+                fg = 'green'
+                extra = ''
+                if f.name.startswith('cli'):
+                    kind = "application "
+                    fg = 'blue'
+                elif f.name.startswith('cpp_'):
+                    kind = "C++ module  "
+                    extra = f"{os.sep}{f.name.split('_',1)[1]}.cpp"
+                elif f.name.startswith('f2py_'):
+                    kind = "f2py module "
+                    extra = f"{os.sep}{f.name.split('_',1)[1]}.f90"
+                elif f.name=='__init__.py':
+                    kind = "package     "
+                else:
+                    kind = "module      "
+                click.echo("    " + kind + click.style(str(f.relative_to(package_path)) + extra,fg=fg))
 
 
 def micc_poetry(*args, global_options):
@@ -937,4 +931,5 @@ def micc_poetry(*args, global_options):
                    , fg='bright_red'
                    )
         return 1
+
 # EOF #

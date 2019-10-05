@@ -1,6 +1,28 @@
 Open Issues
 ===========
 
+#22 [issue] building cpp module fails when pybind11 is pip-installed
+--------------------------------------------------------------------
+(at least on a conda environment) it works however when it is conda-installed.
+
+.. code-block::
+
+   DEBUG    micc-build-cpp_mod4.log:utils.py:295  (stderr)
+                                                 CMake Error at CMakeLists.txt:14 (find_package):
+                                                   Could not find a package configuration file provided by "pybind11" with any
+                                                   of the following names:
+   
+                                                     pybind11Config.cmake
+                                                     pybind11-config.cmake
+   
+                                                   Add the installation prefix of "pybind11" to CMAKE_PREFIX_PATH or set
+                                                   "pybind11_DIR" to a directory containing one of the above files.  If
+                                                   "pybind11" provides a separate development package or SDK, be sure it has
+                                                   been installed.
+
+also building an f2py module fails for the same reason.
+conda installs the missing files in ``~/miniconda3/envs/micc/share/cmake/pybind11``
+
 #5 [feature] packaging and deployment, and the use of poetry in general
 -----------------------------------------------------------------------
 The `Python Packaging User Guide <https://packaging.python.org/guides/>`_

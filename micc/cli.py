@@ -16,7 +16,9 @@ from micc import utils
 
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
-__micc_file_help = ("The name of the *micc-file* in the cookiecutter templates (default = ``micc.json``). "
+__micc_file_help = ("The path to the *micc-file* with the parameter values used in the cookiecutter"
+                    "templates. When a new project is created, "
+                    "in the cookiecutter templates (default = ``micc.json``). "
                     "*Micc* does not use the standard ``cookiecutter.json`` file to provide the "
                     "template parameters, but uses a *micc-file*, usually named ``micc.json``, to "
                     "generate a ``cookiecutter.json`` file. Unlike the ``cookiecutter.json`` file, "
@@ -35,13 +37,19 @@ __overwrite_help = ("If specified, any existing files are overwritten without ba
 
 @click.group()
 @click.option('-v', '--verbosity', count=True
-             , help="The verbosity of the program output.")
-@click.option('-p', '--project-path', default='.', type=Path
+             , help="The verbosity of the program output."
+             , default=1 
+             )
+@click.option('-p', '--project-path'
              , help="The path to the project directory. "
                     "The default is the current working directory."
+             , default='.'
+             , type=Path
              )
-@click.option('--clear-log', is_flag=True, default=False
-             , help="If specified clears the project's ``micc.log`` file.")
+@click.option('--clear-log'
+             , help="If specified clears the project's ``micc.log`` file."
+             , default=False, is_flag=True
+             )
 @click.pass_context
 def main(ctx, verbosity, project_path, clear_log):
     """
@@ -60,6 +68,7 @@ def main(ctx, verbosity, project_path, clear_log):
     ctx.obj = SimpleNamespace( verbosity=verbosity
                              , project_path=project_path.resolve()
                              , clear_log=clear_log
+                             , template_parameters={}
                              )
 
     if utils.is_conda_python():
@@ -70,31 +79,48 @@ def main(ctx, verbosity, project_path, clear_log):
                                 "         >  poetry install\n",                                 fg='bright_red')
                   + click.style("==========================================================\n", fg='yellow')
                   )
+    template_parameters_json = project_path / 'micc.json'
+    if template_parameters_json.exists():
+        ctx.obj.template_parameters.update(cmds.get_template_parameters(template_parameters_json))
     
 
 @main.command()
-@click.option('-T', '--template',  default=[]         , help=__template_help)
-@click.option('-m', '--micc-file', default='micc.json', help=__micc_file_help)
-@click.option('-s', '--structure', type=click.Choice(['module','package']), default='package'
+@click.option('-s', '--structure'
              , help="Use module or package structure for this project's top-level:\n\n"
                     "* ``module``: ``<module_name>.py`` \n"
                     "* ``package``: ``<module_name>/__init__.py``\n\n"
                     "Default = ``package``."
+             , default='package', type=click.Choice(['module','package'])
              )
-@click.option('-n', '--allow-nesting',  is_flag=True, default=False
+@click.option('-m', '--micc-file'
+             , help="The file containing the descriptions of the template parameters used"
+                    "in the *Cookiecutter* templates. "
+             , default='',type=Path
+             )
+@click.option('-d', '--description'
+             , help="Short description of your project."
+             , default='<Enter a one-sentence description of this project here.>'
+             )
+@click.option('-T', '--template' , help=__template_help , default=[])
+@click.option('-n', '--allow-nesting'
              , help="If specified allows to nest a project inside another project."
+             , default=False, is_flag=True
              )
 @click.pass_context
 def create( ctx
-          , template
-          , micc_file
           , structure
+          , micc_file
+          , description
+          , template
           , allow_nesting
           ):
     """
     Create a project skeleton.
     
     The project name is taken to be the last directory of the *<project_path>*.
+    If this directory does not yet exist, it is created. If it exists already, it
+    must be empty.
+    
     The package name is the derived from the project name, taking the
     `PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_
     into account:
@@ -108,21 +134,10 @@ def create( ctx
     
     If the *<project_path>* refers to an existing project, *micc* refuses to continu.
     
+    TODO:
     Prompts the user for all entries in the *micc-file* file
     that do not have a default value.
     """
-    if ctx.obj.project_path==Path.cwd():
-        answer = click.prompt(f"Enter {click.style('[path/to/]',fg='yellow')} project_name\n"
-                              f"(relative to CWD (={Path.cwd()}) or absolute)\n"
-                              f"or just press Enter to cancel the command"
-                             , default=''
-                             , show_default=False
-                             )
-        if not answer:
-            click.secho("Command cancelled",fg='red')
-            return cmds.EXIT_CANCEL
-        else:
-            ctx.obj.project_path = ctx.obj.project_path / answer
     
     if not template: # default, empty list
         if structure=='module':
@@ -142,24 +157,32 @@ def create( ctx
         
     ctx.obj.structure = structure
     ctx.obj.allow_nesting = allow_nesting
+    ctx.obj.template_parameters['project_short_description'] = description
         
-    return cmds.micc_create( templates=template
-                           , micc_file=micc_file
-                           , global_options=ctx.obj
-                           )
+    rc = cmds.micc_create( templates=template
+                         , micc_file=micc_file
+                         , global_options=ctx.obj
+                         )
+    if rc: ctx.exit(rc)
 
 
 @main.command()
 @click.argument('app_name',type=str)
-@click.option('-T', '--template' , default='template-app'     , help=__template_help)
-@click.option('-m', '--micc-file', default='micc.json'        , help=__micc_file_help)
-@click.option(      '--overwrite', default=False, is_flag=True, help=__overwrite_help)
+@click.option('-T', '--template', default='template-app', help=__template_help)
+@click.option('--overwrite', is_flag=True
+             , help="Overwrite pre-existing files (without backup)."
+             , default=False
+             )
+@click.option('--backup', is_flag=True
+             , help="Make backup files (.bak) before overwriting any pre-existing files."
+             , default=False
+             )
 @click.pass_context
 def app( ctx
        , app_name
        , template
-       , micc_file
        , overwrite
+       , backup
        ):
     """
     Add an app (console script) with name *<app_name>* to the package.
@@ -170,35 +193,51 @@ def app( ctx
     
     if utils.app_exists(ctx.obj.project_path, app_name):
         raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {app_name}.")
+    
     ctx.obj.overwrite = overwrite
-    return cmds.micc_app( app_name
-                        , templates=template
-                        , micc_file=micc_file
-                        , global_options=ctx.obj
-                        )
+    ctx.obj.backup    = backup
+    
+    rc =  cmds.micc_app( app_name
+                       , templates=template
+                       , global_options=ctx.obj
+                       )
+    if rc:
+        ctx.exit(rc)
 
 
 @main.command()
 @click.argument('module_name', default='')
-@click.option( '--f2py', is_flag=True, default=False
-             , help='If specified creates a f2py module.')
-@click.option( '--cpp', is_flag=True, default=False
-             , help='If specified creates a C++ module.')
-@click.option('-s', '--structure', type=click.Choice(['module','package']), default='module'
-              , help="Use module (default) or package structure for this sub-module :\n\n"
-                     "* module: ``<module_name>.py`` \n"
-                     "* package: ``<module_name>/__init__.py``\n\n"
-                     "This option is ignored if ``--cpp`` or ``--f2py`` is specified.")
-@click.option( '-T', '--template' , default=''                 , help=__template_help)
-@click.option( '-m', '--micc-file', default='micc.json'        , help=__micc_file_help)
-@click.option(       '--overwrite', default=False, is_flag=True, help=__overwrite_help)
+@click.option( '--f2py'
+             , help='If specified creates a f2py module.'
+             , default=False, is_flag=True
+             )
+@click.option( '--cpp'
+             , help='If specified creates a C++ module.'
+             , default=False, is_flag=True
+             )
+@click.option('-s', '--structure'
+             , help="Use module (default) or package structure for this sub-module :\n\n"
+                    "* module: ``<module_name>.py`` \n"
+                    "* package: ``<module_name>/__init__.py``\n\n"
+                    "This option is ignored if ``--cpp`` or ``--f2py`` is specified."
+             , default='module', type=click.Choice(['module','package'])
+             )
+@click.option( '-T', '--template' , default='', help=__template_help)
+@click.option('--overwrite', is_flag=True
+             , help="Overwrite pre-existing files (without backup)."
+             , default=False
+             )
+@click.option('--backup', is_flag=True
+             , help="Make backup files (.bak) before overwriting any pre-existing files."
+             , default=False
+             )
 @click.pass_context
 def module( ctx
           , module_name
           , f2py, cpp, structure
           , template
-          , micc_file
           , overwrite
+          , backup
           ):
     """
     Add a sub-module with name *<module_name>* to the package. This can be a Python
@@ -216,47 +255,60 @@ def module( ctx
 
     ctx.obj.structure = structure
     ctx.obj.overwrite = overwrite
+    ctx.obj.backup    = backup
+    ctx.obj.template_parameters['path_to_cmake_tools'] = utils.path_to_cmake_tools()
     
     if f2py:
         if not template:
             template = 'template-module-f2py'
-        return cmds.micc_module_f2py( module_name
-                                    , templates=template
-                                    , micc_file=micc_file
-                                    , global_options=ctx.obj
-                                    )
+        rc = cmds.micc_module_f2py( module_name
+                                  , templates=template
+                                  , global_options=ctx.obj
+                                  )
     elif cpp:
         if not template:
             template = 'template-module-cpp'
-        return cmds.micc_module_cpp( module_name
-                                   , templates=template
-                                   , micc_file=micc_file
-                                   , global_options=ctx.obj
-                                   )
+        rc = cmds.micc_module_cpp( module_name
+                                 , templates=template
+                                 , global_options=ctx.obj
+                                 )
     else:
         if not template:
             template = 'template-module-py'
-        return cmds.micc_module_py( module_name
-                                  , templates=template
-                                  , micc_file=micc_file
-                                  , global_options=ctx.obj
-                                  )
+        rc = cmds.micc_module_py( module_name
+                                , templates=template
+                                , global_options=ctx.obj
+                                )
+    if rc:
+        ctx.exit(rc)
 
 
 @main.command()
 @click.argument( 'rule', default='')
-@click.option('-M','--major', is_flag=True, default=False
-             , help='Increment the major version number component and set minor and patch components to 0.')
-@click.option('-m','--minor', is_flag=True, default=False
-             , help='Increment the minor version number component and set minor and patch component to 0.')
-@click.option('-p','--patch', is_flag=True, default=False
-             , help='Increment the patch version number component.')
-@click.option('-t', '--tag',  is_flag=True, default=False
-             , help='Create a git tag for the new version, and push it to the remote repo.')
-@click.option('-s', '--short',  is_flag=True, default=False
-             , help='Print the version on stdout.')
-@click.option('--poetry',  is_flag=True, default=False
-             , help='Use poetry instead of bumpversion for bumping the version.')
+@click.option('-M','--major'
+             , help='Increment the major version number component and set minor and patch components to 0.'
+             , default=False, is_flag=True
+             )
+@click.option('-m','--minor'
+             , help='Increment the minor version number component and set minor and patch component to 0.'
+             , default=False, is_flag=True
+             )
+@click.option('-p','--patch'
+             , help='Increment the patch version number component.'
+             , default=False, is_flag=True
+             )
+@click.option('-t', '--tag'
+             , help='Create a git tag for the new version, and push it to the remote repo.'
+             , default=False, is_flag=True
+             )
+@click.option('-s', '--short'
+             , help='Print the version on stdout.'
+             , default=False, is_flag=True
+             )
+@click.option('--poetry'
+             , help='Use poetry instead of bumpversion for bumping the version.'
+             , default=False, is_flag=True
+             )
 @click.pass_context
 def version( ctx, rule, major, minor, patch, tag, short, poetry):
     """
@@ -278,9 +330,11 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
         
     return_code = cmds.micc_version(rule, short, poetry, global_options=ctx.obj)
     if return_code==0 and tag:
-        return cmds.micc_tag(global_options=ctx.obj)
+        rc = cmds.micc_tag(global_options=ctx.obj)
     else:
-        return return_code
+        rc = return_code
+    if rc: 
+        ctx.exit(rc)
 
 
 @main.command()
@@ -293,25 +347,32 @@ def tag(ctx):
 
 
 @main.command()
-@click.option('-m','--module', default=''
+@click.option('-m','--module'
              , help="Build only this module. The module kind prefix (``cpp_`` "
-                    "for C++ modules, ``f2py_`` for Fortran modules) may be omitted.")
-@click.option('-s', '--soft-link', is_flag=True, default=False
-             , help="Create a soft link rather than a copy of the extension library.")
+                    "for C++ modules, ``f2py_`` for Fortran modules) may be omitted."
+             , default=''
+             )
+@click.option('-s', '--soft-link'
+             , help="Create a soft link rather than a copy of the extension library."
+             , default=False, is_flag=True
+             )
 @click.pass_context
 def build(ctx, module, soft_link):
     """
     Build binary extension libraries (f2py and cpp modules). 
     """
-    return cmds.micc_build( module_to_build=module
-                          , soft_link=soft_link
-                          , global_options=ctx.obj
-                          )
-
+    rc = cmds.micc_build( module_to_build=module
+                        , soft_link=soft_link
+                        , global_options=ctx.obj
+                        )
+    if rc:
+        ctx.exit(rc)
+                          
+                          
 
 @main.command()
-@click.option('--overwrite', is_flag=True, default=False
-             , help=__overwrite_help
+@click.option('--overwrite', help=__overwrite_help
+             , default=False, is_flag=True
              )
 @click.pass_context
 def convert_to_package(ctx, overwrite):
@@ -328,14 +389,20 @@ def convert_to_package(ctx, overwrite):
     to the documentation structure.
     """
     ctx.obj.overwrite = overwrite
-    return cmds.micc_convert_simple(global_options=ctx.obj)
+    rc = cmds.micc_convert_simple(global_options=ctx.obj)
+    if rc:
+        ctx.exit(rc)
 
 
 @main.command()
-@click.option('-h', '--html', is_flag=True, default=False
-             , help="If specified builds html documentation.")
-@click.option('-l', '--latexpdf', is_flag=True, default=False
-             , help="If specified builds pdf documentation.")
+@click.option('-h', '--html'
+             , help="If specified builds html documentation."
+             , default=False, is_flag=True
+             )
+@click.option('-l', '--latexpdf'
+             , help="If specified builds pdf documentation."
+             , default=False, is_flag=True
+             )
 @click.pass_context
 def docs(ctx, html, latexpdf):
     """
@@ -347,7 +414,9 @@ def docs(ctx, html, latexpdf):
     if latexpdf:
         formats.append('latexpdf')
     
-    return cmds.micc_docs(formats, global_options=ctx.obj)
+    rc = cmds.micc_docs(formats, global_options=ctx.obj)
+    if rc:
+        ctx.exit(rc)
 
 
 @main.command()
@@ -364,14 +433,17 @@ def info(ctx):
     
     Use verbosity to produce more detailed info.
     """    
-    return cmds.micc_info(global_options=ctx.obj)
+    rc = cmds.micc_info(global_options=ctx.obj)
+    if rc:
+        ctx.exit(rc)
 
 
 @main.command()
 @click.argument('args',nargs=-1)
-@click.option('--system',is_flag=True,default=False
+@click.option('--system'
              , help="Use the poetry version installed in the system, instead "
                     "of that in the python environment."
+             , default=False, is_flag=True
              )
 @click.pass_context
 def poetry(ctx,args,system):
@@ -379,7 +451,10 @@ def poetry(ctx,args,system):
     A wrapper around poetry that warns for dangerous poetry commands in a conda environment.
     """
     ctx.obj.system = system
-    cmds.micc_poetry( *args, global_options=ctx.obj)
+    rc = cmds.micc_poetry( *args, global_options=ctx.obj)
+    if rc:
+        ctx.exit(rc)
+
     
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover

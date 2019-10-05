@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 #===============================================================================
-# import pytest
+import pytest
 from click import echo
 from click.testing import CliRunner
 
@@ -38,7 +38,6 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 from tests.helpers import in_empty_tmp_dir,report,get_version
 from micc import cli
 import micc.utils
-
 
 #===============================================================================
 # test scenario blocks
@@ -72,10 +71,10 @@ def test_scenario_1():
     """
     """
     runner = CliRunner()
-#     with runner.isolated_filesystem():
     with in_empty_tmp_dir():
-        run(runner, ['-vv', 'create', '--allow-nesting'],input_='sandbox/FOO\nshort description')
-        assert Path('sandbox/FOO/foo').exists()
+        run(runner, ['-vv', '-p', 'FOO', 'create', '--allow-nesting'])
+        assert Path('FOO/foo').exists()
+
 
 def test_scenario_1b():
     """
@@ -83,15 +82,21 @@ def test_scenario_1b():
     runner = CliRunner()
 #     with runner.isolated_filesystem():
     with in_empty_tmp_dir():
-        run(runner, ['-vv', 'create', '--allow-nesting'],input_='\n')
-
+        oops = Path('oops')
+        oops.touch()
+        with pytest.raises(AssertionError):
+            run(runner, ['-vv', 'create', '--allow-nesting'] )
+        l = os.listdir()
+        assert len(l)==1
+        
+        
 def test_scenario_2():
     """
     """
     runner = CliRunner()
 #     with runner.isolated_filesystem():
     with in_empty_tmp_dir():
-        run(runner, ['-p','foo','-vv', 'create', '--allow-nesting'],input_='short description')
+        run(runner, ['-p','foo','-vv', 'create', '--allow-nesting'])
         foo = Path('foo')
         micc.utils.is_project_directory(foo,raise_if=False)
         micc.utils.is_module_project   (foo,raise_if=True)

@@ -132,10 +132,10 @@ def test_log():
     assert logfile.exists()
     logtext = logfile.read_text()
     print(logtext)
-    assert "doing ...\n" in logtext
+    assert "doing" in logtext
     assert "test_log with a logfun\n" in logtext
     assert "  . debug message\n" in logtext
-    assert "doing ... done.\n" in logtext
+    assert "... done.\n" in logtext
     
     
 def test_get_project_path():
@@ -152,10 +152,9 @@ def test_get_project_path():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_module_to_package # test_scenario_1
+    the_test_you_want_to_debug = test_log # test_scenario_1
 
-    from utils import taskcm
-    with taskcm(f"__main__ running {the_test_you_want_to_debug}",
-               '-*# finished #*-', singleline=False, combine=False):
-        the_test_you_want_to_debug()
+    print(f"__main__ running {the_test_you_want_to_debug}")
+    the_test_you_want_to_debug()
+    print('-*# finished #*-')
 # ==============================================================================

@@ -435,16 +435,10 @@ def log(logfun=None, begin_msg='doing', end_msg='done.'):
         `<begin_msg> ... <end_msg>`. Calling print2stderr may obfuscate this.
     """
     if logfun:
-        if end_msg is None:
-            logfun(begin_msg)
-        else:
-            logfun(begin_msg+' ...')
-        yield
-        if not end_msg is None:
-            logfun(f"{begin_msg} ... {end_msg}\n")
-    else:
-        yield
-        pass
+        logfun(begin_msg)
+    yield
+    if logfun:
+        logfun(f"... {end_msg}\n")
 
 
 def is_conda_python():
