@@ -26,6 +26,7 @@ Using *micc* myself encouraged me to
 
 * Fixed: return codes from commands are now propagated as exit code of the application.
 * Fixed: issue #12.
+* Fixed: issue #23.
 
 
 v0.6.2 (2019-10-02)

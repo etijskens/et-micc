@@ -1,5 +1,6 @@
 Open Issues
 ===========
+#24
 
 #22 [issue] building cpp module fails when pybind11 is pip-installed
 --------------------------------------------------------------------
@@ -223,4 +224,9 @@ instead), obviously a nightmare. Thus, if we want to use poetry, we must use a n
 if we want to use conda python versions, we must refrain from poetry.
 solved: only ``poetry install`` does not work well with a conda python environment,
 ``poetry build`` does fine 
+
+#23 [issue] remove interactivity from micc app and micc module
+--------------------------------------------------------------
+behavior is now steered with flags. 
+default behavior is abort if pre-existing files would be overwritten.
 

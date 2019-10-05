@@ -17,7 +17,6 @@ from cookiecutter.main import cookiecutter
 from micc.tomlfile import TomlFile
 
 from micc import utils
-from micc.utils import get_project_path
 
 EXIT_CANCEL = -1 # exit code used for action canceled by user
 EXIT_ABORT  = -2 # exit code used for action EXIT_CANCELled by user
@@ -55,7 +54,7 @@ def set_preferences(micc_file):
     (This function requires user interaction!)
     
     :param Path micc_file: path to a json file.
-    """        
+    """
     with micc_file.open() as f:
         preferences = json.load(f)
         
@@ -75,7 +74,7 @@ def get_preferences(micc_file):
     
     (This function requires user interaction if no *micc_file* was provided!)
 
-    :param Path micc_file: path to a json file.    
+    :param Path micc_file: path to a json file.
     """
     if micc_file.samefile('.'):
         # There is no micc file with preferences yet.
@@ -95,13 +94,13 @@ def get_preferences(micc_file):
     return preferences
 
 
-def get_template_parameters(preferences={}):
+def get_template_parameters(preferences):
     """Get the template parameters from the preferences.
     
     :param dict|Path preferenes:
     :returns: dict of (parameter name,parameter value) pairs.
     """
-    if isinstance(preferences,dict): 
+    if isinstance(preferences,dict):
         template_parameters = {}
         for parameter,description in preferences.items():
             template_parameters[parameter] = description['default']
@@ -267,7 +266,7 @@ def micc_create( templates
                            )
             p = p.parent
     
-    project_name  = project_path.name    
+    project_name  = project_path.name
     package_name = utils.convert_to_valid_module_name(project_name)
     relative_project_path = project_path.relative_to(Path.cwd())
     if global_options.structure=='module':
@@ -333,7 +332,7 @@ def micc_app( app_name
     :param str templates: ordered list of paths to a Cookiecutter template. a 
         single path is ok too.
     :param str micc_file: name of the json file with the default values in the 
-        template directories. 
+        template directories.
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by (almost) all micc commands.
     """
@@ -433,7 +432,7 @@ def micc_module_py( module_name
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
 
-        package_name = template_parameters['package_name']        
+        package_name = template_parameters['package_name']
         if global_options.structure=='package':
             module_to_package(project_path / package_name / (module_name + '.py'))
 
@@ -528,7 +527,7 @@ def micc_module_cpp( module_name
         template_parameters = { 'module_name' : module_name }
         template_parameters.update(global_options.template_parameters)
 
-        exit_code = expand_templates( templates, template_parameters, global_options )                        
+        exit_code = expand_templates( templates, template_parameters, global_options )
         if exit_code:
             micc_logger.critical(f"Exiting ({exit_code}) ...")
             return exit_code
@@ -780,13 +779,10 @@ def micc_convert_simple(global_options):
     pyproject_toml = TomlFile(project_path / 'pyproject.toml')
     pyproject_toml_content = pyproject_toml.read()
 
-    ( exit_code
-    , _ # template_parameters
-    ) = expand_templates("template-package-general-docs", 'micc.json', project_path, global_options
-                        # extra template parameters:
-                        , project_name=project_path.name
-                        , project_short_description=pyproject_toml_content['tool']['poetry']['description']
-                        )                
+    template_parameters = {'project_short_description' : pyproject_toml_content['tool']['poetry']['description']}
+    template_parameters.update(global_options.template_parameters)
+
+    exit_code = expand_templates( "template-package-general-docs", template_parameters, global_options )                        
     if exit_code:
         return exit_code
     
@@ -826,6 +822,7 @@ def micc_docs(formats, global_options):
     with utils.in_directory(project_path / 'docs'):
         with utils.log(micc_logger.info,f"Building documentation for project {project_path.name}."):
             utils.execute(cmds, micc_logger.debug, env=os.environ.copy())
+    return 0
 
 
 def micc_info(global_options):
@@ -904,6 +901,7 @@ def micc_info(global_options):
                 else:
                     kind = "module      "
                 click.echo("    " + kind + click.style(str(f.relative_to(package_path)) + extra,fg=fg))
+    return 0
 
 
 def micc_poetry(*args, global_options):

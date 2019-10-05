@@ -38,7 +38,7 @@ __overwrite_help = ("If specified, any existing files are overwritten without ba
 @click.group()
 @click.option('-v', '--verbosity', count=True
              , help="The verbosity of the program output."
-             , default=1 
+             , default=1
              )
 @click.option('-p', '--project-path'
              , help="The path to the project directory. "
@@ -366,16 +366,20 @@ def build(ctx, module, soft_link):
                         , global_options=ctx.obj
                         )
     if rc:
-        ctx.exit(rc)
-                          
-                          
+        ctx.exit(rc) 
+      
 
 @main.command()
-@click.option('--overwrite', help=__overwrite_help
-             , default=False, is_flag=True
+@click.option('--overwrite', is_flag=True
+             , help="Overwrite pre-existing files (without backup)."
+             , default=False
+             )
+@click.option('--backup', is_flag=True
+             , help="Make backup files (.bak) before overwriting any pre-existing files."
+             , default=False
              )
 @click.pass_context
-def convert_to_package(ctx, overwrite):
+def convert_to_package(ctx, overwrite, backup):
     """
     Convert a Python module project to a package.
 
@@ -389,6 +393,7 @@ def convert_to_package(ctx, overwrite):
     to the documentation structure.
     """
     ctx.obj.overwrite = overwrite
+    ctx.obj.backup    = backup
     rc = cmds.micc_convert_simple(global_options=ctx.obj)
     if rc:
         ctx.exit(rc)
