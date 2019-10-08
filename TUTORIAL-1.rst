@@ -49,17 +49,12 @@ like this:
 .. code-block:: bash
 
    > cd ~/software/dev/workspace
-   > micc -p ET-dot create --structure module
-   
-   [INFO] Creating project (ET-dot):
-          Python module (et_dot): structure = (ET-dot/et_dot/__init__.py)
-          Added auto-documentation using sphinx.
-          Added a tests directory for testing your code.
-   [INFO] ... done.
-   
-   [INFO] Creating git repository
-   [INFO] ... done.
-   
+
+   [INFO]      Creating project (ET-dot):
+   INFO             Python module (et_dot): structure = (ET-dot/et_dot.py)
+   INFO             Creating git repository
+   INFO             done.
+   INFO         done.   
    >
 
 From the first output line we can tell that *micc* has created a project ``ET-dot``,

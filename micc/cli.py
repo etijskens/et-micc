@@ -12,7 +12,7 @@ import click
 
 import micc.commands as cmds
 from micc.utils import module_exists
-from micc import utils
+from micc import utils,logging
 
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
@@ -194,7 +194,7 @@ def app( ctx
     if utils.app_exists(ctx.obj.project_path, app_name):
         raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {app_name}.")
 
-    with utils.logtime(ctx.obj):
+    with logging.logtime(ctx.obj):
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
         
@@ -259,7 +259,7 @@ def module( ctx
     ctx.obj.backup    = backup
     ctx.obj.template_parameters['path_to_cmake_tools'] = utils.path_to_cmake_tools()
     
-    with utils.logtime(ctx.obj):
+    with logging.logtime(ctx.obj):
         if f2py:
             if not template:
                 template = 'module-f2py'
@@ -330,7 +330,7 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
     if rule and (major or minor or patch):
         raise RuntimeError("Ambiguous arguments:\n  specify either 'rule' argments,\n  or one of [--major,--minor--patch], not both.")
         
-    with utils.logtime(ctx.obj):
+    with logging.logtime(ctx.obj):
         return_code = cmds.micc_version(rule, short, poetry, global_options=ctx.obj)
         if return_code==0 and tag:
             rc = cmds.micc_tag(global_options=ctx.obj)
@@ -346,7 +346,7 @@ def tag(ctx):
     """
     Create a git tag for the current version and push it to the remote repo.
     """
-    with utils.logtime(ctx.obj):
+    with logging.logtime(ctx.obj):
         return cmds.micc_tag(global_options=ctx.obj)
 
 
@@ -365,7 +365,7 @@ def build(ctx, module, soft_link):
     """
     Build binary extension libraries (f2py and cpp modules). 
     """
-    with utils.logtime(ctx.obj):
+    with logging.logtime(ctx.obj):
         rc = cmds.micc_build( module_to_build=module
                             , soft_link=soft_link
                             , global_options=ctx.obj
@@ -397,7 +397,7 @@ def convert_to_package(ctx, overwrite, backup):
     project, which adds a ``AUTHORS.rst``, ``HISTORY.rst`` and ``installation.rst``
     to the documentation structure.
     """
-    with utils.logtime(ctx.obj):
+    with logging.logtime(ctx.obj):
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
         rc = cmds.micc_convert_simple(global_options=ctx.obj)
@@ -419,7 +419,7 @@ def docs(ctx, html, latexpdf):
     """
     Build documentation for the project using Sphinx with the specified formats.
     """
-    with utils.logtime(ctx.obj):
+    with logging.logtime(ctx.obj):
         formats = []
         if html:
             formats.append('html')
@@ -462,7 +462,7 @@ def poetry(ctx,args,system):
     """
     A wrapper around poetry that warns for dangerous poetry commands in a conda environment.
     """
-    with utils.logtime(ctx.obj):
+    with logging.logtime(ctx.obj):
         ctx.obj.system = system
         rc = cmds.micc_poetry( *args, global_options=ctx.obj)
     if rc:

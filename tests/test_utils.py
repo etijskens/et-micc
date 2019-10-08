@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Tests for micc package.
+Tests for micc.utils package.
 """
 #===============================================================================
 
@@ -15,7 +15,6 @@ from pathlib import Path
 from click import echo
 import pytest
 import types
-from micc.utils import get_micc_logger
 
 #===============================================================================
 # Make sure that the current directory is the project directory.
@@ -40,6 +39,7 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 from tests.helpers import report, in_empty_tmp_dir 
 from micc import cli,commands
 import micc.utils
+import micc.logging
 
 
 #===============================================================================
@@ -61,7 +61,7 @@ def run(runner,arguments,input_='short description'):
 #===============================================================================
 def test_module_to_package():
     with in_empty_tmp_dir():
-        get_micc_logger(types.SimpleNamespace(verbosity=2
+        micc.logging.get_micc_logger(types.SimpleNamespace(verbosity=2
                                              ,project_path=Path.cwd()
                                              ,clear_log=False
                                              ))
@@ -110,38 +110,6 @@ def test_py_package_exists():
         assert micc.utils.py_module_exists(p,'module')
                
 
-def test_log():
-    
-    with micc.utils.log():
-        print('test_log without logfun')
-        
-    logfile = micc.utils.get_project_path('.') / 'micc.log'
-    print(logfile.resolve())
-    if logfile.exists():
-        logfile.unlink()
-    assert not logfile.exists()
-
-    global_options = types.SimpleNamespace(verbosity=3
-                                          ,project_path=Path('.').resolve()
-                                          ,clear_log=False
-                                          )
-    micc_logger = micc.utils.get_micc_logger(global_options)
-
-    with micc.utils.logtime():    
-        with micc.utils.log(micc_logger.info):
-            micc_logger.info('test_log with a logfun')
-            micc.utils.log_datetime()
-            micc_logger.debug('debug message\nwith 2 lines')
-
-    assert logfile.exists()
-    logtext = logfile.read_text()
-    print(logtext)
-    assert "doing" in logtext
-    assert "test_log with a logfun\n" in logtext
-    assert "debug message" in logtext
-    assert "done." in logtext
-    
-    
 def test_get_project_path():
     p = Path.home()
     with pytest.raises(RuntimeError):
@@ -156,7 +124,7 @@ def test_get_project_path():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_log # test_scenario_1
+    the_test_you_want_to_debug = test_get_project_path # test_scenario_1
 
     print(f"__main__ running {the_test_you_want_to_debug}")
     the_test_you_want_to_debug()

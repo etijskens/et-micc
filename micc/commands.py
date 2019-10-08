@@ -16,13 +16,13 @@ from cookiecutter.main import cookiecutter
 # import toml
 from micc.tomlfile import TomlFile
 
-from micc import utils
+from micc import utils,logging
 
 EXIT_CANCEL = -1 # exit code used for action canceled by user
 EXIT_ABORT  = -2 # exit code used for action EXIT_CANCELled by user
 
 def exit_msg(exit_code):
-    the_micc_logger = utils.get_micc_logger.the_logger
+    the_micc_logger = logging.get_micc_logger.the_logger
     if exit_code==EXIT_CANCEL:
         the_micc_logger.warning("Command canceled, exiting!")
     elif exit_code!=0:
@@ -136,7 +136,7 @@ def expand_templates(templates, template_parameters, global_options):
     project_path = global_options.project_path
     project_path.mkdir(parents=True, exist_ok=True)
     output_dir = project_path.parent
-    micc_logger = utils.get_micc_logger.the_logger
+    micc_logger = logging.get_micc_logger.the_logger
 
     # list existing files that would be overwritten if global_options.overwrite==True
     existing_files = {}
@@ -282,9 +282,9 @@ def micc_create( templates
         structure = ''
     
     global_options.verbosity = max(1,global_options.verbosity)
-    micc_logger = utils.get_micc_logger(global_options)
-    with utils.logtime():
-        with utils.log( micc_logger.info
+    micc_logger = logging.get_micc_logger(global_options)
+    with logging.logtime():
+        with logging.log( micc_logger.info
                       , f"Creating project ({project_name}):"
                       ):
             micc_logger.info(f"Python {global_options.structure} ({package_name}): structure = {structure}")
@@ -305,7 +305,7 @@ def micc_create( templates
                 json.dump(template_parameters,f)
                 micc_logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
         
-            with utils.log(micc_logger.debug,"Creating git repository"):
+            with logging.log(micc_logger.info,"Creating git repository"):
                 with utils.in_directory(project_path):
                     cmds = [ ['git', 'init']
                            , ['git', 'add', '*']
@@ -342,8 +342,8 @@ def micc_app( app_name
 
     cli_app_name = 'cli_' + utils.convert_to_valid_module_name(app_name)
     
-    micc_logger = utils.get_micc_logger(global_options)
-    with utils.log(micc_logger.info, f"Creating app {app_name} in Python package {project_path.name}."):
+    micc_logger = logging.get_micc_logger(global_options)
+    with logging.log(micc_logger.info, f"Creating app {app_name} in Python package {project_path.name}."):
         template_parameters = { 'app_name'     : app_name
                               , 'cli_app_name' : cli_app_name
                               }
@@ -423,8 +423,8 @@ def micc_module_py( module_name
     
     source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}/__init__.py"
     
-    micc_logger = utils.get_micc_logger(global_options)
-    with utils.log(micc_logger.info,f"Creating python module {source_file} in Python package {project_path.name}."):
+    micc_logger = logging.get_micc_logger(global_options)
+    with logging.log(micc_logger.info,f"Creating python module {source_file} in Python package {project_path.name}."):
         template_parameters = { 'module_name' : module_name }
         template_parameters.update(global_options.template_parameters)
      
@@ -443,7 +443,7 @@ def micc_module_py( module_name
                 f.write(f"\n.. automodule:: {package_name}.{module_name}"
                          "\n   :members:\n\n"
                        )
-            utils.log(micc_logger.debug,f" . documentation entries for Python module {module_name} added.")
+            logging.log(micc_logger.debug,f" . documentation entries for Python module {module_name} added.")
     return 0
 
 
@@ -473,14 +473,14 @@ def micc_module_f2py( module_name
 
     global_options.module_kind = 'f2py module'
     
-    micc_logger = utils.get_micc_logger(global_options)
-    with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
+    micc_logger = logging.get_micc_logger(global_options)
+    with logging.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
         template_parameters = { 'module_name' : module_name }
         template_parameters.update(global_options.template_parameters)
 
         exit_code = expand_templates( templates, template_parameters, global_options )                        
         if exit_code:
-            micc_logger.critical(f"Exiting ({exit_code}) ...")
+            micc_logger.critical(f"Exiting ({exit_code}) ...")  
             return exit_code
             
         package_name = template_parameters['package_name']
@@ -523,8 +523,8 @@ def micc_module_cpp( module_name
 
     global_options.module_kind = 'f2py module'
     
-    micc_logger = utils.get_micc_logger(global_options)
-    with utils.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
+    micc_logger = logging.get_micc_logger(global_options)
+    with logging.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
         template_parameters = { 'module_name' : module_name }
         template_parameters.update(global_options.template_parameters)
 
@@ -572,7 +572,7 @@ def micc_version( rule, short, poetry, global_options):
     package_name    = utils.convert_to_valid_module_name(project_path.name)
 
     global_options.verbosity = max(1,global_options.verbosity)
-    micc_logger = utils.get_micc_logger(global_options)
+    micc_logger = logging.get_micc_logger(global_options)
     
     if short:
         print(current_version)
@@ -646,7 +646,7 @@ def micc_tag( global_options):
     current_version = pyproject_toml_content['tool']['poetry']['version']
     tag = f"v{current_version}"
 
-    micc_logger = utils.get_micc_logger(global_options)
+    micc_logger = logging.get_micc_logger(global_options)
     
     with utils.in_directory(project_path):
     
@@ -704,13 +704,13 @@ def micc_build( module_to_build
                 continue
 
             build_log_file = project_path / f"micc-build-{d}.log"
-            build_logger = utils.create_logger( build_log_file, filemode='w' )
+            build_logger = logging.create_logger( build_log_file, filemode='w' )
  
             module_type,module_name = d.split('_',1)
             build_dir = package_path / d / 'build_'
             build_dir.mkdir(parents=True, exist_ok=True)
 
-            with utils.log(build_logger.info,f"\nBuilding {module_type} module {module_name} in directory '{build_dir}'"):
+            with logging.log(build_logger.info,f"\nBuilding {module_type} module {module_name} in directory '{build_dir}'"):
                 with utils.in_directory(build_dir):
                     cextension = module_name + extension_suffix
                     destination = (Path('../../') / cextension).resolve()
@@ -756,8 +756,8 @@ def module_to_package(module_py):
     dst = str(package / '__init__.py')
     shutil.move(src, dst)
 
-    micc_logger = utils.get_micc_logger.the_logger
-    utils.log(micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
+    micc_logger = logging.get_micc_logger.the_logger
+    logging.log(micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
 
 
 def micc_convert_simple(global_options):
@@ -810,7 +810,7 @@ def micc_docs(formats, global_options):
     project_path = global_options.project_path
     utils.is_project_directory(project_path, raise_if=False)
 
-    micc_logger = utils.get_micc_logger(global_options)
+    micc_logger = logging.get_micc_logger(global_options)
     if not formats:
         micc_logger.info("No documentation format specified, using --html")
         formats.append('html')
@@ -821,7 +821,7 @@ def micc_docs(formats, global_options):
         cmds.append(['make',fmt])
         
     with utils.in_directory(project_path / 'docs'):
-        with utils.log(micc_logger.info,f"Building documentation for project {project_path.name}."):
+        with logging.log(micc_logger.info,f"Building documentation for project {project_path.name}."):
             utils.execute(cmds, micc_logger.debug, env=os.environ.copy())
     return 0
 
@@ -841,7 +841,7 @@ def micc_info(global_options):
     """
     project_path = global_options.project_path
     utils.is_project_directory(project_path, raise_if=False)
-    micc_logger = utils.get_micc_logger(global_options)
+    micc_logger = logging.get_micc_logger(global_options)
     package_name = utils.convert_to_valid_module_name(project_path.name)
     pyproject_toml = TomlFile(project_path / 'pyproject.toml')
     pyproject_toml_content = pyproject_toml.read()
@@ -865,7 +865,7 @@ def micc_info(global_options):
             kind = " (Python package)"
         click.echo("  structure: " + click.style(structure,fg='green')+kind)
         if has_py_module and has_py_package:
-            utils.log(micc_logger.warning, "\nFound both module and package structure."
+            logging.log(micc_logger.warning, "\nFound both module and package structure."
                                            "\nThis will give import problems.")
     if global_options.verbosity>=3:
         package_path = project_path / package_name

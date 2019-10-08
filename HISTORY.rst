@@ -1,7 +1,12 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.6.5 (2019-10-??)
+v0.6.6 (2019-10-08)
+===================
+* refactored logging tools into logging.py
+* fixed indentation with loglevel
+
+v0.6.5 (2019-10-08)
 ===================
 * indentation in logs
 * log time of a command
