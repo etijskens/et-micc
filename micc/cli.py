@@ -193,14 +193,15 @@ def app( ctx
     
     if utils.app_exists(ctx.obj.project_path, app_name):
         raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {app_name}.")
-    
-    ctx.obj.overwrite = overwrite
-    ctx.obj.backup    = backup
-    
-    rc =  cmds.micc_app( app_name
-                       , templates=template
-                       , global_options=ctx.obj
-                       )
+
+    with utils.logtime(ctx.obj):
+        ctx.obj.overwrite = overwrite
+        ctx.obj.backup    = backup
+        
+        rc =  cmds.micc_app( app_name
+                           , templates=template
+                           , global_options=ctx.obj
+                           )
     if rc:
         ctx.exit(rc)
 
@@ -258,27 +259,28 @@ def module( ctx
     ctx.obj.backup    = backup
     ctx.obj.template_parameters['path_to_cmake_tools'] = utils.path_to_cmake_tools()
     
-    if f2py:
-        if not template:
-            template = 'module-f2py'
-        rc = cmds.micc_module_f2py( module_name
-                                  , templates=template
-                                  , global_options=ctx.obj
-                                  )
-    elif cpp:
-        if not template:
-            template = 'module-cpp'
-        rc = cmds.micc_module_cpp( module_name
-                                 , templates=template
-                                 , global_options=ctx.obj
-                                 )
-    else:
-        if not template:
-            template = 'module-py'
-        rc = cmds.micc_module_py( module_name
-                                , templates=template
-                                , global_options=ctx.obj
-                                )
+    with utils.logtime(ctx.obj):
+        if f2py:
+            if not template:
+                template = 'module-f2py'
+            rc = cmds.micc_module_f2py( module_name
+                                      , templates=template
+                                      , global_options=ctx.obj
+                                      )
+        elif cpp:
+            if not template:
+                template = 'module-cpp'
+            rc = cmds.micc_module_cpp( module_name
+                                     , templates=template
+                                     , global_options=ctx.obj
+                                     )
+        else:
+            if not template:
+                template = 'module-py'
+            rc = cmds.micc_module_py( module_name
+                                    , templates=template
+                                    , global_options=ctx.obj
+                                    )
     if rc:
         ctx.exit(rc)
 
@@ -328,11 +330,12 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
     if rule and (major or minor or patch):
         raise RuntimeError("Ambiguous arguments:\n  specify either 'rule' argments,\n  or one of [--major,--minor--patch], not both.")
         
-    return_code = cmds.micc_version(rule, short, poetry, global_options=ctx.obj)
-    if return_code==0 and tag:
-        rc = cmds.micc_tag(global_options=ctx.obj)
-    else:
-        rc = return_code
+    with utils.logtime(ctx.obj):
+        return_code = cmds.micc_version(rule, short, poetry, global_options=ctx.obj)
+        if return_code==0 and tag:
+            rc = cmds.micc_tag(global_options=ctx.obj)
+        else:
+            rc = return_code
     if rc: 
         ctx.exit(rc)
 
@@ -343,7 +346,8 @@ def tag(ctx):
     """
     Create a git tag for the current version and push it to the remote repo.
     """
-    return cmds.micc_tag(global_options=ctx.obj)
+    with utils.logtime(ctx.obj):
+        return cmds.micc_tag(global_options=ctx.obj)
 
 
 @main.command()
@@ -361,10 +365,11 @@ def build(ctx, module, soft_link):
     """
     Build binary extension libraries (f2py and cpp modules). 
     """
-    rc = cmds.micc_build( module_to_build=module
-                        , soft_link=soft_link
-                        , global_options=ctx.obj
-                        )
+    with utils.logtime(ctx.obj):
+        rc = cmds.micc_build( module_to_build=module
+                            , soft_link=soft_link
+                            , global_options=ctx.obj
+                            )
     if rc:
         ctx.exit(rc)
       
@@ -392,9 +397,10 @@ def convert_to_package(ctx, overwrite, backup):
     project, which adds a ``AUTHORS.rst``, ``HISTORY.rst`` and ``installation.rst``
     to the documentation structure.
     """
-    ctx.obj.overwrite = overwrite
-    ctx.obj.backup    = backup
-    rc = cmds.micc_convert_simple(global_options=ctx.obj)
+    with utils.logtime(ctx.obj):
+        ctx.obj.overwrite = overwrite
+        ctx.obj.backup    = backup
+        rc = cmds.micc_convert_simple(global_options=ctx.obj)
     if rc:
         ctx.exit(rc)
 
@@ -413,13 +419,14 @@ def docs(ctx, html, latexpdf):
     """
     Build documentation for the project using Sphinx with the specified formats.
     """
-    formats = []
-    if html:
-        formats.append('html')
-    if latexpdf:
-        formats.append('latexpdf')
-    
-    rc = cmds.micc_docs(formats, global_options=ctx.obj)
+    with utils.logtime(ctx.obj):
+        formats = []
+        if html:
+            formats.append('html')
+        if latexpdf:
+            formats.append('latexpdf')
+        
+        rc = cmds.micc_docs(formats, global_options=ctx.obj)
     if rc:
         ctx.exit(rc)
 
@@ -455,8 +462,9 @@ def poetry(ctx,args,system):
     """
     A wrapper around poetry that warns for dangerous poetry commands in a conda environment.
     """
-    ctx.obj.system = system
-    rc = cmds.micc_poetry( *args, global_options=ctx.obj)
+    with utils.logtime(ctx.obj):
+        ctx.obj.system = system
+        rc = cmds.micc_poetry( *args, global_options=ctx.obj)
     if rc:
         ctx.exit(rc)
 

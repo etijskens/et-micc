@@ -1,11 +1,17 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.6.4 (2019-10-??)
+v0.6.5 (2019-10-??)
+===================
+* indentation in logs
+* log time of a command
+* bug fix in template expansion when adding a second application
+
+v0.6.4 (2019-10-05)
 ===================
 * improve documentation templates
-
-
+* replaced ``--structure`` option with ``--module`` flag and ``--package`` flag
+ 
 v0.6.3 (2019-10-04)
 ===================
 * started tutorial writing. They will help the user to learn how to use *micc*, 

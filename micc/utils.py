@@ -6,7 +6,8 @@ import os, sys, subprocess, logging, sysconfig, copy
 from contextlib import contextmanager
 import toml
 from pathlib import Path
-
+from python_log_indenter import IndentedLoggerAdapter
+from datetime import datetime
 
 def get_extension_suffix():
     return sysconfig.get_config_var('EXT_SUFFIX')
@@ -286,7 +287,7 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
         cmds = [cmds]
         
     for cmd in cmds:
-        with log(logfun, f"> {' '.join(cmd)}", end_msg=None):
+        with log(logfun, f"> {' '.join(cmd)}"):
             completed_process = subprocess.run(cmd, capture_output=True,env=env)
             if not logfun is None:
                 if completed_process.stdout:
@@ -388,7 +389,36 @@ def get_micc_logger(global_options):
     
     return get_micc_logger.the_logger
 
+class IndentingLogger(logging.Logger):
+    def __init__(self,name,level=logging.NOTSET):
+        super().__init__(name,level)
+        self._indent = ''
+        self._stack = []
+        
+    def _log(self, level, msg, args, exc_info=None, extra=None):
+        msg = msg.strip()
+#         msg = '\n' + msg
+        if self._indent:
+            msg = self._indent + msg.replace('\n','\n ' + create_logger.base_indent*' ' + self._indent)
+        super()._log(level, msg, args, exc_info, extra)
+            
+    def indent(self,n=4):
+        self._indent += n*' '
+        self._stack.append(n)
+            
+    def dedent(self):
+        if self._stack:
+            n = self._stack.pop()
+            length = len(self._indent) - n
+            self._indent = self._indent[0:length] 
 
+
+def log_datetime():
+    now = datetime.now()
+    get_micc_logger.the_logger.debug(str(now))
+
+
+@static_vars(base_indent=8)
 def create_logger(filepath,filemode='a'):
     """
     create a logging.Logger object with a 
@@ -397,9 +427,9 @@ def create_logger(filepath,filemode='a'):
     * file handler, writing to file ``filename``
     """
     # create formatters and add it to the handlers
-    format_string = '[%(levelname)s] %(message)s'
+    format_string = f"%(levelname)-{create_logger.base_indent}s %(message)s"
     console_formatter = logging.Formatter(format_string)
-    logfile_formatter = logging.Formatter('\n%(asctime)s\n' + format_string)
+    logfile_formatter = logging.Formatter(format_string)
     # create and add a console handler 
     console_handler = logging.StreamHandler(sys.stderr)
     console_handler.setFormatter(console_formatter)
@@ -410,6 +440,9 @@ def create_logger(filepath,filemode='a'):
     logfile_handler.setFormatter(logfile_formatter) 
     logfile_handler.setLevel(logging.DEBUG)
             
+    # set custom logger class
+    logging.setLoggerClass(IndentingLogger)
+
     # create logger for micc
     logger = logging.getLogger(filepath.name)
     logger.setLevel(logging.DEBUG)
@@ -436,9 +469,43 @@ def log(logfun=None, begin_msg='doing', end_msg='done.'):
     """
     if logfun:
         logfun(begin_msg)
+        try:
+            logfun.__self__.indent()
+            is_logger = True
+        except AttributeError:
+            is_logger = False
     yield
     if logfun:
-        logfun(f"... {end_msg}\n")
+        if is_logger:
+            logfun.__self__.dedent()
+        logfun(end_msg)
+
+@contextmanager
+def logtime(global_options=None):
+    """
+    Print a start and stop message when executing a task.
+
+    :param logfun: function that writes  e.g. ``logging.info`
+    :param str begin_msg: print this before body is executed
+    :param str end_msg: print this after body is executed
+    :param singleline: generates a single line execution trace as in
+        `<begin_msg> ... <end_msg>`. Calling print2stderr may obfuscate this.
+    """
+    if global_options is None:
+        logfun = get_micc_logger.the_logger.debug
+    else:
+        logfun = get_micc_logger(global_options).debug
+    start = datetime.now() 
+    logfun(f"start = {start}")
+    logfun.__self__.indent()
+
+    yield
+    logfun.__self__.dedent()
+    stop = datetime.now() 
+    logfun(f"stop  = {stop}")
+    spent = stop - start
+    logfun(f"spent = {spent}")
+    
 
 
 def is_conda_python():

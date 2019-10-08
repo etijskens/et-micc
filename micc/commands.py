@@ -187,6 +187,10 @@ def expand_templates(templates, template_parameters, global_options):
                         micc_logger.warning(f"     {src} -> {dst}")
                 
             elif not global_options.overwrite:
+                micc_logger.warning(f"'pre-existing files in {output_dir} that would be overwrtitten:\n")
+                for files in existing_files.values():
+                    for src in files:
+                        micc_logger.warning(f"     {src}")
                 click.secho("Aborting because 'overwrite==False'.\n"
                             "  Rerun the command with the '--overwrite' flag to overwrite these files.\n"
                             "  Rerun the command with the '--backup' flag to first backup these files (*.bak).\n"
@@ -264,6 +268,7 @@ def micc_create( templates
                             f"  Specify '--allow-nesting' to create a micc project inside another micc project ({p})."
                            , fg='bright_red'
                            )
+                return 1
             p = p.parent
     
     project_name  = project_path.name
@@ -278,45 +283,38 @@ def micc_create( templates
     
     global_options.verbosity = max(1,global_options.verbosity)
     micc_logger = utils.get_micc_logger(global_options)
-    with utils.log( micc_logger.info
-                  , f"Creating project ({project_name}):"
-                    f"\n       Python {global_options.structure} ({package_name}): structure = {structure}"
-                  ):
-        template_parameters = { 'project_name' : project_name
-                              , 'package_name' : package_name
-                              }
-        template_parameters.update(global_options.template_parameters)
-        template_parameters.update(get_template_parameters(get_preferences(micc_file)))
-        global_options.overwrite = False
-     
-        exit_code = expand_templates( templates, template_parameters, global_options  )                
+    with utils.logtime():
+        with utils.log( micc_logger.info
+                      , f"Creating project ({project_name}):"
+                      ):
+            micc_logger.info(f"Python {global_options.structure} ({package_name}): structure = {structure}")
+            template_parameters = { 'project_name' : project_name
+                                  , 'package_name' : package_name
+                                  }
+            template_parameters.update(global_options.template_parameters)
+            template_parameters.update(get_template_parameters(get_preferences(micc_file)))
+            global_options.overwrite = False
+         
+            exit_code = expand_templates( templates, template_parameters, global_options  )                
+            
+            if exit_code:
+                return exit_msg(exit_code)
+            
+            my_micc_file = project_path / 'micc.json'
+            with my_micc_file.open('w') as f:
+                json.dump(template_parameters,f)
+                micc_logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
         
-        if exit_code:
-            return exit_msg(exit_code)
-        
-        my_micc_file = project_path / 'micc.json'
-        with my_micc_file.open('w') as f:
-            json.dump(template_parameters,f)
-            micc_logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
-    
-        with utils.log(micc_logger.info,"Creating git repository"):
-            with utils.in_directory(project_path):
-                cmds = [ ['git', 'init']
-                       , ['git', 'add', '*']
-                       , ['git', 'add', '.gitignore']
-                       , ['git', 'commit', '-m', '"first commit"']
-                       , ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
-                       , ['git', 'push', '-u', 'origin', 'master']
-                       ]
-                utils.execute(cmds, micc_logger.debug, stop_on_error=False)
-                for cmd in cmds:
-                    cmdstr = ' '.join(cmd)
-                    with utils.log(micc_logger.debug, f'> {cmdstr}', end_msg=None):
-                        completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                        if completed_process.stdout:
-                            micc_logger.debug(' (stdout)\n' + completed_process.stdout.decode('utf-8'))
-                        if completed_process.stderr:
-                            micc_logger.debug(' (stderr)\n' + completed_process.stderr.decode('utf-8'))
+            with utils.log(micc_logger.debug,"Creating git repository"):
+                with utils.in_directory(project_path):
+                    cmds = [ ['git', 'init']
+                           , ['git', 'add', '*']
+                           , ['git', 'add', '.gitignore']
+                           , ['git', 'commit', '-m', '"first commit"']
+                           , ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
+                           , ['git', 'push', '-u', 'origin', 'master']
+                           ]
+                    utils.execute(cmds, micc_logger.debug, stop_on_error=False)
     
     return 0
 

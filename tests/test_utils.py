@@ -126,16 +126,20 @@ def test_log():
                                           ,clear_log=False
                                           )
     micc_logger = micc.utils.get_micc_logger(global_options)
-    with micc.utils.log(micc_logger.info):
-        micc_logger.info('test_log with a logfun')
-        micc_logger.debug(' . debug message')
+
+    with micc.utils.logtime():    
+        with micc.utils.log(micc_logger.info):
+            micc_logger.info('test_log with a logfun')
+            micc.utils.log_datetime()
+            micc_logger.debug('debug message\nwith 2 lines')
+
     assert logfile.exists()
     logtext = logfile.read_text()
     print(logtext)
     assert "doing" in logtext
     assert "test_log with a logfun\n" in logtext
-    assert "  . debug message\n" in logtext
-    assert "... done.\n" in logtext
+    assert "debug message" in logtext
+    assert "done." in logtext
     
     
 def test_get_project_path():
