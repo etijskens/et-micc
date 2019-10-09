@@ -3,8 +3,16 @@ including dead-ends.
 
 v0.6.6 (2019-10-08)
 ===================
-* refactored logging tools into logging.py
+* refactored logging tools into ``logging.py``
 * fixed indentation with loglevel
+* wip tutorial-1
+* ``micc create`` now creates a module structure by default. In this way the interface 
+  of ``micc create`` and ``micc module`` is the same.
+* factored out template helpers in ``expand.py``
+* some code cleanup
+* documentation
+* log warnings if executing commands fails (rather than debug messages) so the 
+  user sees them always
 
 v0.6.5 (2019-10-08)
 ===================

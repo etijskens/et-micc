@@ -59,7 +59,6 @@ def test_log():
     with micc.logging.logtime():
         with micc.logging.log(micc_logger.info):
             micc_logger.info('test_log with a logfun')
-            micc.logging.log_datetime()
             micc_logger.debug('debug message\nwith 2 lines')
 
     assert logfile.exists()

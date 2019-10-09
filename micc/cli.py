@@ -4,15 +4,17 @@
 Application micc
 """
 
-import sys
+import os,sys
 from types import SimpleNamespace
 from pathlib import Path
 
 import click
 
 import micc.commands as cmds
-from micc.utils import module_exists
-from micc import utils,logging
+import micc.utils
+import micc.logging
+import micc.expand
+
 
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
@@ -27,13 +29,7 @@ __micc_file_help = ("The path to the *micc-file* with the parameter values used 
                     "*Micc* looks for the *micc-file* in the template directory **only** "
                     "(as specified with the ``--template`` option)."
                    )
-__overwrite_help = ("If specified, any existing files are overwritten without backup. "
-                    "Otherwise, *micc* will verify if there are existing files that"
-                    "would be overwritten and gives you three options: \n\n"
-                    "* abort,\n"
-                    "* make a backup (``.bak``) before overwriting pre-existing files,\n"
-                    "* do **not** make a backup before overwriting pre-existing files. This is equivalent to specifying ``--overwrite``."
-                   )
+
 
 @click.group()
 @click.option('-v', '--verbosity', count=True
@@ -52,8 +48,7 @@ __overwrite_help = ("If specified, any existing files are overwritten without ba
              )
 @click.pass_context
 def main(ctx, verbosity, project_path, clear_log):
-    """
-    Micc command line interface.
+    """Micc command line interface.
     
     All commands that change the state of the project produce some output that
     is send to the console (taking verbosity into account). It is also sent to
@@ -71,7 +66,7 @@ def main(ctx, verbosity, project_path, clear_log):
                              , template_parameters={}
                              )
 
-    if utils.is_conda_python():
+    if micc.utils.is_conda_python():
         click.echo( click.style("==========================================================\n"
                                 "WARNING: You are running in a conda Python environment.\n"
                                 "         Note that poetry does not play well with conda.\n",   fg='yellow')
@@ -81,15 +76,16 @@ def main(ctx, verbosity, project_path, clear_log):
                   )
     template_parameters_json = project_path / 'micc.json'
     if template_parameters_json.exists():
-        ctx.obj.template_parameters.update(cmds.get_template_parameters(template_parameters_json))
+        ctx.obj.template_parameters.update(
+            micc.expand.get_template_parameters(template_parameters_json)
+        )
     
 
 @main.command()
-@click.option('-m', '--module'
-             , help="Create a Python project with a module structure rather than a package structure:\n\n"
+@click.option('-p', '--package'
+             , help="Create a Python project with a package structure rather than a module structure:\n\n"
+                    "* package structure = ``<module_name>/__init__.py``\n"
                     "* module  structure = ``<module_name>.py`` \n"
-                    "* package structure = ``<module_name>/__init__.py``\n\n"
-                    "Default = ``package``."
              , default=False, is_flag=True
              )
 @click.option('--micc-file'
@@ -108,7 +104,7 @@ def main(ctx, verbosity, project_path, clear_log):
              )
 @click.pass_context
 def create( ctx
-          , module
+          , package
           , micc_file
           , description
           , template
@@ -132,13 +128,11 @@ def create( ctx
     If no *<project_path>* is provided, or if it is the same as the current working
     directory, the user is prompted to enter one.
     
-    If the *<project_path>* refers to an existing project, *micc* refuses to continu.
-    
-    TODO:
-    Prompts the user for all entries in the *micc-file* file
-    that do not have a default value.
+    If the *<project_path>* refers to an existing project, *micc* refuses to continu,
+    unless ``--allow-nesting`` is soecified.
     """
-    structure = 'module' if module else 'package'
+    structure = 'package' if package else 'module'
+    
     if not template: # default, empty list
         if structure=='module':
             template = ['package-base'
@@ -184,17 +178,16 @@ def app( ctx
        , overwrite
        , backup
        ):
-    """
-    Add an app (console script) with name *<app_name>* to the package.
+    """Add an app (console script) with name :py:obj:`app_name` to the package.
     
-    *<App_name>* is also the name of the executable when the package is installed.
-    The source code of the app resides in ``<project_name>/<package_name>/cli_<app_name>.py``.
+    :py:obj:`app_name` is also the name of the executable when the package is installed.
+    The source code of the app resides in :file:`<project_name>/<package_name>/cli_<app_name>.py`.
     """
     
-    if utils.app_exists(ctx.obj.project_path, app_name):
+    if micc.utils.app_exists(ctx.obj.project_path, app_name):
         raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {app_name}.")
 
-    with logging.logtime(ctx.obj):
+    with micc.logging.logtime(ctx.obj):
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
         
@@ -240,9 +233,9 @@ def module( ctx
           , overwrite
           , backup
           ):
-    """
-    Add a sub-module with name *<module_name>* to the package. This can be a Python
-    module, or a binary extension module (Fortran or C++).
+    """Add a sub-module with name *<module_name>* to the package. 
+    
+    This can be a Python module, or a binary extension module (Fortran or C++).
     The source code is in
     
     * *<module_name>.py* or *<module_name>/__init__.py* for python modules, depending on the *<structure>* parameter.
@@ -251,15 +244,15 @@ def module( ctx
     """
     if (cpp and f2py):
         raise AssertionError("Flags '--f2py' and '--cpp' cannot be specified simultaneously.")
-    if module_exists(ctx.obj.project_path,module_name):
+    if micc.utils.module_exists(ctx.obj.project_path,module_name):
         raise AssertionError(f"Project {ctx.obj.project_path.name} has already a module named {module_name}.")
 
     ctx.obj.structure = 'package' if package else 'module'
     ctx.obj.overwrite = overwrite
     ctx.obj.backup    = backup
-    ctx.obj.template_parameters['path_to_cmake_tools'] = utils.path_to_cmake_tools()
+    ctx.obj.template_parameters['path_to_cmake_tools'] = micc.utils.path_to_cmake_tools()
     
-    with logging.logtime(ctx.obj):
+    with micc.logging.logtime(ctx.obj):
         if f2py:
             if not template:
                 template = 'module-f2py'
@@ -313,11 +306,12 @@ def module( ctx
              )
 @click.pass_context
 def version( ctx, rule, major, minor, patch, tag, short, poetry):
-    """
-    Increment or show the project's version number.  By default micc uses
-    *bumpversion* for this, but it can also use *poetry*, by specifiying ``--poetry``.
+    """Increment or show the project's version number.
     
-    You can also avoide using ``micc version`` and using *bumpversion* directly. Note,
+    By default micc uses *bumpversion* for this, but it can also use *poetry*,
+    by specifiying the ``--poetry`` flag.
+    
+    You can also avoide using ``micc version`` and use *bumpversion* directly. Note,
     however, that the version string appears in both ``pyproject.toml`` and in the top-level
     package (``<mopdule_name>.py`` or ``<mopdule_name>/__init__.py``). Since, currently,
     *poetry* is incapable of bumping the version string in any other file than *pyproject.tom.*,
@@ -329,8 +323,15 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
     """
     if rule and (major or minor or patch):
         raise RuntimeError("Ambiguous arguments:\n  specify either 'rule' argments,\n  or one of [--major,--minor--patch], not both.")
-        
-    with logging.logtime(ctx.obj):
+
+    if major:
+        rule = 'major'
+    if minor:
+        rule = 'minor'
+    if patch:
+        rule = 'patch'
+    
+    with micc.logging.logtime(ctx.obj):
         return_code = cmds.micc_version(rule, short, poetry, global_options=ctx.obj)
         if return_code==0 and tag:
             rc = cmds.micc_tag(global_options=ctx.obj)
@@ -343,10 +344,9 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
 @main.command()
 @click.pass_context
 def tag(ctx):
-    """
-    Create a git tag for the current version and push it to the remote repo.
-    """
-    with logging.logtime(ctx.obj):
+    """Create a git tag for the current version and push it to the remote repo."""
+    
+    with micc.logging.logtime(ctx.obj):
         return cmds.micc_tag(global_options=ctx.obj)
 
 
@@ -362,10 +362,8 @@ def tag(ctx):
              )
 @click.pass_context
 def build(ctx, module, soft_link):
-    """
-    Build binary extension libraries (f2py and cpp modules). 
-    """
-    with logging.logtime(ctx.obj):
+    """Build binary extension libraries (f2py and cpp modules)."""
+    with micc.logging.logtime(ctx.obj):
         rc = cmds.micc_build( module_to_build=module
                             , soft_link=soft_link
                             , global_options=ctx.obj
@@ -385,8 +383,7 @@ def build(ctx, module, soft_link):
              )
 @click.pass_context
 def convert_to_package(ctx, overwrite, backup):
-    """
-    Convert a Python module project to a package.
+    """Convert a Python module project to a package.
 
     A Python *module* project has only a ``<package_name>.py`` file, whereas
     a Python *package* project has ``<package_name>/__init__.py`` and can contain
@@ -397,10 +394,18 @@ def convert_to_package(ctx, overwrite, backup):
     project, which adds a ``AUTHORS.rst``, ``HISTORY.rst`` and ``installation.rst``
     to the documentation structure.
     """
-    with logging.logtime(ctx.obj):
+
+    with micc.logging.logtime(ctx.obj):
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
         rc = cmds.micc_convert_simple(global_options=ctx.obj)
+        if rc==micc.expand.EXIT_OVERWRITE:
+            micc.logging.get_micc_logger(ctx.obj).warning(
+                f"It is normally ok to overwrite 'index.rst' as you are not supposed\n"
+                f"to edit the '.rst' files in '{ctx.obj.project_path}{os.sep}docs.'\n"
+                f"If in doubt: rerun the command with the '--backup' flag,\n"
+                f"  otherwise: rerun the command with the '--overwrite' flag,\n"
+            )
     if rc:
         ctx.exit(rc)
 
@@ -416,10 +421,9 @@ def convert_to_package(ctx, overwrite, backup):
              )
 @click.pass_context
 def docs(ctx, html, latexpdf):
-    """
-    Build documentation for the project using Sphinx with the specified formats.
-    """
-    with logging.logtime(ctx.obj):
+    """Build documentation for the project using Sphinx with the specified formats."""
+    
+    with micc.logging.logtime(ctx.obj):
         formats = []
         if html:
             formats.append('html')
@@ -434,8 +438,7 @@ def docs(ctx, html, latexpdf):
 @main.command()
 @click.pass_context
 def info(ctx):
-    """
-    Show info on the project.
+    """Show project info.
         
     * file location
     * name
@@ -459,10 +462,8 @@ def info(ctx):
              )
 @click.pass_context
 def poetry(ctx,args,system):
-    """
-    A wrapper around poetry that warns for dangerous poetry commands in a conda environment.
-    """
-    with logging.logtime(ctx.obj):
+    """A wrapper around poetry that warns for dangerous poetry commands in a conda environment."""
+    with micc.logging.logtime(ctx.obj):
         ctx.obj.system = system
         rc = cmds.micc_poetry( *args, global_options=ctx.obj)
     if rc:

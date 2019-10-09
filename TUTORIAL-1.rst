@@ -49,28 +49,72 @@ like this:
 .. code-block:: bash
 
    > cd ~/software/dev/workspace
+   > micc -p ET-dot create
 
-   [INFO]      Creating project (ET-dot):
-   INFO             Python module (et_dot): structure = (ET-dot/et_dot.py)
-   INFO             Creating git repository
-   INFO             done.
-   INFO         done.   
+The ``-p`` option (which is short for ``--project-path``) tells *micc* where we 
+want the project to be created. Here, we request a project directory :file:`ET-dot` in 
+the current working directory, i.e. :file:`~/software/dev/workspace`. The ``--module``
+requests the creation of a simple Python module, rather than a Python package (a
+directory with an :file:`__init__.py` file. A module structure is basically a single 
+file project, whereas a package structure allows for many different source files,
+including applications (console scripts), python submodules and binary extension 
+modules written in Fortran or C++. As micc can easily convert a module structure to
+a package structure, It is easier to start out with a 
+
+From the output that the command generates
+ 
+.. code-block:: bash
+   > micc -p ET-dot create
+
+   [INFO]           [ Creating project (ET-dot):
+   [INFO]               Python module (et_dot): structure = (ET-dot/et_dot.py)
+   [INFO]               [ Creating git repository
+   [INFO]               ] done.
+   [INFO]           ] done.
    >
 
-From the first output line we can tell that *micc* has created a project ``ET-dot``,
-as we requested after the ``-p`` option (which is short for ``--project-path``).
+you can tell that *micc* indeed created a Python project in project directory 
+:file:`ET-dot`. The second line tells your that inside the project directory
+*micc* created a Python module :file:`et_dot.py`. Note that the name of the
+module is perhaps not exactly what you expected. The module is named
+:file:`et_dot.py`, rather than :file:`ET-dot`.  The reason why *micc* decided
+to rename the module, is that our project name :file:`ET-dot` does not comply
+with the 
+`PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_.
+To make it compliant, it replaced all capitals with lowercase, and all spaces ``' '``
+and dashes ``'-'`` with underscores ``'_'``. If we had choosen a PEP8 compliant 
+name for the project directory, the project directory and the module name would
+be the same.
 
-The second output line tells us two things. First, inside the project directory 
-``ET-dot`` a Python module ``et_dot.py`` was created, as requested by the 
-``--structure module`` option. A module is the simplest 
-Python project we can create. It is meant for rather small projects that fit in
-a single file. More complex projects have a package structure, that is a directory 
-with the same name as the module, i.e. ``et_dot``, containing a ``__init__.py`` file
-which marks the directory as a Python Package and contains the statements that are
-executed when the module is imported. Fortunately, you don't have to know in advance
+A *module* is the simplest Python project we can create. It is meant for rather
+small projects that fit in a single file. More complex projects have a *package*
+structure, that is a directory with the same name as the module, i.e. :file:`et_dot`,
+containing a :file:`__init__.py` file. The :file:`__init__.py` file marks the 
+directory as a Python Package and contains the statements that are executed when
+the module is imported. The *module* structure is the default structure. You can
+opt for a *package* structure by appending the flag ``-p`` or ``--package`` to the 
+command above. 
+
+.. code-block:: bash
+   > micc -p ET-dot create --package
+
+   [INFO]           [ Creating project (ET-dot):
+   [INFO]               Python package (et_dot): structure = (ET-dot/et_dot/__init__.py)
+   [INFO]               [ Creating git repository
+   [INFO]               ] done.
+   [INFO]           ] done.
+   
+In addition, you can convert a *module* structure
+project to a *package* structure project at any time with the command:
+
+.. code-block:: bash
+   > micc -p ET-dot convert_to_package
+   
+Fortunately, you don't have to know in advance
 whether your project will grow big, as *micc* can convert your module project into 
 a package project at any time. On the other hand, *micc* comes in especially handy 
-for larger projects and hence the default structure is ``package``. Secondly, you 
+for larger projects and hence the default structure is ``package``. 
+Secondly, you 
 should notice that the name of that module is not exactly the name that we choose 
 for our project. The reason why *micc* decided to rename the module, is that our 
 project name ``ET-dot`` does not comply with the 

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Utility functions for micc.py
+Module micc.utils
+=================
+
+Utility functions for micc.py.
 """
 import os, sys, subprocess, logging, sysconfig, copy
 from contextlib import contextmanager
@@ -14,35 +17,16 @@ def get_extension_suffix():
 
 
 def path_to_cmake_tools():
-    """
-    return the path to the folder with the CMake tools.
-    """
+    """Return the path to the folder with the CMake tools."""
+    
     p = (Path(__file__) / '..' / 'cmake_tools').resolve()
     return str(p)
 
 
-def file_not_found_msg(path, looking_for='File'):
-    """
-    This function constructs an error message for when a file is not found. 
-    If the file is referred to with a relative path, the current working 
-    directory is reported to be more informative.
-    
-    :param str path: path to file or directory.
-    :param str looking_for: description of what *path* was supposed to refer
-        to: 'file', 'directory', ...
-    """
-    if path.startswith('~') or path.startswith(os.sep):
-        msg = f"{looking_for} {path} not found."
-    else:
-        msg = f"{looking_for} {path} not found in {os.getcwd()}."
-    return msg
-
-
 @contextmanager
 def in_directory(path):
-    """
-    Run some code in  working directory *path* (and switch back to the current
-    working directory when done. 
+    """Context manager for changing the current working directory while the body of the
+    context manager executes.
     """
     previous_dir = os.getcwd()
     os.chdir(str(path)) # the str method takes care of when path is a Path object
@@ -51,8 +35,9 @@ def in_directory(path):
 
 
 def replace_version_in_file(filepath,current_version,new_version):
-    """
-    :param Path filepath: 
+    """Replace the version string in a file.
+    
+    :param Path filepath: Path to the file.
     """
     if filepath.exists():
         if filepath.name == "pyproject.toml":
@@ -68,7 +53,8 @@ def replace_version_in_file(filepath,current_version,new_version):
 
 
 def replace_in_file(filepath,old,new):
-    """
+    """Replace :py:obj:`old` string with :py:obj:`new` in a file.
+    
     :param Path filepath: 
     """
     with filepath.open() as f:
@@ -79,8 +65,8 @@ def replace_in_file(filepath,old,new):
 
 
 def is_project_directory(path,raise_if=None):
-    """
-    Verify that the directory ``path`` is a project directory. 
+    """Verify that the directory :file:`path` is a project directory. 
+    
     As a sufficident condition, we request that 
     
     * there is a pyproject.toml file, exposing ``['tool']['poetry']['name']``
@@ -128,20 +114,8 @@ def is_project_directory(path,raise_if=None):
     raise x
 
 
-def get_name_version(project_path):
-    """
-    Read name and version of this project from the pyproject.toml file.
-    """
-    path_to_pyproject_toml = Path(project_path) / 'pyproject.toml'
-    pyproject_toml = toml.load(str(path_to_pyproject_toml))
-    return ( pyproject_toml['tool']['poetry']['name']
-           , pyproject_toml['tool']['poetry']['version']
-           )
-
-
 def convert_to_valid_module_name(name):
-    """
-    Convert a *name* to a python name:
+    """Convert a module name to a PEP8 compliant module name.
     
     * lowercase
     * whitespace -> underscore 
@@ -150,16 +124,15 @@ def convert_to_valid_module_name(name):
       Names like this are discouraged by https://www.python.org/dev/peps/pep-0008/#package-and-module-names,
       but so are, names starting with a numeric character.
     """
-    
     if name[0].isnumeric():
         name = '_'+name
     valid_module_name = name.lower().replace('-', '_').replace(' ', '_')
     return valid_module_name
 
+
 def py_module_exists(project_path, module_name):
-    """
-    Test if there is already a python module with name ``module_name`` 
-    in the project at ``project_path``.
+    """Test if there is already a python module with name :py:obj:`module_name` 
+    in the project at :file:`project_path`.
         
     :param Path project_path: project path
     :param str module_name: module name
@@ -170,9 +143,8 @@ def py_module_exists(project_path, module_name):
 
 
 def py_package_exists(project_path, module_name):
-    """
-    Test if there is already a python package with name ``module_name`` 
-    in the project at ``project_path``.
+    """Test if there is already a python package with name :py:obj:`module_name` 
+    in the project at :file:`project_path`.
         
     :param Path project_path: project path
     :param str module_name: module name
@@ -182,8 +154,7 @@ def py_package_exists(project_path, module_name):
 
 
 def f2py_module_exists(project_path, module_name):
-    """
-    Test if there is already a f2py module with name ``module_name`` in this project.
+    """Test if there is already a f2py module with name py:obj:`module_name` in this project.
         
     :param Path project_path: project path
     :param str module_name: module name
@@ -193,8 +164,7 @@ def f2py_module_exists(project_path, module_name):
 
 
 def cpp_module_exists(project_path, module_name):
-    """
-    Test if there is already a cpp module with name ``module_name`` in this project.
+    """Test if there is already a cpp module with name py:obj:`module_name` in this project.
         
     :param Path project_path: project path
     :param str module_name: module name
@@ -204,8 +174,7 @@ def cpp_module_exists(project_path, module_name):
 
 
 def module_exists(project_path, module_name):
-    """
-    Test if there is already a module with name ``module_name`` in this project.
+    """Test if there is already a module with name py:obj:`module_name` in this project.
 
     :param Path project_path: project path
     :param str module_name: module name
@@ -218,10 +187,9 @@ def module_exists(project_path, module_name):
            )
 
 def app_exists(project_path, app_name):
-    """
-    Test if there is already an app with name ``app_name`` in this project.
+    """Test if there is already an app with name ``app_name`` in this project.
     
-        * ``<package_name>/cli_<app_name>.py``
+    * :file:`<package_name>/cli_<app_name>.py`
         
     :param Path project_path: project path
     :param str app_name: app name
@@ -231,7 +199,7 @@ def app_exists(project_path, app_name):
     
 
 def is_module_project(project_path, raise_if=None):
-    """Find out if this project is a simple or general python project.
+    """Find out if this project is a module python project.
     
     :param Path project_path: project path
     :param bool raise_if: If True, raise ``RuntimeError`` if the test succeeds.
@@ -254,7 +222,7 @@ def is_module_project(project_path, raise_if=None):
     
 
 def is_package_project(project_path, raise_if=None):
-    """Find out if this project is a simple or general python project.
+    """Find out if this project is a package python project.
     
     :param Path project_path: project path
     """    
@@ -273,8 +241,7 @@ def is_package_project(project_path, raise_if=None):
 
 
 def execute(cmds,logfun=None,stop_on_error=True,env=None):
-    """
-    Executes a list of OS commands, and log with logfun.
+    """Executes a list of OS commands, and log with logfun.
     
     :param list cmds: list of OS commands (=list of list of str) or a single command (list of str)
     :parma callable logfun: a function to write output, typically 
@@ -290,20 +257,28 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
         with micc.logging.log(logfun, f"> {' '.join(cmd)}"):
             completed_process = subprocess.run(cmd, capture_output=True,env=env)
             if not logfun is None:
+                if completed_process.returncode:
+                    logfun0 = logfun
+                    logfun = logfun.__self__.warning
+                    logfun(f"> {' '.join(cmd)}")
                 if completed_process.stdout:
                     logfun(' (stdout)\n' + completed_process.stdout.decode('utf-8'))
                 if completed_process.stderr:
                     logfun(' (stderr)\n' + completed_process.stderr.decode('utf-8'))
-            if stop_on_error:
                 if completed_process.returncode:
+                    logfun = logfun0
+            if completed_process.returncode:
+                if stop_on_error:
                     return completed_process.returncode
     return 0
 
 
 def get_project_path(p):
-    """
+    """Look for a project directory in the parents of path :py:obj:`p`.
+    
     :param Path p:
-    :returns: the nearest directory above ``p`` that is project directory.
+    :returns: the nearest directory above :py:obj:`p` that is project directory.
+    :raise: RuntimeError if :py:obj:`p` is noe inside a project directory.
     """
     root = Path('/')
     p = Path(p).resolve()
@@ -315,19 +290,17 @@ def get_project_path(p):
     return p
 
 
-
 def is_conda_python():
-    """
-    :returns: test if user's python environment is anaconda.
+    """Test if the user's environment is a conda Python environment.
     
-    see `https://stackoverflow.com/questions/21282363/any-way-to-tell-if-users-python-environment-is-anaconda`_
+    see https://stackoverflow.com/questions/21282363/any-way-to-tell-if-users-python-environment-is-anaconda
     """
     is_conda = os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
     return is_conda
 
 
 def is_poetry_available(system):
-    """Test if poetry is available in the environment."""    
+    """Test if *poetry* is available in the environment."""    
     myenv=os.environ.copy()
     if system:
         cmd=['which','poetry_']
@@ -338,7 +311,7 @@ def is_poetry_available(system):
 
 
 def is_bumpversion_available():
-    """Test if poetry is available in the environment."""
+    """Test if *bumpversion* is available in the environment."""
     myenv=os.environ.copy()
     cmd=['which','bumpversion']
     result = subprocess.run(cmd,capture_output=True,env=myenv)

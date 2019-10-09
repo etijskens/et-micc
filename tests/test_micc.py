@@ -73,7 +73,7 @@ def test_scenario_1():
     runner = CliRunner()
     with in_empty_tmp_dir():
         run(runner, ['-vv', '-p', 'FOO', 'create', '--allow-nesting'])
-        assert Path('FOO/foo').exists()
+        assert Path('FOO/foo.py').exists()
 
 
 def test_scenario_1b():
@@ -99,12 +99,16 @@ def test_scenario_2():
         run(runner, ['-p','foo','-vv', 'create', '--allow-nesting'])
         foo = Path('foo')
         micc.utils.is_project_directory(foo,raise_if=False)
-        micc.utils.is_module_project   (foo,raise_if=True)
-        micc.utils.is_package_project  (foo,raise_if=False)
+        micc.utils.is_module_project   (foo,raise_if=False)
+        micc.utils.is_package_project  (foo,raise_if=True)
         expected = '0.0.0'
         assert get_version(foo / 'pyproject.toml')==expected
-        assert get_version(foo / 'foo' / '__init__.py')==expected
+        assert get_version(foo / 'foo.py')==expected
         
+        run(runner, ['-p','foo','-vv', 'convert-to-package','--overwrite'])
+        micc.utils.is_module_project   (foo,raise_if=True)
+        micc.utils.is_package_project  (foo,raise_if=False)
+
         run(runner, ['-vv','-p','foo','version'])
         assert get_version(foo / 'pyproject.toml')==expected
         assert get_version(foo / 'foo' / '__init__.py')==expected
