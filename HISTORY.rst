@@ -1,7 +1,11 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.6.6 (2019-10-08)
+v0.6.6 (2019-10-10)
+===================
+* fixed bug in app documentation generation
+
+v0.6.6 (2019-10-10)
 ===================
 * refactored logging tools into ``logging.py``
 * fixed indentation with loglevel

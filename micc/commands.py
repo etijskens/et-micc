@@ -168,16 +168,24 @@ def micc_app( app_name
                 with open('docs/index.rst',"w") as f:
                     for line in lines:
                         f.write(line)
+            txt = ''
+            if not Path('APPS.rst').exists():
+                title = "Command Line Interfaces (apps)"
+                line = len(title) * '*' + '\n'
+                txt += ( line 
+                       + title + '\n' 
+                       + line 
+                       + '\n'
+                       )
+            else:
+                txt += (f".. click:: {package_name}.{cli_app_name}:main\n"
+                        f"   :prog: {app_name}\n"
+                        f"   :show-nested:\n\n"
+                       )
             with open("APPS.rst","a") as f:
-                title = f"\nApplication {app_name}"
-                uline = len(title) * '='
-                f.write(title + '\n')
-                f.write(uline + '\n\n')
-                f.write(f".. click:: {package_name}.{cli_app_name}\n")
-                f.write(f"   :prog: {app_name}\n")
-                f.write(f"   :show-nested:\n\n")
-                
-            micc_logger.debug(f" . documentation for application '{app_name}' added.")
+                f.write(txt)
+
+            micc_logger.debug(f"documentation for application '{app_name}' added.")
             
             # pyproject.toml
             # in the [toolpoetry.scripts] add a line 

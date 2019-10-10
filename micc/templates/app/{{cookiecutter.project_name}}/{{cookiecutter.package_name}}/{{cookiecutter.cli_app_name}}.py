@@ -1,24 +1,48 @@
 # -*- coding: utf-8 -*-
-
 """
-Application {{cookiecutter.app_name}} 
-=====================================
-
-A console script
-
+Command line interface {{cookiecutter.app_name}}.
 """
-#===============================================================================
+
 import sys
+from types import SimpleNamespace
+
 import click
-#===============================================================================
-@click.command()
-def main(args=None):
+
+
+@click.group()
+@click.option('-v', '--verbosity', count=True
+             , help="The verbosity of the program output."
+             , default=1
+             )
+@click.pass_context
+def main(ctx, verbosity):
+    """Command line interface {{cookiecutter.app_name}}.
+    
+    A 'hello' world CLI example.
     """
-    Console script {{cookiecutter.app_name}}.
-    """
-    click.echo("running {{cookiecutter.app_name}} ...")
+    # store global options in ctx.obj
+    ctx.obj = SimpleNamespace(verbosity=verbosity)
+
+    click.echo(f"running {{cookiecutter.app_name}}")
+    
+
+@main.command()
+@click.option('-u', '--uppercase'
+             , help="Print 'Hello world' in uppercase."
+             , default=False, is_flag=True
+             )
+@click.argument('who', default='world')
+@click.pass_context
+def hello(ctx, who, uppercase):
+    """Subcommand hello."""
+    msg = "Hello " + who
+    if uppercase:
+        msg = msg.upper()
+    for i in range(ctx.obj.verbosity):
+        print(msg)
+
     return 0
-#===============================================================================
+
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
-#===============================================================================
+#eodf
