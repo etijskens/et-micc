@@ -78,6 +78,12 @@ def main(ctx, verbosity, project_path, clear_log):
         ctx.obj.template_parameters.update(
             micc.expand.get_template_parameters(template_parameters_json)
         )
+    else:
+        ctx.obj.template_parameters.update(
+            micc.expand.get_template_parameters(
+                micc.expand.get_preferences(Path('.'))
+            )
+        )
     
 
 @main.command()

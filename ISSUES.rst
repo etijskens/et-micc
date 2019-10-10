@@ -222,9 +222,9 @@ with Anaconda Python versions.
 
 interesting links:
 
-* `https://github.com/peritus/bumpversion`_
-* `https://github.com/c4urself/bump2version`_
-* `https://blog.developer.atlassian.com/bumpversion-is-automation-for-semantic-versioning/`_
+* https://github.com/peritus/bumpversion
+* https://github.com/c4urself/bump2version
+* https://blog.developer.atlassian.com/bumpversion-is-automation-for-semantic-versioning
 
 #21 [issue] micc create
 -----------------------

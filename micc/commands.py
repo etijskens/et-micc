@@ -84,11 +84,6 @@ def micc_create( templates
                                   , 'package_name' : package_name
                                   }
             template_parameters.update(global_options.template_parameters)
-            template_parameters.update(
-                micc.expand.get_template_parameters(
-                    micc.expand.get_preferences(micc_file)
-                )
-            )
             global_options.template_parameters = template_parameters
             global_options.overwrite = False
          

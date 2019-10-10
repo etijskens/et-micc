@@ -281,29 +281,27 @@ Generate documentation
 Running tests
 ^^^^^^^^^^^^^
 
-   The tests for this module are in :file:`ET-dot/tests/test_et_dot.py`:
+   The tests for this module are in file :file:`ET-dot/tests/test_et_dot.py`. Let's
+   take a look at the relevant section:
 
    .. code-block:: python
    
-      #!/usr/bin/env python
       # -*- coding: utf-8 -*-
-      
       """Tests for et_dot package."""
-      
-      # ... some omissions irrelevant for the tutorial ...  
    
       import et_dot
       
-      def test_hello():
-          """Test for et_dot.hello()."""
-          
-          s = et_dot.hello()
-          assert s=="Hello world"
+      def test_hello_noargs():
+          """Test for foo.hello()."""
+          s = foo.hello()
+          assert s=="Hello world"      
       
-          s = et_dot.hello('me')
-          assert s=="Hello me"   
-      
-      # ... more omissions irrelevant for the tutorial ...  
+      def test_hello_me():
+          """Test for foo.hello('me')."""
+          s = foo.hello('me')
+          assert s=="Hello me"
+                
+      # ... some omissions irrelevant for the tutorial ...  
    
    Tests like this are very useful to ensure that during development the changes to
    your code do not break things. There are many Python tools for unit testing and test
@@ -311,16 +309,16 @@ Running tests
    
    .. code-block:: bash
    
-      > pytest 
-      ============================= test session starts =============================
+      > pytest
+      =============================== test session starts ===============================
       platform darwin -- Python 3.7.4, pytest-4.6.5, py-1.8.0, pluggy-0.13.0
-      rootdir: /Users/etijskens/software/dev/ET-dot
-      collected 1 items
+      rootdir: /Users/etijskens/software/dev/workspace/foo
+      collected 2 items
       
-      tests/test_et_dot.py .                                                  [100%]
+      tests/test_foo.py ..                                                        [100%]
       
-      ========================== 1 passed in 0.01 seconds ===========================
-   
+      ============================ 2 passed in 0.05 seconds =============================
+                
    The output shows some info about the environment in which we are running the tests,
    the current working directory (c.q. the project directory, and the number of tests
    it collected (1). *Pytest* looks for test methods in all :file:`test_*.py` or 
@@ -340,14 +338,21 @@ License file
    The project directory contains a :file:`LICENCE` file, a :file:`text` file describing
    the licence applicable to your project. You can choose between 
    
-   * MIT license,
+   * MIT license (default),
    * BSD license,
    * ISC license,
    * Apache Software License 2.0,
    * GNU General Public License v3 and
    * Not open source. 
  
-   MIT license is a very liberal license and the default option.  
+   MIT license is a very liberal license and the default option.
+   
+   You can select the license file when you create the project:
+   
+   .. code-block:: bash
+      
+      > cd some_empty_dir
+      > micc create -l BSD
 
 To see the project skeleton that *micc* set up for us, you can ask a tree listing of
 the project directory (the listing below only show the interesting files and 
