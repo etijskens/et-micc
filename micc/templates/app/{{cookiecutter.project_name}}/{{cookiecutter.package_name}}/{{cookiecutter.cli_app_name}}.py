@@ -24,7 +24,7 @@ def main(ctx, verbosity):
     ctx.obj = SimpleNamespace(verbosity=verbosity)
 
     click.echo(f"running {{cookiecutter.app_name}}")
-    
+
 
 @main.command()
 @click.option('-u', '--uppercase'
@@ -39,7 +39,7 @@ def hello(ctx, who, uppercase):
     if uppercase:
         msg = msg.upper()
     for i in range(ctx.obj.verbosity):
-        print(msg)
+        print(i,msg)
 
     return 0
 

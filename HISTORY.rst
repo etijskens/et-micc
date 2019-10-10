@@ -4,6 +4,10 @@ including dead-ends.
 v0.6.6 (2019-10-10)
 ===================
 * fixed bug in app documentation generation
+* wip on tutorial
+* bug fix in micc app
+* if github_username is empty do not add remote origin
+* add license option to micc create
 
 v0.6.6 (2019-10-10)
 ===================

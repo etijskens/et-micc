@@ -15,7 +15,6 @@ import micc.utils
 import micc.logging
 import micc.expand
 
-
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
 __micc_file_help = ("The path to the *micc-file* with the parameter values used in the cookiecutter"
@@ -97,6 +96,10 @@ def main(ctx, verbosity, project_path, clear_log):
              , help="Short description of your project."
              , default='<Enter a one-sentence description of this project here.>'
              )
+@click.option('-l', '--license'
+             , help="Licence identifier."
+             , default='MIT'
+             )
 @click.option('-T', '--template' , help=__template_help , default=[])
 @click.option('-n', '--allow-nesting'
              , help="If specified allows to nest a project inside another project."
@@ -107,6 +110,7 @@ def create( ctx
           , package
           , micc_file
           , description
+          , license
           , template
           , allow_nesting
           ):
@@ -151,8 +155,25 @@ def create( ctx
         
     ctx.obj.structure = structure
     ctx.obj.allow_nesting = allow_nesting
-    ctx.obj.template_parameters['project_short_description'] = description
-        
+    licenses = ['MIT license'
+               ,'BSD license'
+               ,'ISC license'
+               ,'Apache Software License 2.0'
+               ,'GNU General Public License v3'
+               ,'Not open source'
+               ]
+    for lic in licenses:
+        if lic.startswith(license):
+            license = lic
+            break
+    else:
+        license = licenses[0]
+
+    ctx.obj.template_parameters.update({'project_short_description' : description
+                                       ,'open_source_license'       : license
+                                       }
+                                      ) 
+                                        
     rc = cmds.micc_create( templates=template
                          , micc_file=micc_file
                          , global_options=ctx.obj

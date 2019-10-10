@@ -3,7 +3,18 @@
 Package {{ cookiecutter.package_name }}
 =======================================
 
+A 'hello world' example.
 """
 __version__ = "{{ cookiecutter.version }}"
 
-# Your code here...
+
+def hello(who='world'):
+    """'Hello world' method.
+    
+    :param str who: whom to say hello to
+    :returns: a string
+    """
+    result = "Hello " + who
+    return result
+
+# eof

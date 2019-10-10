@@ -108,9 +108,13 @@ def micc_create( templates
                            , ['git', 'add', '*']
                            , ['git', 'add', '.gitignore']
                            , ['git', 'commit', '-m', '"first commit"']
-                           , ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
+                           ]
+                    if template_parameters['github_username']:
+                        cmds.extend(
+                           [ ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
                            , ['git', 'push', '-u', 'origin', 'master']
                            ]
+                        )
                     micc.utils.execute(cmds, micc_logger.debug, stop_on_error=False)
     
     return 0
@@ -172,9 +176,9 @@ def micc_app( app_name
             if not Path('APPS.rst').exists():
                 title = "Command Line Interfaces (apps)"
                 line = len(title) * '*' + '\n'
-                txt += ( line 
-                       + title + '\n' 
-                       + line 
+                txt += ( line
+                       + title + '\n'
+                       + line
                        + '\n'
                        )
             else:
