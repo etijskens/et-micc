@@ -9,6 +9,7 @@ v0.6.6 (2019-10-10)
 * if github_username is empty do not add remote origin
 * add ``--license`` option to ``micc create``
 * simplified test template.
+* bug fix ``--clear-log``
 
 v0.6.6 (2019-10-10)
 ===================

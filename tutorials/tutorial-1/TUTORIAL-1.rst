@@ -335,8 +335,8 @@ Running tests
    
 License file
 ^^^^^^^^^^^^
-   The project directory contains a :file:`LICENCE` file, a :file:`text` file describing
-   the licence applicable to your project. You can choose between 
+   The project directory contains a :file:`LICENCE` file, a :file:`text` file
+   describing the licence applicable to your project. You can choose between 
    
    * MIT license (default),
    * BSD license,
@@ -352,127 +352,48 @@ License file
    .. code-block:: bash
       
       > cd some_empty_dir
-      > micc create -l BSD
+      > micc create --license BSD
 
-To see the project skeleton that *micc* set up for us, you can ask a tree listing of
-the project directory (the listing below only show the interesting files and 
-directories). The files in the tree are not empty files, they contain a complete
-working  
-
-.. code-block:: bash
-   
-   > tree ET-dot/
-   ET-dot/
-   ├── .git
-   │   └── ...
-   ├── .gitignore
-   ├── API.rst
-   ├── LICENSE
-   ├── Makefile
-   ├── README.rst
-   ├── docs
-   │   ├── Makefile
-   │   ├── api.rst
-   │   ├── conf.py
-   │   ├── index.rst
-   │   └── readme.rst
-   ├── et_dot.py
-   ├── micc.log
-   ├── pyproject.toml
-   └── tests
-       ├── __init__.py
-       └── test_et_dot.py   
-
-* The **module** itself, ``et_dot.py`` - This file will contain the python code that will 
-  compute the dot product.
-* The **license** file - There is a very liberal ``LICENSE`` file, which is useful when you 
-  want to publish your code.
-* **Documentation** files - The boilerplate code is in the ``docs`` directory. You will
-  only rarely need to touch the files in there. Then there are a number of ``.rst``
-  files with capitalized names, like ``README.rst`` and ``API.rst``. These are in 
-  `reStructuredText <https://devguide.python.org/documenting/#restructuredtext-primer>`_ 
-  format. ``README.rst`` contains an overview of the project, while ``API.rst`` 
-  describes the classes and methods of the project in detail. The way this is set up 
-  is that *sphinx* retrieves these descriptions automatically from the doc-strings of 
-  modules, classes and methods. The documentation is generated as html or a pdf, with 
-  the commands:
+   Of course, the project depends in no way on the license file, so it can 
+   be replaced manually at any time by the license you desire.
+    
+Pyproject.toml
+^^^^^^^^^^^^^^
+   The file :file:`pyproject.toml` (located in the project directory) is the 
+   modern way to describe the build system requirements of the project: 
+   `PEP 518 <https://www.python.org/dev/peps/pep-0518/>`_. This is a rather new but *imho*
+   promising concept. Not many tools are available that make use of it. Currently,
+   `poetry <https://poetry.eustace.io>`_ seems to be the most actively developed, and *micc*
+   has some support for it. There is also `flit <https://github.com/takluyver/flit>`_.
   
-.. code-block:: bash
+Makefile
+^^^^^^^^
+   The :file:`makefile` contains a number of recipes for actions for which other 
+   tools than *micc* are useful. We'll come to those later.
 
-   > cd docs 
-   > make html
-   > make latexpdf
+Micc.log
+^^^^^^^^
+   The project directory also contains a log file :file:`micc.log`. All *micc* commands
+   that modify the state of the project leave a trace in this file, So you can look up 
+   what happened when to your project. Should you think that the log file has become
+   too big, or just useless, you can delete it manually, or add the ``--clear-log`` flag
+   before any *micc* subcommand, to remove it. If the subcommand alters the state of the
+   project, the log file will only contain the log messages from the last subcommand.
    
-
-* **Test code** - in the ``tests`` directory you will find a ``test_<component>.py`` file
-  for every component in your project. At this point there is only one component,
-  the *et_doc* module, and thus there is a ``test_et_dot.py`` file. The ``__init__.py``
-  ensures that the ``tests`` directory itself can be recognized as a module and thus
-  can be imported. All tests are conveniently run as:
-  
-.. code-block:: bash
-
-   > pytest tests   
-  
-* The **git repository** - the directory ``.git`` contains the entire history of all the 
-  versions of your code that you (or your team) committed. The file ``.gitignore`` lists
-  the files and directory that should not end up in the repository.
-  
-* The **Makefile** - this contains a number of actions for which other tools than *micc*
-  are useful. We'll come to those later.
-  
-* The **log file** ``micc.log`` - all *micc* commands leave a trace in this file, So you
-  can look up what happened when to your project.
-  
-* **Pyproject.toml** a description of the build system requirements of the project. See 
-  `PEP 518 <https://www.python.org/dev/peps/pep-0518/>`_. This is a rather new but *imho*
-  promising concept. Not many tools are available that make use of it. Currently,
-  `poetry <https://poetry.eustace.io>`_ seems to be the most actively developed, and *micc*
-  has some support for it. There is also `flit <https://github.com/takluyver/flit>`_.
-  
-Your first code
----------------
-Our module file ``et_dot.py`` looks as follows.
-
-.. code-block:: python
-
-   # -*- coding: utf-8 -*-
-   """
-   Package et_dot
-   =======================================
+   .. code-block:: bash
    
-   """
-   __version__ = "0.0.0"
-   
-   # Your code here...
-   
-Open it in your favourite editor and change it as follows:
-
-.. code-block:: python
-
-   # -*- coding: utf-8 -*-
-   """
-   Package et_dot
-   ==============
-   Python module for computing the dot product of two arrays.
-   """
-   __version__ = "0.0.0"
-   
-   
-   def dot(a,b):
-       """computes the dot product of *a* and *b*
-       
-       :param a: a 1D array.
-       :param b: a !D array of the same lenght as *a*.
-       :returns: the dot product of *a* and *b*.
-       """
-       n = len(a)
-       if len(b)!=n:
-           raise ArithmeticError("dot(a,b) requires len(a)==len(b).")
-       d = 0 
-       for i in range(n):
-           d += a[i]*b[i]
-       return d
-
-Then open the file ``tests/test_et_dot.py`` and 
+      > ll micc.log
+      -rw-r--r--  1 etijskens  staff  34 Oct 10 20:37 micc.log
+      
+      > micc --clear-log info      
+      Project bar located at /Users/etijskens/software/dev/workspace/bar
+        package: bar
+        version: 0.0.0
+        structure: bar.py (Python module)
+      
+      > ll micc.log
+      ls: micc.log: No such file or directory
+      
+     
+.. include:: ../tutorials/tutorial-1/TUTORIAL-1-2.rst
 

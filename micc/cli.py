@@ -59,6 +59,9 @@ def main(ctx, verbosity, project_path, clear_log):
     
     See below for (sub)commands.
     """
+    if clear_log:
+        os.remove(project_path / 'micc.log')
+        
     ctx.obj = SimpleNamespace( verbosity=verbosity
                              , project_path=project_path.resolve()
                              , clear_log=clear_log
