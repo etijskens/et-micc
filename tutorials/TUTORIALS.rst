@@ -7,3 +7,6 @@
 .. include:: ../tutorials/tutorial-2/TUTORIAL-2-1.rst
 .. include:: ../tutorials/tutorial-2/TUTORIAL-2-2.rst
 .. include:: ../tutorials/tutorial-2/TUTORIAL-2-3.rst
+.. include:: ../tutorials/tutorial-2/TUTORIAL-2-4.rst
+
+.. include:: ../tutorials/tutorial-3/TUTORIAL-3.rst

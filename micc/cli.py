@@ -192,7 +192,11 @@ def create( ctx
 
 @main.command()
 @click.argument('app_name',type=str)
-@click.option('-T', '--template', default='app', help=__template_help)
+@click.option('-s', '--sub-commands'
+             , default='False', is_flag=True
+             , help="Create a CLI with sub-commands."
+             )
+@click.option('-T', '--template', default='', help=__template_help)
 @click.option('--overwrite', is_flag=True
              , help="Overwrite pre-existing files (without backup)."
              , default=False
@@ -204,6 +208,7 @@ def create( ctx
 @click.pass_context
 def app( ctx
        , app_name
+       , sub_commands
        , template
        , overwrite
        , backup
@@ -218,8 +223,16 @@ def app( ctx
         raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {app_name}.")
 
     with micc.logging.logtime(ctx.obj):
+        if sub_commands:
+            if not template:
+                template = 'app-sub-commands'
+        else:
+            if not template:
+                template = 'app-simple'
+                
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
+        ctx.obj.sub_cmds  = sub_commands
         
         rc =  cmds.micc_app( app_name
                            , templates=template

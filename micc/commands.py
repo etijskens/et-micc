@@ -21,6 +21,7 @@ import micc.utils
 import micc.logging
 import micc.expand
 from pip._internal.cli.cmdoptions import global_options
+from numpy.distutils.conv_template import global_names
 
 
 def micc_create( templates
@@ -131,6 +132,7 @@ def micc_app( app_name
         * **verbosity**
         * **project_path**: Path to the project on which the command operates.
         * **template_parameters**: extra template parameters not read from *micc_file*
+        * **sub_cmds**: click CLI with/wihtout sub-commands
     """
     project_path = global_options.project_path
 
@@ -139,9 +141,10 @@ def micc_app( app_name
     micc.utils.is_module_project   (project_path, raise_if=True )
 
     cli_app_name = 'cli_' + micc.utils.convert_to_valid_module_name(app_name)
+    w = 'with' if global_options.sub_cmds else 'without' 
     
     micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info, f"Creating app {app_name} in Python package {project_path.name}."):
+    with micc.logging.log(micc_logger.info, f"Creating app {app_name} {w} sub-commands in Python package {project_path.name}."):
         global_options.template_parameters.update({ 'app_name'     : app_name
                                                   , 'cli_app_name' : cli_app_name
                                                   })
@@ -152,6 +155,11 @@ def micc_app( app_name
             return exit_code
 
         package_name = global_options.template_parameters['package_name']
+        src_file = os.path.join(project_path.name, package_name, f"cli_{app_name}.py")
+        tst_file = os.path.join(project_path.name, 'tests', f"test_cli_{app_name}.py")
+        micc_logger.info(f"- Python source file {src_file}.")
+        micc_logger.info(f"- Python test code   {tst_file}.")
+        
         with micc.utils.in_directory(project_path):            
             # docs 
             with open('docs/index.rst',"r") as f:
@@ -185,7 +193,6 @@ def micc_app( app_name
             with open("APPS.rst","a") as f:
                 f.write(txt)
 
-            micc_logger.debug(f"documentation for application '{app_name}' added.")
             
             # pyproject.toml
             # in the [toolpoetry.scripts] add a line 
@@ -226,7 +233,7 @@ def micc_module_py( module_name
     if not module_name==micc.utils.convert_to_valid_module_name(module_name):
         raise AssertionError(f"Not a valid module_name: {module_name}")
 
-    source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}/__init__.py"
+    source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}{os.sep}__init__.py"
     
     micc_logger = micc.logging.get_micc_logger(global_options)
     with micc.logging.log(micc_logger.info,f"Creating python module {source_file} in Python package {project_path.name}."):
@@ -241,13 +248,19 @@ def micc_module_py( module_name
         if global_options.structure=='package':
             module_to_package(project_path / package_name / (module_name + '.py'))
 
+        package_name = global_options.template_parameters['package_name']
+        src_file = os.path.join( project_path.name, package_name, source_file )
+        tst_file = os.path.join( project_path.name, 'tests', 'test_' + module_name + '.py' )
+            
+        micc_logger.info(f"- python source in    {src_file}.")
+        micc_logger.info(f"- Python test code in {tst_file}.")
+        
         with micc.utils.in_directory(project_path):    
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. automodule:: {package_name}.{module_name}"
                          "\n   :members:\n\n"
                        )
-            micc.logging.log(micc_logger.debug,f" . documentation entries for Python module {module_name} added.")
     return 0
 
 
