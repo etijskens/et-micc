@@ -24,7 +24,7 @@ def test_hello_me():
 # that the source directory is on the path
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_hello_noargs()
+    the_test_you_want_to_debug = test_hello_noargs
 
     print("__main__ running", the_test_you_want_to_debug)
     the_test_you_want_to_debug()

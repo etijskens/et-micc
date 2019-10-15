@@ -11,6 +11,8 @@ from contextlib import contextmanager
 import logging
 from datetime import datetime
 
+from micc.static_vars import static_vars
+
 def verbosity_to_loglevel(verbosity):
     """
     :param int verbosity:
@@ -21,17 +23,6 @@ def verbosity_to_loglevel(verbosity):
         return logging.INFO
     else:
         return logging.DEBUG
-
-
-def static_vars(**kwargs):
-    """
-    Add static variables to a method.
-    """
-    def decorate(func):
-        for k in kwargs:
-            setattr(func, k, kwargs[k])
-        return func
-    return decorate
 
 
 # Use static vare to implement a singleton (the micc_logger)

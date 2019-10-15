@@ -20,6 +20,7 @@ from micc.tomlfile import TomlFile
 import micc.utils
 import micc.logging
 import micc.expand
+from pip._internal.cli.cmdoptions import global_options
 
 
 def micc_create( templates
@@ -277,25 +278,38 @@ def micc_module_f2py( module_name
         raise AssertionError(f"Not a valid module_name {module_name}")
     
     micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info,f"Creating f2py module f2py_{module_name} in Python package {project_path.name}."):
+    with micc.logging.log(micc_logger.info,f"Creating f2py module {module_name} in Python package {project_path.name}."):
         global_options.template_parameters.update({ 'module_name' : module_name })
 
         exit_code = micc.expand.expand_templates( templates, global_options )                        
         if exit_code:
             micc_logger.critical(f"Exiting ({exit_code}) ...")  
             return exit_code
-            
+         
         package_name = global_options.template_parameters['package_name']
+        src_file = os.path.join(           project_path.name
+                               ,           package_name
+                               , 'f2py_' + module_name
+                               ,           module_name + '.f90'
+                               )
+        tst_file = os.path.join(           project_path.name
+                               , 'tests'
+                               , 'test_f2py_' + module_name + '.py'
+                               )
+            
+        rst_file = os.path.join(           project_path.name
+                               ,           package_name
+                               , 'f2py_' + module_name
+                               ,           module_name + '.rst'
+                               )
+        micc_logger.info(f"- Fortran source in       {src_file}.")
+        micc_logger.info(f"- Python test code in     {tst_file}.")
+        micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
+        
         with micc.utils.in_directory(project_path):
             # docs
             with open("API.rst","a") as f:
-                f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
-            micc_logger.warning(f" .  Documentation template for f2py module '{module_name}' added.\n"
-                                f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
-                                f"    you are required to enter the documentation manually in file\n"
-                                f"    '{project_path.name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
-                                f"    A suitable example is pasted.\n"
-                               )
+                f.write(f"\n.. include:: ../{rst_file}\n")
     return 0
 
 
@@ -337,16 +351,29 @@ def micc_module_cpp( module_name
             return exit_code
 
         package_name = global_options.template_parameters['package_name']
+        src_file = os.path.join(           project_path.name
+                               ,           package_name
+                               , 'f2py_' + module_name
+                               ,           module_name + '.f90'
+                               )
+        tst_file = os.path.join(           project_path.name
+                               , 'tests'
+                               , 'test_f2py_' + module_name + '.py'
+                               )
+            
+        rst_file = os.path.join(           project_path.name
+                               ,           package_name
+                               , 'f2py_' + module_name
+                               ,           module_name + '.rst'
+                               )
+        micc_logger.info(f"- C++ source in           {src_file}.")
+        micc_logger.info(f"- Python test code in     {tst_file}.")
+        micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
+        
         with micc.utils.in_directory(project_path):
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
-            micc_logger.warning(f"    Documentation template for cpp module '{module_name}' added.\n"
-                                f"    Because recent versions of sphinx are incompatible with sphinxfortran,\n"
-                                f"    you are required to enter the documentation manually in file\n"
-                                f"    '{project_path.name}/{package_name}/{module_name}.rst' in reStructuredText format.\n"
-                                f"    A suitable example is pasted.\n"
-                               )
     return 0
 
 
@@ -524,7 +551,7 @@ def micc_build( module_to_build
             build_dir = package_path / d / 'build_'
             build_dir.mkdir(parents=True, exist_ok=True)
 
-            with micc.logging.log(build_logger.info,f"\nBuilding {module_type} module {module_name} in directory '{build_dir}'"):
+            with micc.logging.log(build_logger.info,f"Building {module_type} module {module_name} in directory '{build_dir}'"):
                 with micc.utils.in_directory(build_dir):
                     cextension = module_name + extension_suffix
                     destination = (Path('../../') / cextension).resolve()

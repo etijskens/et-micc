@@ -1,9 +1,5 @@
 /*
  *  C++ source file for module {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
- *
- *  Remarks:
- *    . documentation?
- *
  */
 
 
@@ -47,8 +43,10 @@ add ( py::array_t<double> x
 }
 
 
-PYBIND11_MODULE({{ cookiecutter.module_name }}, m) {
+PYBIND11_MODULE({{ cookiecutter.module_name }}, m)
+{// optional module doc-string
     m.doc() = "pybind11 {{ cookiecutter.module_name }} plugin"; // optional module docstring
-
-    m.def("add", &add, "A function which adds two arrays 'x' ancd 'y' and stores the result in the third, 'z'.");
+ // list the functions you want to expose:
+ // m.def("exposed_name", function_pointer, "doc-string for the exposed function");
+    m.def("add", &add, "A function which adds two arrays 'x' and 'y' and stores the result in the third, 'z'.");
 }
