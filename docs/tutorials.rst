@@ -2,4 +2,4 @@
 Tutorials
 *********
 
-.. include:: ../tutorials/TUTORIALs.rst
+.. include:: ../tutorials/TUTORIALS.rst
