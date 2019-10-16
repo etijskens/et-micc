@@ -7,7 +7,9 @@ Utility functions for micc.py.
 """
 import os, sys, subprocess, logging, sysconfig, copy
 from contextlib import contextmanager
-import toml
+# import toml
+from micc.tomlfile import TomlFile
+
 from pathlib import Path
 from datetime import datetime
 import micc.logging
@@ -84,9 +86,10 @@ def is_project_directory(path,raise_if=None):
     path_to_pyproject_toml = str(path /'pyproject.toml')
     
     try:
-        project_name = toml.load(path_to_pyproject_toml)['tool']['poetry']['name']
+        toml = TomlFile(path_to_pyproject_toml)
+        project_name = toml['tool']['poetry']['name']
         rv = True
-    except:
+    except Exception as e:
         rv = False
 
     if rv:

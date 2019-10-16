@@ -198,9 +198,8 @@ def micc_app( app_name
             # in the [toolpoetry.scripts] add a line 
             #    {app_name} = "{package_name}:{cli_app_name}"
             pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-            pyproject_toml_content = pyproject_toml.read()
-            pyproject_toml_content['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
-            pyproject_toml.write(pyproject_toml_content)
+            pyproject_toml['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
+            pyproject_toml.save()
 
     return 0
 
@@ -414,8 +413,7 @@ def micc_version( rule, short, poetry, global_options):
     micc.utils.is_project_directory(project_path, raise_if=False)
 
     pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-    pyproject_toml_content = pyproject_toml.read()
-    current_version = pyproject_toml_content['tool']['poetry']['version']
+    current_version = pyproject_toml['tool']['poetry']['version']
     package_name    = micc.utils.convert_to_valid_module_name(project_path.name)
 
     global_options.verbosity = max(1,global_options.verbosity)
@@ -448,8 +446,7 @@ def micc_version( rule, short, poetry, global_options):
                 bumped_files.append(f)
         
         pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-        pyproject_toml_content = pyproject_toml.read()
-        new_version = pyproject_toml_content['tool']['poetry']['version']
+        new_version = pyproject_toml['tool']['poetry']['version']
         micc_logger.info(f"bumping version ({current_version}) -> ({new_version})")
         for f in bumped_files:
             micc_logger.debug(f". Updated ({f})")
@@ -465,7 +462,6 @@ def micc_version( rule, short, poetry, global_options):
         micc_logger.debug(" . Updated pyproject.toml")
                     
         pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-        pyproject_toml_content = pyproject_toml.read()
         new_version = pyproject_toml['tool']['poetry']['version']
             
         # update version in package                    
@@ -492,9 +488,8 @@ def micc_tag(global_options):
     micc.utils.is_project_directory(project_path, raise_if=False)
             
     pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-    pyproject_toml_content = pyproject_toml.read()
-    project_name    = pyproject_toml_content['tool']['poetry']['name']
-    current_version = pyproject_toml_content['tool']['poetry']['version']
+    project_name    = pyproject_toml['tool']['poetry']['name']
+    current_version = pyproject_toml['tool']['poetry']['version']
     tag = f"v{current_version}"
 
     micc_logger = micc.logging.get_micc_logger(global_options)
@@ -631,10 +626,9 @@ def micc_convert_simple(global_options):
     
     # add documentation files for general Python project
     pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-    pyproject_toml_content = pyproject_toml.read()
 
     global_options.template_parameters.update(
-        {'project_short_description' : pyproject_toml_content['tool']['poetry']['description']}
+        {'project_short_description' : pyproject_toml['tool']['poetry']['description']}
     )
 
     exit_code = micc.expand.expand_templates( "package-general-docs", global_options )
@@ -703,7 +697,6 @@ def micc_info(global_options):
     micc_logger = micc.logging.get_micc_logger(global_options)
     package_name = micc.utils.convert_to_valid_module_name(project_path.name)
     pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-    pyproject_toml_content = pyproject_toml.read()
 
     if global_options.verbosity>=0:
         global_options.verbosity = 10
@@ -711,7 +704,7 @@ def micc_info(global_options):
     if global_options.verbosity>=1:
         click.echo("Project " + click.style(str(project_path.name),fg='green')+" located at "+click.style(str(project_path),fg='green'))
         click.echo("  package: " + click.style(str(package_name),fg='green'))
-        click.echo("  version: " + click.style(pyproject_toml_content['tool']['poetry']['version'],fg='green'))
+        click.echo("  version: " + click.style(pyproject_toml['tool']['poetry']['version'],fg='green'))
                   
     if global_options.verbosity>=2:
         has_py_module  = micc.utils.is_module_project (project_path)

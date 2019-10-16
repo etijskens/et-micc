@@ -1,42 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Tests for micc.utils package.
-"""
-#===============================================================================
+"""Tests for micc.logging package."""
 
-import os
-import sys
 from pathlib import Path
-
-#===============================================================================
-# import pytest
-from click import echo
-import pytest
 import types
 
-#===============================================================================
-# Make sure that the current directory is the project directory.
-# 'make test" and 'pytest' are generally run from the project directory.
-# However, if we run/debug this file in eclipse, we end up in test
-if os.getcwd().endswith('tests'):
-    echo(f"Changing current working directory"
-         f"\n  from '{os.getcwd()}'"
-         f"\n  to   '{os.path.abspath(os.path.join(os.getcwd(),'..'))}'\n")
-    os.chdir('..')
-#===============================================================================    
-# Make sure that we can import the module being tested. When running 
-# 'make test" and 'pytest' in the project directory, the current working
-# directory is not automatically added to sys.path.
-if not ('.' in sys.path or os.getcwd() in sys.path):
-    p = os.path.abspath('.')
-    echo(f"Adding '{p}' to sys.path.\n")
-    sys.path.insert(0, p)
-echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
-#===============================================================================
-
-from tests.helpers import report, in_empty_tmp_dir 
-from micc import cli,commands
 import micc.utils
 import micc.logging
 
@@ -75,7 +43,7 @@ def test_log():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_log # test_scenario_1
+    the_test_you_want_to_debug = test_log
 
     print(f"__main__ running {the_test_you_want_to_debug}")
     the_test_you_want_to_debug()

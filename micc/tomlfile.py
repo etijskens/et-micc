@@ -12,6 +12,10 @@ class TomlFile(BaseTOMLFile):
         super(TomlFile, self).__init__(str(path))
 
         self._path_ = Path(path)
+        if self.exists():
+            self._content_ = self.read()
+        else:
+            raise FileNotFoundError(str(self._path_))
 
     @property
     def path(self):  # type: () -> Path
@@ -25,3 +29,13 @@ class TomlFile(BaseTOMLFile):
 
     def __str__(self):
         return str(self._path)
+    
+    def __getitem__(self,item):
+        return self._content_[item]
+
+    def __setitem__(self,item,value):
+        self._content_[item] = value
+
+    def save(self):
+        """write self._content_ back to file."""
+        self.write(self._content_)
