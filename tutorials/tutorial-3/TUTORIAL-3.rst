@@ -1,5 +1,8 @@
+Tutorial 3: Adding Python components
+====================================
+
 Adding a Python module
-======================
+----------------------
 
 Just as one can add binary extension modules to a package, one can add python modules.
 
@@ -21,8 +24,8 @@ As with ``micc create`` the default structure is that of a simple module, i.e.
 flag.
 
 Adding a Python Command Line Interface
-======================================
-*Command Line Interface*s are Python scripts that you want to be installed as 
+--------------------------------------
+*Command Line Interfaces* are Python scripts that you want to be installed as 
 executable programs when a user installs your package.
 
 As an example, assume that we need quite often to read two arrays from file and
@@ -125,18 +128,18 @@ Here is the test code:
    
 Finally, we run pytest_:
 
-.. code-blocks:: bash
+.. code-block:: bash
 
    > pytest
-   ===================================== test session starts =====================================
+   ================================= test session starts =================================
    platform darwin -- Python 3.7.4, pytest-4.6.5, py-1.8.0, pluggy-0.13.0
    rootdir: /Users/etijskens/software/dev/workspace/ET-dot
    collected 10 items
    
-   tests/test_cli_dot-files.py .                                                           [ 10%]
-   tests/test_cpp_dotc.py .                                                                [ 20%]
-   tests/test_et_dot.py .......                                                            [ 90%]
-   tests/test_f2py_dotf.py .                                                               [100%]
+   tests/test_cli_dot-files.py .                                                   [ 10%]
+   tests/test_cpp_dotc.py .                                                        [ 20%]
+   tests/test_et_dot.py .......                                                    [ 90%]
+   tests/test_f2py_dotf.py .                                                       [100%]
    
-   ================================== 10 passed in 0.33 seconds ==================================   
+   ================================== 10 passed in 0.33 seconds ==========================   
 

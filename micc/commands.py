@@ -473,8 +473,7 @@ def micc_version( rule, short, poetry, global_options):
 
 
 def micc_tag(global_options):
-    """
-    Create and push a version tag ``vM.m.p`` for the current version.
+    """Create and push a version tag ``vM.m.p`` for the current version.
     
     :param types.SimpleNamespace global_options: namespace object with
         options accepted by (almost) all micc commands. Relevant attributes are 
@@ -507,9 +506,15 @@ def micc_tag(global_options):
         cmd = ['git', 'push', 'origin', tag]
         micc_logger.debug(f"Running '{' '.join(cmd)}'")
         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        micc_logger.debug(completed_process.stdout.decode('utf-8'))
-        if completed_process.stderr:
-            micc_logger.error(completed_process.stderr.decode('utf-8'))
+        if completed_process.returncode==0:
+            if completed_process.stdout:
+                micc_logger.debug(completed_process.stdout.decode('utf-8'))
+        else:
+            if completed_process.stdout:
+                micc_logger.warning(completed_process.stdout.decode('utf-8'))
+            if completed_process.stderr:
+                micc_logger.warning(completed_process.stderr.decode('utf-8'))
+            micc_logger.warning(f"Failed '{' '.join(cmd)}'\nRerun the command later (you must be online).")
             
     micc_logger.info('Done.')
     return 0
