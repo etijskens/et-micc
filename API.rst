@@ -13,3 +13,10 @@
 
 .. automodule:: micc.utils
    :members:
+
+.. automodule:: micc.tomlfile
+   :members:
+   
+.. automodule:: micc.stopwatch
+   :members:
+   
