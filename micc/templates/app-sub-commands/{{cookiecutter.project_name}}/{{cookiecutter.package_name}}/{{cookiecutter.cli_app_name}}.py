@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Command line interface {{cookiecutter.app_name}}.
+Command line interface {{ cookiecutter.app_name }}.
 """
 
 import sys
@@ -16,25 +16,28 @@ import click
              )
 @click.pass_context
 def main(ctx, verbosity):
-    """Command line interface {{cookiecutter.app_name}}.
+    """Command line interface {{ cookiecutter.app_name }}.
     
     A 'hello' world CLI example.
     """
     # store global options in ctx.obj
     ctx.obj = SimpleNamespace(verbosity=verbosity)
 
-    click.echo(f"running {{cookiecutter.app_name}}")
+    click.echo(f"running {{ cookiecutter.app_name }}")
 
 
 @main.command()
+@click.argument('who', default='world')
 @click.option('-u', '--uppercase'
              , help="Print 'Hello world' in uppercase."
              , default=False, is_flag=True
              )
-@click.argument('who', default='world')
 @click.pass_context
 def hello(ctx, who, uppercase):
-    """Subcommand hello."""
+    """Subcommand hello.
+    
+    :param str who: whom to say hello to.
+    """
     msg = "Hello " + who
     if uppercase:
         msg = msg.upper()

@@ -171,7 +171,7 @@ def test_scenario_2():
 # ==============================================================================
 if __name__ == "__main__":
     print(sys.version_info)
-    the_test_you_want_to_debug = test_scenario_1
+    the_test_you_want_to_debug = test_scenario_2
 
     with micc.logging.log(print,f"__main__ running {the_test_you_want_to_debug}",'-*# finished #*-'):
         the_test_you_want_to_debug()
