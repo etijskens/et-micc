@@ -10,7 +10,6 @@ import os
 import json
 import subprocess
 import shutil
-import platform
 from pathlib import Path
 #===============================================================================
 import click
