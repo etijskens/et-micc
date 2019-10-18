@@ -7,6 +7,7 @@ Application micc
 import os,sys
 from types import SimpleNamespace
 from pathlib import Path
+from operator import xor
 
 import click
 
@@ -115,16 +116,15 @@ def main(ctx, verbosity, project_path, clear_log):
              , default=False, is_flag=True
              )
 @click.pass_context
-def create( ctx
-          , package
-          , micc_file
-          , description
-          , license
-          , template
-          , allow_nesting
-          ):
-    """
-    Create a project skeleton.
+def new( ctx
+       , package
+       , micc_file
+       , description
+       , license
+       , template
+       , allow_nesting
+       ):
+    """Create a new project skeleton.
     
     The project name is taken to be the last directory of the *<project_path>*.
     If this directory does not yet exist, it is created. If it exists already, it
@@ -189,12 +189,33 @@ def create( ctx
                          )
     if rc: ctx.exit(rc)
 
-
 @main.command()
-@click.argument('app_name',type=str)
-@click.option('-s', '--sub-commands'
-             , default='False', is_flag=True
-             , help="Create a CLI with sub-commands."
+@click.option('--app'
+             , default=False, is_flag=True
+             , help="Add a CLI."
+             )
+@click.option('--group'
+             , default=False, is_flag=True
+             , help="Add a CLI with a group of sub-commands."
+             )
+@click.option('--py'
+             , default=False, is_flag=True
+             , help="Add a Python module."
+             )
+@click.option('--package'
+             , help="Add a Python module with a package structure rather than a module structure:\n\n"
+                    "* module  structure = ``<module_name>.py`` \n"
+                    "* package structure = ``<module_name>/__init__.py``\n\n"
+                    "Default = module structure."
+             , default=False, is_flag=True
+             )
+@click.option('--f2py'
+             , default=False, is_flag=True
+             , help="Add a f2py binary extionsion module (Fortran)."
+             )
+@click.option('--cpp'
+             , default=False, is_flag=True
+             , help="Add a cpp binary extionsion module (C++)."
              )
 @click.option('-T', '--template', default='', help=__template_help)
 @click.option('--overwrite', is_flag=True
@@ -205,121 +226,108 @@ def create( ctx
              , help="Make backup files (.bak) before overwriting any pre-existing files."
              , default=False
              )
+@click.argument('name',type=str)
 @click.pass_context
-def app( ctx
-       , app_name
-       , sub_commands
+def add( ctx
+       , name
+       , app, group
+       , py, package
+       , f2py
+       , cpp
        , template
        , overwrite
        , backup
        ):
-    """Add an app (console script) with name :py:obj:`app_name` to the package.
+    """Add a module or CLI to the projcect.
     
-    :py:obj:`app_name` is also the name of the executable when the package is installed.
-    The source code of the app resides in :file:`<project_name>/<package_name>/cli_<app_name>.py`.
-    """
+    :param str name: name of the CLI or module added.
     
-    if micc.utils.app_exists(ctx.obj.project_path, app_name):
-        raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {app_name}.")
+    If ``app==True``: (add CLI application)
+    
+    * :py:obj:`app_name` is also the name of the executable when the package is installed.
+    * The source code of the app resides in :file:`<project_name>/<package_name>/cli_<name>.py`.
 
-    with micc.logging.logtime(ctx.obj):
-        if sub_commands:
-            if not template:
-                template = 'app-sub-commands'
-        else:
-            if not template:
-                template = 'app-simple'
-                
+
+    If ``py==True``: (add Python module)
+    
+    * Python source  in :file:`<name>.py*`or :file:`<name>/__init__.py`, depending on the :py:obj:`package` flag.
+
+    If ``f2py==True``: (add f2py module)
+    
+    * Fortran source in :file:`f2py_<name>/<name>.f90` for f2py binary extension modules.
+
+    If ``cpp==True``: (add cpp module)
+    
+    * C++ source     in :file:`cpp_<name>/<name>.cpp` for cpp binary extension modules.
+    """
+    # set implied flags:
+    if group:
+        app_implied = f" [implied by --group   ({int(group  )})]"
+        app = True
+    else:
+        app_implied = ""
+        
+    if package:
+        py_implied  = f" [implied by --package ({int(package)})]"
+        py = True
+    else:
+        py_implied = ""
+    
+    if not (app or py or f2py or cpp) or not xor(xor(app,py),xor(f2py,cpp)):
+        click.secho(f"ERROR: specify one and only one of \n"
+                    f"  --app  ({int(app )}){app_implied}\n"
+                    f"  --py   ({int(py  )}){py_implied}\n"
+                    f"  --f2py ({int(f2py)})\n"
+                    f"  --cpp  ({int(cpp )})\n"
+                   ,fg='bright_red'
+                   )
+    if app:
+        if micc.utils.app_exists(ctx.obj.project_path, name):
+            raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {name}.")
+    
+        with micc.logging.logtime(ctx.obj):
+            if group:
+                if not template:
+                    template = 'app-sub-commands'
+            else:
+                if not template:
+                    template = 'app-simple'
+                    
+            ctx.obj.overwrite = overwrite
+            ctx.obj.backup    = backup
+            ctx.obj.group     = group
+            
+            rc =  cmds.micc_app( name
+                               , templates=template
+                               , global_options=ctx.obj
+                               )
+    else:
+        if micc.utils.module_exists(ctx.obj.project_path,name):
+            raise AssertionError(f"Project {ctx.obj.project_path.name} has already a module named {name}.")
+
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
-        ctx.obj.sub_cmds  = sub_commands
+        ctx.obj.template_parameters['path_to_cmake_tools'] = micc.utils.path_to_cmake_tools()
         
-        rc =  cmds.micc_app( app_name
-                           , templates=template
-                           , global_options=ctx.obj
-                           )
-    if rc:
-        ctx.exit(rc)
-
-
-@main.command()
-@click.argument('module_name', default='')
-@click.option( '--f2py'
-             , help='If specified creates a f2py module.'
-             , default=False, is_flag=True
-             )
-@click.option( '--cpp'
-             , help='If specified creates a C++ module.'
-             , default=False, is_flag=True
-             )
-@click.option('-p', '--package'
-             , help="Create a Python module with a package structure rather than a module structure:\n\n"
-                    "* module  structure = ``<module_name>.py`` \n"
-                    "* package structure = ``<module_name>/__init__.py``\n\n"
-                    "Default = module structure."
-             , default=False, is_flag=True
-             )
-@click.option( '-T', '--template' , default='', help=__template_help)
-@click.option('--overwrite', is_flag=True
-             , help="Overwrite pre-existing files (without backup)."
-             , default=False
-             )
-@click.option('--backup', is_flag=True
-             , help="Make backup files (.bak) before overwriting any pre-existing files."
-             , default=False
-             )
-@click.pass_context
-def module( ctx
-          , module_name
-          , f2py, cpp, package
-          , template
-          , overwrite
-          , backup
-          ):
-    """Add a sub-module with name *<module_name>* to the package. 
-    
-    This can be a Python module, or a binary extension module (Fortran or C++).
-    The source code is in
-    
-    * *<module_name>.py* or *<module_name>/__init__.py* for python modules, depending on the *<structure>* parameter.
-    * directory *f2py_<module_name>.py* for f2py extension modules (Fortran source code).
-    * directory *cpp_<module_name>.py* for cpp extension modules (C++ source code).
-    """
-    if (cpp and f2py):
-        raise AssertionError("Flags '--f2py' and '--cpp' cannot be specified simultaneously.")
-    if micc.utils.module_exists(ctx.obj.project_path,module_name):
-        raise AssertionError(f"Project {ctx.obj.project_path.name} has already a module named {module_name}.")
-
-    ctx.obj.structure = 'package' if package else 'module'
-    ctx.obj.overwrite = overwrite
-    ctx.obj.backup    = backup
-    ctx.obj.template_parameters['path_to_cmake_tools'] = micc.utils.path_to_cmake_tools()
-    
-    with micc.logging.logtime(ctx.obj):
-        if f2py:
+        if py:
+            ctx.obj.structure = 'package' if package else 'module'
+            if not template:
+                template = 'module-py'
+            rc = cmds.micc_module_py( name, templates=template, global_options=ctx.obj )
+                    
+        elif f2py:
             if not template:
                 template = 'module-f2py'
-            rc = cmds.micc_module_f2py( module_name
-                                      , templates=template
-                                      , global_options=ctx.obj
-                                      )
+            rc = cmds.micc_module_f2py( name, templates=template, global_options=ctx.obj )
+
         elif cpp:
             if not template:
                 template = 'module-cpp'
-            rc = cmds.micc_module_cpp( module_name
-                                     , templates=template
-                                     , global_options=ctx.obj
-                                     )
-        else:
-            if not template:
-                template = 'module-py'
-            rc = cmds.micc_module_py( module_name
-                                    , templates=template
-                                    , global_options=ctx.obj
-                                    )
+            rc = cmds.micc_module_cpp( name, templates=template, global_options=ctx.obj )
+
     if rc:
         ctx.exit(rc)
-
+    
 
 @main.command()
 @click.argument( 'rule', default='')

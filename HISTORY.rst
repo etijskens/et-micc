@@ -1,7 +1,12 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.6.6 (2019-10-10)
+v0.7.0 (2019-10-18)
+===================
+we are writing our issues on github now
+* `more intuitive micc subcommands <https://github.com/etijskens/micc/issues/1>`_
+
+v0.6.8 (2019-10-17)
 ===================
 * fixed bug in ``micc app`` documentation generation
 * wip on tutorial

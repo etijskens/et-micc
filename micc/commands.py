@@ -131,7 +131,7 @@ def micc_app( app_name
         * **verbosity**
         * **project_path**: Path to the project on which the command operates.
         * **template_parameters**: extra template parameters not read from *micc_file*
-        * **sub_cmds**: click CLI with/wihtout sub-commands
+        * **group**: click CLI with/wihtout sub-commands
     """
     project_path = global_options.project_path
 
@@ -140,7 +140,7 @@ def micc_app( app_name
     micc.utils.is_module_project   (project_path, raise_if=True )
 
     cli_app_name = 'cli_' + micc.utils.convert_to_valid_module_name(app_name)
-    w = 'with' if global_options.sub_cmds else 'without' 
+    w = 'with' if global_options.group else 'without' 
     
     micc_logger = micc.logging.get_micc_logger(global_options)
     with micc.logging.log(micc_logger.info, f"Creating app {app_name} {w} sub-commands in Python package {project_path.name}."):

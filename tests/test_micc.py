@@ -72,7 +72,7 @@ def test_scenario_1():
     """
     runner = CliRunner()
     with in_empty_tmp_dir():
-        run(runner, ['-vv', '-p', 'FOO', 'create', '--allow-nesting'])
+        run(runner, ['-vv', '-p', 'FOO', 'new', '--allow-nesting'])
         assert Path('FOO/foo.py').exists()
 
 
@@ -85,7 +85,7 @@ def test_scenario_1b():
         oops = Path('oops')
         oops.touch()
         with pytest.raises(AssertionError):
-            run(runner, ['-vv', 'create', '--allow-nesting'] )
+            run(runner, ['-vv', 'new', '--allow-nesting'] )
         l = os.listdir()
         assert len(l)==1
         
@@ -96,7 +96,7 @@ def test_scenario_2():
     runner = CliRunner()
 #     with runner.isolated_filesystem():
     with in_empty_tmp_dir():
-        run(runner, ['-p','foo','-vv', 'create', '--allow-nesting'])
+        run(runner, ['-p','foo','-vv', 'new', '--allow-nesting'])
         foo = Path('foo')
         micc.utils.is_project_directory(foo,raise_if=False)
         micc.utils.is_module_project   (foo,raise_if=False)
@@ -136,20 +136,20 @@ def test_scenario_2():
         result = run(runner, ['-p','foo','version', '-s'])
         assert expected in result.stdout
         
-        run(runner, ['-p','foo','-vv', 'app','my_app'])
+        run(runner, ['-p','foo','-vv', 'add', '--app', 'my_app'])
         assert Path('foo/foo/cli_my_app.py').exists()
         
-        run(runner, ['-p','foo','-vv', 'module','mod1'])
+        run(runner, ['-p','foo','-vv', 'add', 'mod1', '--py'])
         assert Path('foo/foo/mod1.py').exists()
         
-        run(runner, ['-p','foo','-vv', 'module','mod2','--package'])
+        run(runner, ['-p','foo','-vv', 'add', 'mod2', '--py', '--package'])
         assert Path('foo/foo/mod2/__init__.py').exists()
 
-        run(runner, ['-p','foo','-vv', 'module','mod3','--f2py'])
+        run(runner, ['-p','foo','-vv', 'add', 'mod3', '--f2py'])
         assert Path('foo/foo/f2py_mod3/mod3.f90').exists()
         print("f2py ok")
 
-        run(runner, ['-p','foo','-vv', 'module','mod4','--cpp'])
+        run(runner, ['-p','foo','-vv', 'add', 'mod4', '--cpp'])
         assert Path('foo/foo/cpp_mod4/mod4.cpp').exists()
         print("cpp ok")
         
