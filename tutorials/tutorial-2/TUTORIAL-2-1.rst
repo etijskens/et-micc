@@ -28,11 +28,12 @@ extension module to it.
                       otherwise: rerun the command with the '--overwrite' flag,     
                       
 Without extra options the command fails because it wants to replace the file 
-:file:`ET-dot/docs/index.rst`. Although the :file:`ET-dot/docs/index.rst` directory 
-is in fact not meant for being edited by the user, the user may choose to do so and 
-thus the user is warned. If he has not edited :file:`ET-dot/docs/index.rst` the user 
+:file:`ET-dot/docs/index.rst`, which we do not allow, because the user may have 
+modified that file (although the files :file:`ET-dot/docs` directory are in fact not 
+meant for being edited by the user). If he has not edited :file:`ET-dot/docs/index.rst` the user 
 can safely rerun the command with the ``--overwrite`` flag. Otherwise he must use the
-``--backup`` flag to keep a backup of the original :file:`ET-dot/docs/index.rst`.
+``--backup`` flag to keep a backup of the original :file:`ET-dot/docs/index.rst`. That
+way he can inspect the original file and transfer his changes to the new file.
 
 .. code-block:: bash
    
@@ -50,8 +51,8 @@ call this module :py:mod:`dotf`, where the ``f`` stands for Fortran:
 
 .. code-block:: bash
    
-   > micc module dotf --f2py
-   [INFO]           [ Creating f2py module dotf in Python package ET-dot.
+   > micc add dotf --f2py
+   [INFO]           [ Adding f2py module dotf to project ET-dot.
    [INFO]               - Fortran source in       ET-dot/et_dot/f2py_dotf/dotf.f90.
    [INFO]               - Python test code in     ET-dot/tests/test_f2py_dotf.py.
    [INFO]               - module documentation in ET-dot/et_dot/f2py_dotf/dotf.rst (in restructuredText format).

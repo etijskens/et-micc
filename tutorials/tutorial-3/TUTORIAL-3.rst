@@ -8,9 +8,9 @@ Just as one can add binary extension modules to a package, one can add python mo
 
 .. code-block:: bash
 
-   > micc module foo 
+   > micc add foo --py 
    
-   [INFO]           [ Creating python module foo.py in Python package ET-dot.
+   [INFO]           [ Adding python module foo.py to project ET-dot.
    [INFO]               - python source in    ET-doc/et_doc/foo.py.
    [INFO]               - Python test code in ET-doc/tests/test_foo.py.
    [INFO]           ] done.
@@ -45,7 +45,7 @@ so we can create it like:
 .. code-block:: bash
 
    > micc app dot-files 
-   [INFO]           [ Creating app dot-files without sub-commands in Python package ET-dot.
+   [INFO]           [ Adding CLI dot-files without sub-commands to project ET-dot.
    [INFO]               - Python source file ET-dot/et_dot/cli_dot-files.py.
    [INFO]               - Python test code   ET-dot/tests/test_cli_dot-files.py.
    [INFO]           ] done.

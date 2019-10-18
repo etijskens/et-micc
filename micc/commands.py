@@ -143,7 +143,7 @@ def micc_app( app_name
     w = 'with' if global_options.group else 'without' 
     
     micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info, f"Creating app {app_name} {w} sub-commands in Python package {project_path.name}."):
+    with micc.logging.log(micc_logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
         global_options.template_parameters.update({ 'app_name'     : app_name
                                                   , 'cli_app_name' : cli_app_name
                                                   })
@@ -234,7 +234,7 @@ def micc_module_py( module_name
     source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}{os.sep}__init__.py"
     
     micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info,f"Creating python module {source_file} in Python package {project_path.name}."):
+    with micc.logging.log(micc_logger.info,f"Adding python module {source_file} to project {project_path.name}."):
         global_options.template_parameters.update({ 'module_name' : module_name })
      
         exit_code = micc.expand.expand_templates( templates, global_options )                        
@@ -289,7 +289,7 @@ def micc_module_f2py( module_name
         raise AssertionError(f"Not a valid module_name {module_name}")
     
     micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info,f"Creating f2py module {module_name} in Python package {project_path.name}."):
+    with micc.logging.log(micc_logger.info,f"Adding f2py module {module_name} to project {project_path.name}."):
         global_options.template_parameters.update({ 'module_name' : module_name })
 
         exit_code = micc.expand.expand_templates( templates, global_options )                        
@@ -353,7 +353,7 @@ def micc_module_cpp( module_name
         raise AssertionError(f"Not a valid module_name {module_name}")
     
     micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info,f"Creating cpp module cpp_{module_name} in Python package {project_path.name}."):
+    with micc.logging.log(micc_logger.info,f"Adding cpp module cpp_{module_name} to project {project_path.name}."):
         global_options.template_parameters.update({ 'module_name' : module_name })
 
         exit_code = micc.expand.expand_templates( templates, global_options )

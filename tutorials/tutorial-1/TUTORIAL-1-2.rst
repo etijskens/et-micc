@@ -290,7 +290,7 @@ Here is a test:
 Here, :py:meth:`pytest.raises` is a *context manager* that will verify that :py:exc:`ArithmeticError`
 is raise when its body is executed. 
 
-.. note:: a detailed explanation about context managers see 
+.. note:: A detailed explanation about context managers see 
    https://jeffknupp.com/blog/2016/03/07/python-with-context-managers//
 
 Note that you can easily make :meth:`et_dot.dot` raise other

@@ -24,13 +24,13 @@ want to use your code, you make their life easier when you publish your
    > pip install my_nifty_module
 
 (The name *my_nifty_module* is not used so far, but, please, choose a better name).
- *Micc* will help you publishing your work at `PyPI <https://pypi.org>`_  with 
+ Micc_ will help you publishing your work at `PyPI <https://pypi.org>`_  with 
  as little effort as possible.
 
 So, let us call the project *ET-dot*. *ET* stands for my initials, which helps 
 to be unique, remains descriptive, and is certainly short. First, ``cd`` into a 
 directory that you want to use as a workspace for storing your Python projects 
-(I am using ``~/software/dev/workspace``). Then ask *micc* to create a project, 
+(I am using ``~/software/dev/workspace``). Then ask micc_ to create a project, 
 like this:
 
 .. code-block:: bash
@@ -38,7 +38,7 @@ like this:
    > cd ~/software/dev/workspace
    > micc -p ET-dot create
 
-The ``-p`` option (which is short for ``--project-path``) tells *micc* where we 
+The ``-p`` option (which is short for ``--project-path``) tells micc_ where we 
 want the project to be created. Here, we request a project directory :file:`ET-dot` in 
 the current working directory, i.e. :file:`~/software/dev/workspace`. The ``--module``
 requests the creation of a simple Python module, rather than a Python package (a
@@ -71,17 +71,17 @@ The first line:
 
    [INFO]           [ Creating project (ET-dot):
 
-tells us that *micc* indeed created a Python project in project directory 
+tells us that micc_ indeed created a Python project in project directory 
 :file:`ET-dot`. The second line:
  
 .. code-block:: bash
 
    [INFO]               Python module (et_dot): structure = (ET-dot/et_dot.py)
 
-explains that inside our project directory *micc* created a 
+explains that inside our project directory micc_ created a 
 Python module :file:`et_dot.py`. Note that the name of the module is perhaps
 not exactly what you expected: it is named :file:`et_dot.py`, rather than 
-:file:`ET-dot.py`. The reason why *micc* decided to rename the module, is that our 
+:file:`ET-dot.py`. The reason why micc_ decided to rename the module, is that our 
 project name :file:`ET-dot` does not comply with the 
 `PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_.
 To make it compliant, it replaced all capitals with lowercase, and all spaces ``' '``
@@ -100,22 +100,23 @@ Finally, the lines
                                 fatal: repository 'https://github.com/etijskens/ET-dot/' not found
    [INFO]               ] done.
 
-tell us that micc created a `git <https://git-scm.com/>`_ repository. *Git* is a 
+tell us that micc created a `git <https://git-scm.com/>`_ repository. Git_ is a 
 version control system that solves many practical problems related to the process of
 software development, independent of whether your are the only developer, or there is
-an entire team working on it from different places in the world.
+an entire team working on it from different places in the world. You find more 
+information about how micc_ plays with git_ in *Tutorial 4*.
 
 Modules and packages
 ^^^^^^^^^^^^^^^^^^^^
 
-   A *module* is the simplest Python project we can create. It is meant for rather
+   A *Python module* is the simplest Python project we can create. It is meant for rather
    small projects that fit in a single file. More complex projects have a *package*
    structure, that is, a directory with the same name as the module, i.e. :file:`et_dot`,
    containing a :file:`__init__.py` file. The :file:`__init__.py` file marks the 
    directory as a Python *package* and contains the statements that are executed when
-   the module is imported. The *module* structure is the default structure. You can
-   opt for a *package* structure by appending the flag ``-p`` or ``--package`` to the 
-   command above. 
+   the module is imported. The *module* structure is the default structure. When creating
+   a project you can opt for a *package* structure by appending the flag ``-p`` or 
+   ``--package`` to the ``micc creatte`` command: 
 
    .. code-block:: bash
    
@@ -133,23 +134,10 @@ Modules and packages
    
       > micc -p ET-dot convert-to-package
 
-
-And, finally, it is mentioned that a `git <https://git-scm.com/>`_ repository is 
-created. *Git* is a version control system. Version control solves many practical
-problems. E.g. it provides a backup of every version that was committed (by you or
-anyone of the development team) over the course of your project. It also lets you
-work on different features of your code without letting them interfere with eachother. 
-
-If the ``github_username`` field in your :file:`~/.micc/micc.json` file is not empty,
-*micc* will configure the repository to have a remote origin at 
-https://github.com/your_github_username/ET-dot. If you create this repo at 
-https://github.com/your_github_username it will push the fresh project files to the
-remote origin. 
-
 The project path
 ^^^^^^^^^^^^^^^^
 
-   The project path (``-p path``) is a variable that is accepted by all *micc* commands.
+   The project path (``-p path``) is a variable that is accepted by all micc_ commands.
    Its default value is the current directory. So, once the project is created it is
    convenient to ``cd`` into it and you can leave out the ``-p`` option:
 
@@ -173,7 +161,7 @@ The project path
    The *micc info* command shows information about a project.
    
    This is a bit more practical as you do not have to type the ``-p ET-dot`` at every
-   *micc* command. This approach works even with the ``micc create`` command. If you 
+   micc_ command. This approach works even with the ``micc create`` command. If you 
    create an empty directory and ``cd`` into it, you can just run ``micc create``: 
    project like this:
 
@@ -187,13 +175,13 @@ The project path
       ...
       [INFO]           ] done.
 
-   .. warning::
-      *Micc* refuses to create a new project in a non-empty directory.
+   .. warning:: 
+      Micc_ refuses to create a new project in a non-empty directory.
       
-   .. note:: in the rest of the tutorial we assume that the current working directory
+   .. note:: In the rest of the tutorial we assume that the current working directory
       is the project directory.
    
-Note that *micc* creates fully functional examples, complete with test code and 
+Note that micc_ creates fully functional examples, complete with test code and 
 documentation generation, so that you can inspect the files and see as much as 
 possible how things are supposed to work. E.g. here is the :file`ET-dot/et_dot.py` module:
 
@@ -260,7 +248,7 @@ Generate documentation
    `reStructuredText <https://devguide.python.org/documenting/#restructuredtext-primer>`_ 
    format. It provide a simple and concise approach to formatting. 
    
-   If you add components to your project through *micc*, care is taken that the 
+   If you add components to your project through micc_, care is taken that the 
    :file:`.rst` files in the project directory and the :file:`docs` directory are
    modified as necessary, so that *sphinx* is able find the doc-strings. Even for 
    command line interfaces (CLI, or console scripts) based on `click <???>`_ the
@@ -350,23 +338,24 @@ Pyproject.toml
 ^^^^^^^^^^^^^^
    The file :file:`pyproject.toml` (located in the project directory) is the 
    modern way to describe the build system requirements of the project: 
-   `PEP 518 <https://www.python.org/dev/peps/pep-0518/>`_. This is a rather new but *imho*
-   promising concept. Not many tools are available that make use of it. Currently,
-   `poetry <https://poetry.eustace.io>`_ seems to be the most actively developed, and *micc*
-   has some support for it. There is also `flit <https://github.com/takluyver/flit>`_.
+   `PEP 518 <https://www.python.org/dev/peps/pep-0518/>`_. This is a rather new 
+   but *imho* promising concept. Not many tools are available that make use of it. 
+   Currently, `poetry <https://poetry.eustace.io>`_ seems to be the most actively 
+   developed, and micc_ has some support for it. There is also 
+   `flit <https://github.com/takluyver/flit>`_.
   
 Makefile
 ^^^^^^^^
    The :file:`makefile` contains a number of recipes for actions for which other 
-   tools than *micc* are useful. We'll come to those later.
+   tools than micc_ are useful. We'll come to those later.
 
 Micc.log
 ^^^^^^^^
-   The project directory also contains a log file :file:`micc.log`. All *micc* commands
+   The project directory also contains a log file :file:`micc.log`. All micc_ commands
    that modify the state of the project leave a trace in this file, So you can look up 
    what happened when to your project. Should you think that the log file has become
    too big, or just useless, you can delete it manually, or add the ``--clear-log`` flag
-   before any *micc* subcommand, to remove it. If the subcommand alters the state of the
+   before any micc_ subcommand, to remove it. If the subcommand alters the state of the
    project, the log file will only contain the log messages from the last subcommand.
    
    .. code-block:: bash
@@ -382,6 +371,4 @@ Micc.log
       
       > ll micc.log
       ls: micc.log: No such file or directory
-      
-     
 

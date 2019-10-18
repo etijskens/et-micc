@@ -9,17 +9,17 @@ may researchers, using the resources efficiently is of utmost importance.
 However important efficiency may be, it is nevertheless a good strategy for developing a
 new piece of code, to start out with a simple, even naive implementation in Python, neglecting
 all efficiency considerations, but focussing on correctness. Python has a reputation of being 
-an extremely productive programming language. Once you have proven the correctness of this first version
-it can serve as a reference solution to verify the correctness of later efficiency improvements.
-In addition, the analysis of this version can highlight the sources of inefficiency and help
-you focus your attention to the parts that really need it.
+an extremely productive programming language. Once you have proven the correctness of this first 
+version it can serve as a reference solution to verify the correctness of later efficiency 
+improvements. In addition, the analysis of this version can highlight the sources of 
+inefficiency and help you focus your attention to the parts that really need it.
     
 Timing your code
 ^^^^^^^^^^^^^^^^
 The simplest way to probe the efficiency of your code is to time it: write a simple script 
 and record how long it takes to execute. Let us first look at the structure of a Python script. 
 
-   **Python tip: structuring a script**
+   **Python tip: The structure of a script**
    
    Here's a neat way of structuring a Python script:
    
@@ -147,7 +147,7 @@ A third option is to extend the path in your script:
    import random
    from et_dot import dot
    
-We are now ready to time our script. *Micc* provides a practical context manager class 
+We are now ready to time our script. Micc_ provides a practical context manager class 
 :py:class:`micc.stopwatch` to time pieces of code. 
 
 .. code-block:: python
@@ -192,7 +192,7 @@ As said earlier, our implementation of the dot product is rather naive. If you w
 become a good programmer, you should understand that you are probably not first researcher
 in need of a dot product implementation. For most linear algebra problems, `Numpy <https://numpy.org>`_
 provides very efficient implementations. Below the :file:`run1.py` script adds timing results
-for the *numpy* equivalent of our code.
+for the Numpy_ equivalent of our code.
 
 .. code-block:: python
 
@@ -227,7 +227,7 @@ for the *numpy* equivalent of our code.
        
        print('-*# done #*-') 
        
-Here are the results. Note that the *Numpy* version is significantly faster, both for 
+Here are the results. Note that the Numpy_ version is significantly faster, both for 
 initialization (x3.2) and for the dot product (x6.8). 
 
 .. code-block:: bash

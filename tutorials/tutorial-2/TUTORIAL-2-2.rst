@@ -18,8 +18,8 @@ the module :py:mod:`dotc` where the ``c`` stands for C++.
 
 .. code-block:: bash
    
-   > micc module dotf --cpp
-   [INFO]           [ Creating cpp module dotc in Python package ET-dot.
+   > micc ad dotc --cpp
+   [INFO]           [ Adding cpp module dotc to project ET-dot.
    [INFO]               - C++ source in           ET-dot/et_dot/cpp_dotc/dotc.cpp.
    [INFO]               - module documentation in ET-dot/et_dot/cpp_dotc/dotc.rst (in restructuredText format).
    [INFO]               - Python test code in     ET-dot/tests/test_cpp_dotc.py.
