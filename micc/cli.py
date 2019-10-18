@@ -116,14 +116,14 @@ def main(ctx, verbosity, project_path, clear_log):
              , default=False, is_flag=True
              )
 @click.pass_context
-def new( ctx
-       , package
-       , micc_file
-       , description
-       , license
-       , template
-       , allow_nesting
-       ):
+def create( ctx
+          , package
+          , micc_file
+          , description
+          , license
+          , template
+          , allow_nesting
+          ):
     """Create a new project skeleton.
     
     The project name is taken to be the last directory of the *<project_path>*.

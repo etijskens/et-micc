@@ -72,7 +72,7 @@ def test_scenario_1():
     """
     runner = CliRunner()
     with in_empty_tmp_dir():
-        run(runner, ['-vv', '-p', 'FOO', 'new', '--allow-nesting'])
+        run(runner, ['-vv', '-p', 'FOO', 'create', '--allow-nesting'])
         assert Path('FOO/foo.py').exists()
 
 
@@ -85,7 +85,7 @@ def test_scenario_1b():
         oops = Path('oops')
         oops.touch()
         with pytest.raises(AssertionError):
-            run(runner, ['-vv', 'new', '--allow-nesting'] )
+            run(runner, ['-vv', 'create', '--allow-nesting'] )
         l = os.listdir()
         assert len(l)==1
         
@@ -96,7 +96,7 @@ def test_scenario_2():
     runner = CliRunner()
 #     with runner.isolated_filesystem():
     with in_empty_tmp_dir():
-        run(runner, ['-p','foo','-vv', 'new', '--allow-nesting'])
+        run(runner, ['-p','foo','-vv', 'create', '--allow-nesting'])
         foo = Path('foo')
         micc.utils.is_project_directory(foo,raise_if=False)
         micc.utils.is_module_project   (foo,raise_if=False)
