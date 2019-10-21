@@ -70,14 +70,14 @@ def main(ctx, verbosity, project_path, clear_log):
                              , template_parameters={}
                              )
 
-    if micc.utils.is_conda_python():
-        click.echo( click.style("==========================================================\n"
-                                "WARNING: You are running in a conda Python environment.\n"
-                                "         Note that poetry does not play well with conda.\n",   fg='yellow')
-                  + click.style("         Especially, do NOT use:\n"
-                                "         >  poetry install\n",                                 fg='bright_red')
-                  + click.style("==========================================================\n", fg='yellow')
-                  )
+#     if micc.utils.is_conda_python():
+#         click.echo( click.style("==========================================================\n"
+#                                 "WARNING: You are running in a conda Python environment.\n"
+#                                 "         Note that poetry does not play well with conda.\n",   fg='yellow')
+#                   + click.style("         Especially, do NOT use:\n"
+#                                 "         >  poetry install\n",                                 fg='bright_red')
+#                   + click.style("==========================================================\n", fg='yellow')
+#                   )
     template_parameters_json = project_path / 'micc.json'
     if template_parameters_json.exists():
         ctx.obj.template_parameters.update(
