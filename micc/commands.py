@@ -17,11 +17,9 @@ import click
 from micc.tomlfile import TomlFile
 
 import micc.utils
-import micc.logging
+import micc.logging_tools
 import micc.expand
-from pip._internal.cli.cmdoptions import global_options
-from numpy.distutils.conv_template import global_names
-
+from micc.f2py import build_f2py
 
 def micc_create( templates
                , micc_file
@@ -75,9 +73,9 @@ def micc_create( templates
         structure = ''
     
     global_options.verbosity = max(1,global_options.verbosity)
-    micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.logtime():
-        with micc.logging.log( micc_logger.info
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
+    with micc.logging_tools.logtime():
+        with micc.logging_tools.log( micc_logger.info
                       , f"Creating project ({project_name}):"
                       ):
             micc_logger.info(f"Python {global_options.structure} ({package_name}): structure = {structure}")
@@ -98,7 +96,7 @@ def micc_create( templates
                 json.dump(template_parameters,f)
                 micc_logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
         
-            with micc.logging.log(micc_logger.info,"Creating git repository"):
+            with micc.logging_tools.log(micc_logger.info,"Creating git repository"):
                 with micc.utils.in_directory(project_path):
                     cmds = [ ['git', 'init']
                            , ['git', 'add', '*']
@@ -142,8 +140,8 @@ def micc_app( app_name
     cli_app_name = 'cli_' + micc.utils.convert_to_valid_module_name(app_name)
     w = 'with' if global_options.group else 'without' 
     
-    micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
+    with micc.logging_tools.log(micc_logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
         global_options.template_parameters.update({ 'app_name'     : app_name
                                                   , 'cli_app_name' : cli_app_name
                                                   })
@@ -233,8 +231,8 @@ def micc_module_py( module_name
 
     source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}{os.sep}__init__.py"
     
-    micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info,f"Adding python module {source_file} to project {project_path.name}."):
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
+    with micc.logging_tools.log(micc_logger.info,f"Adding python module {source_file} to project {project_path.name}."):
         global_options.template_parameters.update({ 'module_name' : module_name })
      
         exit_code = micc.expand.expand_templates( templates, global_options )                        
@@ -288,8 +286,8 @@ def micc_module_f2py( module_name
     if not module_name==micc.utils.convert_to_valid_module_name(module_name):
         raise AssertionError(f"Not a valid module_name {module_name}")
     
-    micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info,f"Adding f2py module {module_name} to project {project_path.name}."):
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
+    with micc.logging_tools.log(micc_logger.info,f"Adding f2py module {module_name} to project {project_path.name}."):
         global_options.template_parameters.update({ 'module_name' : module_name })
 
         exit_code = micc.expand.expand_templates( templates, global_options )                        
@@ -352,8 +350,8 @@ def micc_module_cpp( module_name
     if not module_name==micc.utils.convert_to_valid_module_name(module_name):
         raise AssertionError(f"Not a valid module_name {module_name}")
     
-    micc_logger = micc.logging.get_micc_logger(global_options)
-    with micc.logging.log(micc_logger.info,f"Adding cpp module cpp_{module_name} to project {project_path.name}."):
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
+    with micc.logging_tools.log(micc_logger.info,f"Adding cpp module cpp_{module_name} to project {project_path.name}."):
         global_options.template_parameters.update({ 'module_name' : module_name })
 
         exit_code = micc.expand.expand_templates( templates, global_options )
@@ -416,7 +414,7 @@ def micc_version( rule, short, poetry, global_options):
     package_name    = micc.utils.convert_to_valid_module_name(project_path.name)
 
     global_options.verbosity = max(1,global_options.verbosity)
-    micc_logger = micc.logging.get_micc_logger(global_options)
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
     
     if short:
         print(current_version)
@@ -490,7 +488,7 @@ def micc_tag(global_options):
     current_version = pyproject_toml['tool']['poetry']['version']
     tag = f"v{current_version}"
 
-    micc_logger = micc.logging.get_micc_logger(global_options)
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
     
     with micc.utils.in_directory(project_path):
     
@@ -547,7 +545,7 @@ def micc_build( module_to_build
         
     # get extension for binary extensions (depends on OS and python version)
     extension_suffix = micc.utils.get_extension_suffix()
-
+    
     dirs = os.listdir(package_path)
     for d in dirs:
         if (     (package_path / d).is_dir() 
@@ -557,35 +555,64 @@ def micc_build( module_to_build
                 continue
 
             build_log_file = project_path / f"micc-build-{d}.log"
-            build_logger = micc.logging.create_logger( build_log_file, filemode='w' )
+            build_logger = micc.logging_tools.create_logger( build_log_file, filemode='w' )
  
             module_type,module_name = d.split('_',1)
-            build_dir = package_path / d / 'build_'
-            build_dir.mkdir(parents=True, exist_ok=True)
 
-            with micc.logging.log(build_logger.info,f"Building {module_type} module {module_name} in directory '{build_dir}'"):
-                with micc.utils.in_directory(build_dir):
-                    cextension = module_name + extension_suffix
-                    destination = (Path('../../') / cextension).resolve()
-                    cmds = [ ['cmake','CMAKE_BUILD_TYPE','=','RELEASE', '..']
-                           , ['make']
-                           ]
-                    if soft_link:
-                        cmds.append(['ln', '-sf', str(cextension), str(destination)])
-                    else:
-                        if destination.exists():
-                            build_logger.debug(f">>> os.remove({destination})\n")
-                            destination.unlink()
-                    # WARNING: for these commands to work in eclipse, eclipse must have
-                    # started from the shell with the appropriate environment activated.
-                    # Otherwise subprocess starts out with the wrong environment. It 
-                    # may not pick the right Python version, and may not find pybind11.
+            with micc.logging_tools.log(build_logger.info,f"Building {module_type} module {module_name}"):
+                cextension = module_name + extension_suffix
+                if module_type=='f2py':
+                    f2py_args = []
+                    for arg,val in global_options.f2py.items():
+                        if val is None:
+                            # this is a flag
+                            f2py_args.append(arg)
+                        else:
+                            f2py_args.append(f"{arg}=\"{val}\"")
+
+                    build_dir = package_path / d 
+                    with micc.utils.in_directory(build_dir):
+                        returncode = build_f2py(module_name, args=f2py_args)
+                elif module_type=='cpp':
+                    build_dir = package_path / d  / '_cmake_build'
+                    build_dir.mkdir(parents=True, exist_ok=True)
+                    with micc.utils.in_directory(build_dir):
+                        cmake_cmd = ['cmake','-D',f"CMAKE_BUILD_TYPE={global_options.build_type}"]
+                        if global_options.cmake:
+                            for key,val in global_options.cmake.items():
+                                cmake_cmd.extend(['-D',f"{key}={val}"])
+                        cmake_cmd.append('..')
+                        cmds = [ cmake_cmd
+                               , ['make']
+                               ]
+                        # WARNING: for these commands to work in eclipse, eclipse must have
+                        # started from the shell with the appropriate environment activated.
+                        # Otherwise subprocess starts out with the wrong environment. It 
+                        # may not pick the right Python version, and may not find pybind11.
+                        returncode = micc.utils.execute(cmds, build_logger.debug, stop_on_error=True, env=os.environ.copy())
+                else:
+                    raise RuntimeError(f"Unknown module_type: {module_type}")
+
+                if returncode:
+                    return returncode 
+                
+                built = build_dir / cextension
+                destination = (package_path / cextension).resolve()
+                if soft_link:
+                    cmds = ['ln', '-sf', str(built), str(destination)]
                     returncode = micc.utils.execute(cmds, build_logger.debug, stop_on_error=True, env=os.environ.copy())
-                    if not returncode:
-                        if not soft_link:
-                            build_logger.debug(f">>> shutil.copyfile( '{cextension}', '{destination}' )\n")
-                            shutil.copyfile(cextension, destination)
-            build_logger.info(f"Check {build_log_file} for details.\n")
+                    if returncode:
+                        return returncode 
+                else:
+                    if destination.exists():
+                        build_logger.debug(f">>> os.remove({destination})\n")
+                        destination.unlink()
+                    build_logger.debug(f">>> shutil.copyfile( '{built}', '{destination}' )\n")
+                    shutil.copyfile(built, destination)
+                    
+            build_logger.info(f"Built: {destination}\n"
+                              f"Check {build_log_file} for details."
+                             )
 
     return 0
 
@@ -607,8 +634,8 @@ def module_to_package(module_py):
     dst = str(package / '__init__.py')
     shutil.move(src, dst)
 
-    micc_logger = micc.logging.get_micc_logger()
-    micc.logging.log(micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
+    micc_logger = micc.logging_tools.get_micc_logger()
+    micc.logging_tools.log(micc_logger.debug,f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py.")
 
 
 def micc_convert_simple(global_options):
@@ -637,7 +664,7 @@ def micc_convert_simple(global_options):
 
     exit_code = micc.expand.expand_templates( "package-general-docs", global_options )
     if exit_code:
-        micc.logging.get_micc_logger().critical(f"Exiting ({exit_code}) ...")
+        micc.logging_tools.get_micc_logger().critical(f"Exiting ({exit_code}) ...")
         return exit_code
     
     package_name = micc.utils.convert_to_valid_module_name(project_path.name)
@@ -666,7 +693,7 @@ def micc_docs(formats, global_options):
     project_path = global_options.project_path
     micc.utils.is_project_directory(project_path, raise_if=False)
 
-    micc_logger = micc.logging.get_micc_logger(global_options)
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
     if not formats:
         micc_logger.info("No documentation format specified, using --html")
         formats.append('html')
@@ -677,7 +704,7 @@ def micc_docs(formats, global_options):
         cmds.append(['make',fmt])
         
     with micc.utils.in_directory(project_path / 'docs'):
-        with micc.logging.log(micc_logger.info,f"Building documentation for project {project_path.name}."):
+        with micc.logging_tools.log(micc_logger.info,f"Building documentation for project {project_path.name}."):
             micc.utils.execute(cmds, micc_logger.debug, env=os.environ.copy())
     return 0
 
@@ -698,7 +725,7 @@ def micc_info(global_options):
     """
     project_path = global_options.project_path
     micc.utils.is_project_directory(project_path, raise_if=False)
-    micc_logger = micc.logging.get_micc_logger(global_options)
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
     package_name = micc.utils.convert_to_valid_module_name(project_path.name)
     pyproject_toml = TomlFile(project_path / 'pyproject.toml')
 
@@ -721,7 +748,7 @@ def micc_info(global_options):
             kind = " (Python package)"
         click.echo("  structure: " + click.style(structure,fg='green')+kind)
         if has_py_module and has_py_package:
-            micc.logging.log(micc_logger.warning, "\nFound both module and package structure."
+            micc.logging_tools.log(micc_logger.warning, "\nFound both module and package structure."
                                            "\nThis will give import problems.")
     if global_options.verbosity>=3:
         package_path = project_path / package_name

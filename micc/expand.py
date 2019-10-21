@@ -13,7 +13,7 @@ import json
 import click
 from cookiecutter.main import cookiecutter
 
-import micc.logging
+import micc.logging_tools
 
 EXIT_OVERWRITE = -3
 
@@ -134,7 +134,7 @@ def expand_templates(templates, global_options):
     project_path = global_options.project_path
     project_path.mkdir(parents=True, exist_ok=True)
     output_dir = project_path.parent
-    micc_logger = micc.logging.get_micc_logger()
+    micc_logger = micc.logging_tools.get_micc_logger()
 
     # list existing files that would be overwritten if global_options.overwrite==True
     existing_files = {}

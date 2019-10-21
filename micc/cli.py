@@ -13,8 +13,9 @@ import click
 
 import micc.commands as cmds
 import micc.utils
-import micc.logging
+import micc.logging_tools
 import micc.expand
+from numpy.core.defchararray import endswith
 
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
@@ -285,7 +286,7 @@ def add( ctx
         if micc.utils.app_exists(ctx.obj.project_path, name):
             raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {name}.")
     
-        with micc.logging.logtime(ctx.obj):
+        with micc.logging_tools.logtime(ctx.obj):
             if group:
                 if not template:
                     template = 'app-sub-commands'
@@ -382,7 +383,7 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
     if patch:
         rule = 'patch'
     
-    with micc.logging.logtime(ctx.obj):
+    with micc.logging_tools.logtime(ctx.obj):
         return_code = cmds.micc_version(rule, short, poetry, global_options=ctx.obj)
         if return_code==0 and tag:
             rc = cmds.micc_tag(global_options=ctx.obj)
@@ -397,7 +398,7 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
 def tag(ctx):
     """Create a git tag for the current version and push it to the remote repo."""
     
-    with micc.logging.logtime(ctx.obj):
+    with micc.logging_tools.logtime(ctx.obj):
         return cmds.micc_tag(global_options=ctx.obj)
 
 
@@ -407,14 +408,104 @@ def tag(ctx):
                     "for C++ modules, ``f2py_`` for Fortran modules) may be omitted."
              , default=''
              )
+@click.option('-b','--build-type'
+             , help="build type: For f2py modules, either RELEASE or DEBUG, where the latter"
+                    "toggles the --debug, --noopt, and --noarch, and ignores all other "
+                    "f2py compile flags. For cpp modules any of the standard CMake build types: "
+                    "DEBUG, MINSIZEREL, RELEASE, RELWITHDEBINFO."
+             , default='RELEASE'
+             )
+# F2py specific options
+@click.option('--f90exec'
+             , help="F2py: Specify the path to F90 compiler."
+             , default=''
+             )
+@click.option('--f90flags'
+             , help="F2py: Specify F90 compiler flags."
+             , default='-O3'
+             )
+@click.option('--opt'
+             , help="F2py: Specify optimization flags."
+             , default='' 
+             )
+@click.option('--arch'
+             , help="F2py: Specify architecture specific optimization flags."
+             , default='' 
+             )
+@click.option('--debug'
+             , help="F2py: Compile with debugging information."
+             , default=False, is_flag=True
+             )
+@click.option('--noopt'
+             , help="F2py: Compile without optimization."
+             , default=False, is_flag=True
+             )
+@click.option('--noarch'
+             , help="F2py: Compile without architecture specific optimization."
+             , default=False, is_flag=True
+             )
+# Cpp specific options
+@click.option('--cxx-flags'
+             , help="CMake: set CMAKE_CXX_FLAGS_<built_type> to <cxx_flags>."
+             , default=''
+             )
+# Other options
 @click.option('-s', '--soft-link'
              , help="Create a soft link rather than a copy of the extension library."
              , default=False, is_flag=True
              )
 @click.pass_context
-def build(ctx, module, soft_link):
+def build( ctx, module
+         , build_type
+# F2py specific options
+         , f90exec
+         , f90flags, opt, arch
+         , debug, noopt, noarch
+# Cpp specific options
+         , cxx_flags         
+# Other options
+         , soft_link
+         ):
     """Build binary extension libraries (f2py and cpp modules)."""
-    with micc.logging.logtime(ctx.obj):
+    with micc.logging_tools.logtime(ctx.obj):
+        build_type = build_type.upper()
+        ctx.obj.build_type = build_type
+        if build_type=='DEBUG':
+            f2py = {'--debug' :None
+                   ,'--noopt' :None
+                   ,'--noarch':None
+                   }
+        else:
+            f2py = {}
+            if f90exec:
+                f2py['--f90exec'] = f90exec
+            if f90flags:
+                f2py['--f90flags'] = f90flags
+            if opt:
+                f2py['--opt'] = opt
+            if arch:
+                f2py['--arch'] = arch
+            if noopt:
+                f2py['--noopt'] = None
+            if noarch:
+                f2py['--noarch'] = None
+            if debug:
+                f2py['--debug'] = None
+        ctx.obj.f2py = f2py
+
+        if cxx_flags:
+            if not cxx_flags.startswith('"') and not cxx_flags.endswith('"'):
+                cxx_flags = f'"{cxx_flags}"'
+            elif cxx_flags.startswith('"') and cxx_flags.endswith('"'):
+                pass
+            else:
+                raise RuntimeError(f"--cxx-flags: unmatched quotes: {cxx_flags}")
+            
+            cmake = { f"CMAKE_CXX_FLAGS_{build_type}" : cxx_flags }
+        else:
+            cmake = {}
+        ctx.obj.cmake = cmake
+            
         rc = cmds.micc_build( module_to_build=module
                             , soft_link=soft_link
                             , global_options=ctx.obj
@@ -446,12 +537,12 @@ def convert_to_package(ctx, overwrite, backup):
     to the documentation structure.
     """
 
-    with micc.logging.logtime(ctx.obj):
+    with micc.logging_tools.logtime(ctx.obj):
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
         rc = cmds.micc_convert_simple(global_options=ctx.obj)
         if rc==micc.expand.EXIT_OVERWRITE:
-            micc.logging.get_micc_logger(ctx.obj).warning(
+            micc.logging_tools.get_micc_logger(ctx.obj).warning(
                 f"It is normally ok to overwrite 'index.rst' as you are not supposed\n"
                 f"to edit the '.rst' files in '{ctx.obj.project_path}{os.sep}docs.'\n"
                 f"If in doubt: rerun the command with the '--backup' flag,\n"
@@ -474,7 +565,7 @@ def convert_to_package(ctx, overwrite, backup):
 def docs(ctx, html, latexpdf):
     """Build documentation for the project using Sphinx with the specified formats."""
     
-    with micc.logging.logtime(ctx.obj):
+    with micc.logging_tools.logtime(ctx.obj):
         formats = []
         if html:
             formats.append('html')
@@ -514,7 +605,7 @@ def info(ctx):
 @click.pass_context
 def poetry(ctx,args,system):
     """A wrapper around poetry that warns for dangerous poetry commands in a conda environment."""
-    with micc.logging.logtime(ctx.obj):
+    with micc.logging_tools.logtime(ctx.obj):
         ctx.obj.system = system
         rc = cmds.micc_poetry( *args, global_options=ctx.obj)
     if rc:

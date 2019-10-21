@@ -28,7 +28,4 @@ TODO
 * facilitates publishing, e.g. `readthedocs <https://readthedocs.org>`_, `PyPI <https://pypi.org>`_  
 * facilitates CI
 
-* Free software: MIT license.
-* `Documentation <https://micc.readthedocs.io/en/latest/>`_.
-
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter

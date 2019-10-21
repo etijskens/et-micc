@@ -1,9 +1,17 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.7.1 (2019-10-??)
+===================
+Issue2 providing f2py command line arguments through CMake seems like a lot of details
+while in fact there is no reason to use CMake to call f2py in the first place. Instead 
+we try to use the :py:mod:`numpy.f2py` module. works well.
+Which there was a python interface to cmake...
+
 v0.7.0 (2019-10-18)
 ===================
-we are writing our issues on github now
+we are writing our issues on github now, and we are working inside a seprate git_ branch
+for every issue. merging implies a version bump. 
 * `more intuitive micc subcommands <https://github.com/etijskens/micc/issues/1>`_
 
 v0.6.8 (2019-10-17)

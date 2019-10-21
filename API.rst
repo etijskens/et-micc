@@ -8,7 +8,7 @@
 .. automodule:: micc.expand
    :members:
 
-.. automodule:: micc.logging
+.. automodule:: micc.logging_tools
    :members:
 
 .. automodule:: micc.utils

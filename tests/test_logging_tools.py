@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Tests for micc.logging package."""
+"""Tests for micc.logging_tools package."""
 
 from pathlib import Path
 import types
 
 import micc.utils
-import micc.logging
+import micc.logging_tools
 
 def test_log():
-    with micc.logging.log():
+    with micc.logging_tools.log():
         print('test_log without logfun')
         
     logfile = micc.utils.get_project_path('.') / 'micc.log'
@@ -22,10 +22,10 @@ def test_log():
                                           ,project_path=Path('.').resolve()
                                           ,clear_log=False
                                           )
-    micc_logger = micc.logging.get_micc_logger(global_options)
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
 
-    with micc.logging.logtime():
-        with micc.logging.log(micc_logger.info):
+    with micc.logging_tools.logtime():
+        with micc.logging_tools.log(micc_logger.info):
             micc_logger.info('test_log with a logfun')
             micc_logger.debug('debug message\nwith 2 lines')
 

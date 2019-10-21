@@ -39,7 +39,7 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 from tests.helpers import report, in_empty_tmp_dir 
 from micc import cli,commands
 import micc.utils
-import micc.logging
+import micc.logging_tools
 
 
 #===============================================================================
@@ -61,7 +61,7 @@ def run(runner,arguments,input_='short description'):
 #===============================================================================
 def test_module_to_package():
     with in_empty_tmp_dir():
-        micc.logging.get_micc_logger(types.SimpleNamespace(verbosity=2
+        micc.logging_tools.get_micc_logger(types.SimpleNamespace(verbosity=2
                                              ,project_path=Path.cwd()
                                              ,clear_log=False
                                              ))
