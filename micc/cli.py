@@ -401,7 +401,12 @@ def tag(ctx):
         return cmds.micc_tag(global_options=ctx.obj)
 
 
-def _check_cxx_flags(cxx_flags,name):
+def _check_cxx_flags(cxx_flags,cli_option):
+    """
+    :param str cxx_flags: C++ compiler flags
+    :param str cli_option: typically '--cxx-flags', or '--cxx-flags-all'.
+    :raises: RunTimeError if cxx_flags starts or ends with a '"' but not both.
+    """
     if cxx_flags.startswith('"') and cxx_flags.endswith('"'):
         # compile options appear between quotes
         pass
@@ -409,8 +414,22 @@ def _check_cxx_flags(cxx_flags,name):
         # a singlecompile option must still be surrounded with quotes. 
         cxx_flags = f'"{cxx_flags}"'
     else:
-        raise RuntimeError(f"{name}: unmatched quotes: {cxx_flags}")
+        raise RuntimeError(f"{cli_option}: unmatched quotes: {cxx_flags}")
     return cxx_flags
+
+
+def _check_load_save(filename,loadorsave):
+    """
+    :param str filename: possibly empty string.
+    :param str loadorsave: 'load'|'save'.
+    :raises: RunTimeError if filename is actually a file path.
+    """
+    if filename:
+        if os.sep in filename:
+            raise RuntimeError(f"--{loadorsave} {filename}: only filename allowed, not path.")
+        if not filename.endswith('.json'):
+            filename += '.json'
+    return filename
 
 
 @main.command()
@@ -502,12 +521,23 @@ def build( ctx, module
          , load, save
          ):
     """Build binary extension libraries (f2py and cpp modules)."""
+    if save:
+        if os.sep in save:
+            raise RuntimeError(f"--save {save}: only filename allowed, not path.")
+        if not save.endswith('.json'):
+            save += '.json'
+    if load:
+        if os.sep in load:
+            raise RuntimeError(f"--load {load}: only filename allowed, not path.")
+        if not load.endswith('.json'):
+            load += '.json'
+    
     with micc.logging_tools.logtime(ctx.obj):            
         build_options=SimpleNamespace( build_type = build_type.upper() )
         build_options.clean = clean
         build_options.soft_link = soft_link
-        build_options.save = save
-        build_options.load = load
+        build_options.save = _check_load_save(save, "save")
+        build_options.load = _check_load_save(load, "load")
         if not load:
             if build_type=='DEBUG':
                 f2py = {'--debug' :None

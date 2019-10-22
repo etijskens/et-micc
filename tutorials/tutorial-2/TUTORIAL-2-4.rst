@@ -9,6 +9,28 @@ CMake_. Obviously, in both cases there is a compiler under the hood doing the
 hard work. By default these tools use the compiler they find on the path, but 
 you may as well specify your favorite compiler.
 
+Building a single module only
+-----------------------------
+If you want to build a single binary extension module rather than all binary
+extension modules in the project, add the ``-m|--module`` option:
+
+.. code-block:: 
+
+   > micc build --module my_module <build options>
+   
+This will only build module *my_module*.
+
+Performing a clean build
+------------------------
+To perform a clean build, add the ``--clean`` flag to the ``micc build`` command:
+
+.. code-block:: 
+
+   > micc build --clean <other options>
+
+This will remove the previous build directory and as well as the binary extension 
+module.
+
 Controlling the build of f2py modules
 -------------------------------------
 To specify the Fortran compiler, e.g. the GNU fortran compiler:
@@ -71,3 +93,24 @@ overwritten by using the ``--cxx-flags-all`` option,
 .. note:: CMake_ selects reasonable options for the four build types above, taking into 
    account the chosen compiler. For tweeking, however, you will most probably have to 
    change the compiler options when you change the compiler.
+
+Save and Load build options to/from file
+----------------------------------------
+With the ``--save`` option you can save the current build options to a file in .json 
+format. This acts on a per project basis. E.g.:
+
+.. code-block:: 
+  
+   > micc build <my build options> --save build[.json]
+
+will save the *<my build options>* to the file :file:`build.json` in every binary module
+directory (the .json extension is added if omitted). You can restrict this to a single 
+module with the ``--module`` option (see above). The saved options can be reused in a 
+later build as:
+ 
+.. code-block:: 
+  
+   > micc build --load build[.json]
+
+
+ 

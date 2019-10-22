@@ -6,6 +6,11 @@ v0.7.? (2019-10-??)
 support for installing binary extension modules #3
 created branch issue_3
 
+v0.7.3 (2019-10-22)
+===================
+* micc --save/load: add .json extension if omitted, and test for filepath.
+* tutorial
+* micc build --clean: removes also binary extension, not only build directory
 
 v0.7.2 (2019-10-22)
 ===================

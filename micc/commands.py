@@ -559,6 +559,9 @@ def micc_build( module_to_build, global_options ):
             
             with micc.logging_tools.log(build_logger.info,f"Building {module_type} module {module_name}"):
                 cextension = module_name + extension_suffix
+                destination = (package_path / cextension).resolve()
+                if build_options.clean:
+                    os.remove(str(destination))
                 module_dir = package_path / d 
                 if build_options.save:
                     with open(str(module_dir / build_options.save),'w') as f:
