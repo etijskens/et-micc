@@ -518,28 +518,26 @@ def micc_tag(global_options):
     return 0
 
 
-def micc_build( module_to_build
-              , soft_link
-              , global_options
-              ):
+def micc_build( module_to_build, global_options ):
     """
     Build all binary extensions, i.e. f2py modules and cpp modules.
     
     :param str module_to_build: name of the only module to build (the prefix 
         ``cpp_`` or ``f2py_`` may be omitted)
-    :param bool soft_link: if False, the binary extension modules are copied
-        into the package directory. Otherwise a soft link is provided.
     :param types.SimpleNamespace global_options: namespace object with
         options accepted by (almost) all micc commands. Relevant attributes are 
         
         * **verbosity**
         * **project_path**: Path to the project on which the command operates.
+        * **build_options**: all build options.
     """
     project_path = global_options.project_path
 
     micc.utils.is_project_directory(project_path, raise_if=False)
     micc.utils.is_package_project  (project_path, raise_if=False)
     micc.utils.is_module_project   (project_path, raise_if=True )
+    
+    build_options = global_options.build_options
     
     package_path = project_path / micc.utils.convert_to_valid_module_name(project_path.name)
         
@@ -558,29 +556,48 @@ def micc_build( module_to_build
             build_logger = micc.logging_tools.create_logger( build_log_file, filemode='w' )
  
             module_type,module_name = d.split('_',1)
-
+            
             with micc.logging_tools.log(build_logger.info,f"Building {module_type} module {module_name}"):
                 cextension = module_name + extension_suffix
+                module_dir = package_path / d 
+                if build_options.save:
+                    with open(str(module_dir / build_options.save),'w') as f:
+                        json.dump(build_options.f2py,f)
+                
                 if module_type=='f2py':
+                    if build_options.load:
+                        with open(str(module_dir / build_options.save),'r') as f:
+                            build_options.f2py = json.load(f)
+                    build_dir = module_dir
                     f2py_args = []
-                    for arg,val in global_options.f2py.items():
+                    for arg,val in build_options.f2py.items():
                         if val is None:
                             # this is a flag
                             f2py_args.append(arg)
                         else:
                             f2py_args.append(f"{arg}=\"{val}\"")
 
-                    build_dir = package_path / d 
-                    with micc.utils.in_directory(build_dir):
+                    if build_options.save:
+                        with open(str(module_dir / build_options.save),'w') as f:
+                            json.dump(build_options.f2py,f)
+                    with micc.utils.in_directory(module_dir):
+                        if build_options.clean:
+                            build_logger.info(f"--clean: removing {d}/_f2py_build")
+                            shutil.rmtree('_f2py_build') 
                         returncode = build_f2py(module_name, args=f2py_args)
                 elif module_type=='cpp':
-                    build_dir = package_path / d  / '_cmake_build'
+                    if build_options.load:
+                        with open(str(module_dir / build_options.save),'r') as f:
+                            build_options.cmake = json.load(f)
+                    build_dir = module_dir  / '_cmake_build'
+                    if build_options.clean:
+                        build_logger.info(f"--clean: removing {d}/_cmake_build")
+                        shutil.rmtree(build_dir) 
                     build_dir.mkdir(parents=True, exist_ok=True)
                     with micc.utils.in_directory(build_dir):
-                        cmake_cmd = ['cmake','-D',f"CMAKE_BUILD_TYPE={global_options.build_type}"]
-                        if global_options.cmake:
-                            for key,val in global_options.cmake.items():
-                                cmake_cmd.extend(['-D',f"{key}={val}"])
+                        cmake_cmd = ['cmake']
+                        for key,val in build_options.cmake.items():
+                            cmake_cmd.extend(['-D',f"{key}={val}"])
                         cmake_cmd.append('..')
                         cmds = [ cmake_cmd
                                , ['make']
@@ -598,7 +615,7 @@ def micc_build( module_to_build
                 
                 built = build_dir / cextension
                 destination = (package_path / cextension).resolve()
-                if soft_link:
+                if build_options.soft_link:
                     cmds = ['ln', '-sf', str(built), str(destination)]
                     returncode = micc.utils.execute(cmds, build_logger.debug, stop_on_error=True, env=os.environ.copy())
                     if returncode:

@@ -15,7 +15,6 @@ import micc.commands as cmds
 import micc.utils
 import micc.logging_tools
 import micc.expand
-from numpy.core.defchararray import endswith
 
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
@@ -402,6 +401,18 @@ def tag(ctx):
         return cmds.micc_tag(global_options=ctx.obj)
 
 
+def _check_cxx_flags(cxx_flags,name):
+    if cxx_flags.startswith('"') and cxx_flags.endswith('"'):
+        # compile options appear between quotes
+        pass
+    elif not cxx_flags.startswith('"') and not cxx_flags.endswith('"'):
+        # a singlecompile option must still be surrounded with quotes. 
+        cxx_flags = f'"{cxx_flags}"'
+    else:
+        raise RuntimeError(f"{name}: unmatched quotes: {cxx_flags}")
+    return cxx_flags
+
+
 @main.command()
 @click.option('-m','--module'
              , help="Build only this module. The module kind prefix (``cpp_`` "
@@ -445,13 +456,34 @@ def tag(ctx):
              , default=False, is_flag=True
              )
 # Cpp specific options
+@click.option('--cxx-compiler'
+             , help="CMake: specify the C++ compiler (sets CMAKE_CXX_COMPILER)."
+             , default=''
+             )
 @click.option('--cxx-flags'
              , help="CMake: set CMAKE_CXX_FLAGS_<built_type> to <cxx_flags>."
              , default=''
              )
+@click.option('--cxx-flags-all'
+             , help="CMake: set CMAKE_CXX_FLAGS_<built_type> to <cxx_flags>."
+             , default=''
+             )
 # Other options
+@click.option('--clean'
+             , help="Perform a clean build."
+             , default=False, is_flag=True
+             )
+@click.option('--load'
+             , help="Load the build options from a (.json) file in the module directory. "
+                    "All other compile options are ignored."
+             , default=''
+             )
+@click.option('--save'
+             , help="Save the build options to a (.json) file in the module directory."
+             , default=''
+             )
 @click.option('-s', '--soft-link'
-             , help="Create a soft link rather than a copy of the extension library."
+             , help="Create a soft link rather than a copy of the binary extension module."
              , default=False, is_flag=True
              )
 @click.pass_context
@@ -462,52 +494,60 @@ def build( ctx, module
          , f90flags, opt, arch
          , debug, noopt, noarch
 # Cpp specific options
-         , cxx_flags         
+         , cxx_compiler
+         , cxx_flags, cxx_flags_all
 # Other options
+         , clean
          , soft_link
+         , load, save
          ):
     """Build binary extension libraries (f2py and cpp modules)."""
-    with micc.logging_tools.logtime(ctx.obj):
-        build_type = build_type.upper()
-        ctx.obj.build_type = build_type
-        if build_type=='DEBUG':
-            f2py = {'--debug' :None
-                   ,'--noopt' :None
-                   ,'--noarch':None
-                   }
-        else:
-            f2py = {}
-            if f90exec:
-                f2py['--f90exec'] = f90exec
-            if f90flags:
-                f2py['--f90flags'] = f90flags
-            if opt:
-                f2py['--opt'] = opt
-            if arch:
-                f2py['--arch'] = arch
-            if noopt:
-                f2py['--noopt'] = None
-            if noarch:
-                f2py['--noarch'] = None
-            if debug:
-                f2py['--debug'] = None
-        ctx.obj.f2py = f2py
-
-        if cxx_flags:
-            if not cxx_flags.startswith('"') and not cxx_flags.endswith('"'):
-                cxx_flags = f'"{cxx_flags}"'
-            elif cxx_flags.startswith('"') and cxx_flags.endswith('"'):
-                pass
+    with micc.logging_tools.logtime(ctx.obj):            
+        build_options=SimpleNamespace( build_type = build_type.upper() )
+        build_options.clean = clean
+        build_options.soft_link = soft_link
+        build_options.save = save
+        build_options.load = load
+        if not load:
+            if build_type=='DEBUG':
+                f2py = {'--debug' :None
+                       ,'--noopt' :None
+                       ,'--noarch':None
+                       }
             else:
-                raise RuntimeError(f"--cxx-flags: unmatched quotes: {cxx_flags}")
-            
-            cmake = { f"CMAKE_CXX_FLAGS_{build_type}" : cxx_flags }
-        else:
+                f2py = {}
+                if f90exec:
+                    f2py['--f90exec'] = f90exec
+                if f90flags:
+                    f2py['--f90flags'] = f90flags
+                if opt:
+                    f2py['--opt'] = opt
+                if arch:
+                    f2py['--arch'] = arch
+                if noopt:
+                    f2py['--noopt'] = None
+                if noarch:
+                    f2py['--noarch'] = None
+                if debug:
+                    f2py['--debug'] = None
+            build_options.f2py = f2py
+    
             cmake = {}
-        ctx.obj.cmake = cmake
+            cmake['CMAKE_BUILD_TYPE'] = build_type
+            if cxx_compiler:
+                path_to_cxx_compiler = Path(cxx_compiler).resolve()
+                if not path_to_cxx_compiler.exists():
+                    raise FileNotFoundError(f"C++ compiler {path_to_cxx_compiler} not found.")
+                cmake['CMAKE_CXX_COMPILER'] = str(path_to_cxx_compiler)
+            if cxx_flags:
+                cmake[f"CMAKE_CXX_FLAGS_{build_type}"] = _check_cxx_flags(cxx_flags,"--cxx-flags")
+            if cxx_flags_all:
+                cmake["CMAKE_CXX_FLAGS"] = _check_cxx_flags(cxx_flags_all,"--cxx-flags-all")
+            build_options.cmake = cmake
             
+        ctx.obj.build_options = build_options
+        
         rc = cmds.micc_build( module_to_build=module
-                            , soft_link=soft_link
                             , global_options=ctx.obj
                             )
     if rc:

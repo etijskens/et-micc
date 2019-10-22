@@ -1,6 +1,18 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.7.? (2019-10-??)
+===================
+support for installing binary extension modules #3
+created branch issue_3
+
+
+v0.7.2 (2019-10-22)
+===================
+* issue #6 micc build --save/load <build options file>.json
+* issue #5 micc build --clean option
+* fixed setting compile options in cpp modules.
+
 v0.7.1 (2019-10-21)
 ===================
 Issue2 providing f2py command line arguments through CMake seems like a lot of details
