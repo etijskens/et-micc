@@ -112,5 +112,26 @@ later build as:
   
    > micc build --load build[.json]
 
+Installing packages with binary extension modules
+-------------------------------------------------
+Normally, installation would be performed with poetry_, but as this part of poetry_ is
+not implemented yet, we have to rely on workarounds. 
 
- 
+If your package contains CLIs, you must run (in the project directory):
+
+.. code-block:: 
+  
+   > micc build 
+   > make [re]install
+   > micc dev-install
+   
+The last step replaces the directory :file:`site-packages/micc` in your current Python
+environment by the directory structure of the :file:`micc` package, but replaces all files
+with symlinks. 
+
+Alternatively, instead of the last step, you may move/copy/symlink the :file:`.so` files 
+in the :file:`micc` package manually to :file:`site-packages/micc` in your current Python 
+environment.
+
+
+Currently, there are two options
