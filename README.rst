@@ -15,13 +15,14 @@ This is work in progress!
         :alt: Documentation Status
 
 
-*Micc* is a Python project manager: it
+*Micc* is a Python project manager: it can
 
-* creates new projects
-* adds modules (Python, Fortran, C++) and applications
-* facilitates documentation (using `sphinx <http://www.sphinx-doc.org/>`_)
-* facilitates version management and control (using `git <https://www.git-scm.com/>`_)
-* facilitates testing (using `pytest <https://www.git-scm.com/>`_)
+* create new projects
+* add python modules and applications
+* add and build binary extension modules written in C++ and Fortran.
+* build documentation (using `sphinx <http://www.sphinx-doc.org/>`_)
+* do version management and control (using `git <https://www.git-scm.com/>`_)
+* test your code (using `pytest <https://www.git-scm.com/>`_)
 
 TODO 
 
