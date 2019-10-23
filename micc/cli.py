@@ -691,11 +691,11 @@ def dev_install(ctx):
     or C++ source are visible after running ``micc build``. :py:mod:import.reload`
     may be necessary.)
     
-    Copy of the directory structure of the project's package directory
+    Copy the directory structure of the project's package directory
     and create a symlink for every file in there.
     
-    This is a temporary solution for locally installing packages
-    with binary extensions. Some day poetry_ will take over install.
+    This is a temporary workaround for installing packages
+    with binary extensions. Some day poetry_ will take over.
     """
     with micc.logging_tools.logtime(ctx.obj):
         cmds.micc_dev_install(ctx.obj)
@@ -703,7 +703,11 @@ def dev_install(ctx):
 @main.command()
 @click.pass_context
 def dev_uninstall(ctx):
-    """Undo ``micc dev-install``.."""
+    """Undo ``micc dev-install``.
+    
+    This is a temporary workaround for uninstalling packages
+    with binary extensions. Some day poetry_ will take over.
+    """
     with micc.logging_tools.logtime(ctx.obj):
         cmds.micc_dev_install(ctx.obj,install=False)
     
