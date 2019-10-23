@@ -837,4 +837,61 @@ def micc_poetry(*args, global_options):
                    )
         return 1
 
+
+import site
+import walkdir
+
+def link_files(source,destination,logger=None):
+    """
+    This method creates a copy of the directory structure at *source*, 
+    and create a symlink for every file in the directory structure
+
+    :param Path source: in dev-install the path to a package directory
+    :param Path destination: in dev-install the path to the current environment's :file:`site-packages:
+    """
+    dd = destination / source.name
+    dd.mkdir(exist_ok=True)
+    if logger:
+        logger.debug(f"Creating directory {dd}")
+    for root, dirs, files in walkdir.filtered_walk(str(source)
+                                                  , excluded_dirs=['f2py_*','cpp_*','__pycache__']
+                                                  , excluded_files=['.DS_Store','*.json']
+                                                  ):
+        r = Path(root).relative_to(source.parent)
+        for d in dirs:                
+            dd = ( destination / r / d)
+            dd.mkdir(exist_ok=True)
+            if logger:
+                logger.debug(f"Creating directory {dd}")
+        for f in files:
+            src = Path(root) / f
+            df = (destination / r /f )
+            df.symlink_to(src) 
+            if logger:
+                logger.debug(f"Creating symlink {df}")
+        
+    logger.debug(f"Creating directory {dd}")
+            
+def micc_dev_install(global_options, install=True):
+    """
+    """
+    project_path = global_options.project_path
+    micc.utils.is_project_directory(project_path, raise_if=False)
+    micc_logger = micc.logging_tools.get_micc_logger(global_options)
+    package_name = micc.utils.convert_to_valid_module_name(project_path.name)
+
+    site_packages = Path(site.getsitepackages()[0])
+    
+    un = '' if install else 'un'
+    when = 'before' if install else 'after'
+    with micc.logging_tools.log(micc_logger.info, f"dev-install of {package_name}"):
+        micc_logger.warning(f"Run 'make {un}install' {when} 'micc dev-{un}install'")
+        dst_package = site_packages / package_name
+        if dst_package.is_dir():
+            micc_logger.debug(f"Removing directory {dst_package} + all contents.")
+            shutil.rmtree(dst_package)
+        if install:
+            link_files(project_path / package_name, site_packages, micc_logger)
+    
+    
 # EOF #

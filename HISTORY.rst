@@ -1,10 +1,11 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.7.? (2019-10-??)
+v0.7.4 (2019-10-23)
 ===================
-support for installing binary extension modules #3
-created branch issue_3
+* `Github issue #3 <https://github.com/etijskens/micc/issues/3>`_
+* created branch issue_3
+* implemented a workaround in ``micc dev-install``. 
 
 v0.7.3 (2019-10-22)
 ===================

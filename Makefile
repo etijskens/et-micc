@@ -108,4 +108,6 @@ uninstall:
 reinstall: clean dist
 	yes | pip uninstall $(module_name)
 	pip install dist/$(module_name)-$(version)-py3-none-any.whl
+
+#-------------------------------------------------------------------------------
 	

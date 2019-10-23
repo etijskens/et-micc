@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "micc"
-version = "0.7.3"
+version = "0.7.4"
 description = "A practical Python project skeleton generator."
 authors = ["Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>"]
 license = "MIT"
@@ -24,6 +24,7 @@ tomlkit =  "^0.5.5"
 pybind11 = "^2.2.4"
 numpy = "^1.17.0"
 bump2version="^0.5.11"
+walkdir="^0.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.4.2"

@@ -102,7 +102,7 @@ dist: clean ## builds source and wheel package
 #-------------------------------------------------------------------------------
 # Install package {{cookiecutter.package_name}} in the current Python
 # environment.
-install: clean
+install: clean dist
 	pip install dist/$(module_name)-$(version)-py3-none-any.whl
 
 #-------------------------------------------------------------------------------
@@ -111,15 +111,8 @@ uninstall:
 	pip uninstall $(module_name)
 
 #-------------------------------------------------------------------------------
-# Install package {{cookiecutter.package_name}} in development mode
-# in the current Python environment.
-# (does not install apps)
-install-dev:
-	ln -s ./$(module_name) $(site_packages)/$(module_name)
-
-#-------------------------------------------------------------------------------
-# Uninstall package {{cookiecutter.package_name}} from current Python environment
-uninstall-dev:
-	rm $(site_packages)/$(module_name)
-
+# Re-install package micc from current Python environment
+reinstall: clean dist
+	yes | pip uninstall $(module_name)
+	pip install dist/$(module_name)-$(version)-py3-none-any.whl
 #-------------------------------------------------------------------------------

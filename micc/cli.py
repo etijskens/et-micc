@@ -681,6 +681,32 @@ def poetry(ctx,args,system):
     if rc:
         ctx.exit(rc)
 
+
+@main.command()
+@click.pass_context
+def dev_install(ctx):
+    """Perform development install of the package. 
     
+    (Changes to python source are immediately visible, changes to Fortran
+    or C++ source are visible after running ``micc build``. :py:mod:import.reload`
+    may be necessary.)
+    
+    Copy of the directory structure of the project's package directory
+    and create a symlink for every file in there.
+    
+    This is a temporary solution for locally installing packages
+    with binary extensions. Some day poetry_ will take over install.
+    """
+    with micc.logging_tools.logtime(ctx.obj):
+        cmds.micc_dev_install(ctx.obj)
+
+@main.command()
+@click.pass_context
+def dev_uninstall(ctx):
+    """Undo ``micc dev-install``.."""
+    with micc.logging_tools.logtime(ctx.obj):
+        cmds.micc_dev_install(ctx.obj,install=False)
+    
+   
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
