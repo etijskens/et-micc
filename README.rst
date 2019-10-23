@@ -24,6 +24,7 @@ This is work in progress!
 * do version management and control (using `git <https://www.git-scm.com/>`_)
 * test your code (using `pytest <https://www.git-scm.com/>`_)
 
+
 TODO 
 
 * facilitates publishing, e.g. `readthedocs <https://readthedocs.org>`_, `PyPI <https://pypi.org>`_  

@@ -143,3 +143,44 @@ Finally, we run pytest_:
    
    ================================== 10 passed in 0.33 seconds ==========================   
 
+Installing packages with Python components
+------------------------------------------
+This is automated using ``make``. The project directory contains a :file:`Makefile` that
+holds some commands that build on other tools that micc_, notably poetry_.
+
+To install your package in the current Python environment:
+
+.. code-block::
+  
+   > make install
+   
+To uninstall your package in the current Python environment:
+
+.. code-block::
+  
+   > make uninstall
+   
+To reinstall (after source code modifications) your package in the current Python 
+environment:
+
+.. code-block::
+  
+   > make install
+   
+There is also a micc_ command that allows to install a package in your current 
+Python environment in development mode. Any modyfications to the source code 
+are immediately visible in the installed package, exept, of course for code 
+modifications to the source of binary extension modules, which must be built first:
+
+.. code-block::
+  
+   > make [re]install
+   > micc dev-install
+   
+and to uninstall:
+
+.. code-block::
+  
+   > micc dev-uninstall
+   > make uninstall
+
