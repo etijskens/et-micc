@@ -689,7 +689,7 @@ def micc_convert_simple(global_options):
     
     package_name = micc.utils.convert_to_valid_module_name(project_path.name)
     package_path = project_path / package_name
-    os.makedirs(package_path)
+    os.makedirs(package_path,exist_ok=True)
     src = project_path /(package_name + '.py')
     dst = project_path / package_name / '__init__.py'
     shutil.move(src, dst)

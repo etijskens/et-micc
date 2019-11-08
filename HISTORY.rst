@@ -24,7 +24,7 @@ including dead-ends.
   * https://realpython.com/pypi-publish-python-package/
   * https://packaging.python.org/tutorials/packaging-projects/
   * https://luminousmen.com/post/resolve-cython-and-numpy-dependencies
-  * 
+  
   
   That would mean to cut out poetry entirely until it has matured.
   
