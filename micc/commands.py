@@ -520,10 +520,11 @@ def micc_tag(global_options):
 
 def micc_build( module_to_build, global_options ):
     """
-    Build all binary extensions, i.e. f2py modules and cpp modules.
+    Build binary extensions, i.e. f2py modules and cpp modules.
     
     :param str module_to_build: name of the only module to build (the prefix 
-        ``cpp_`` or ``f2py_`` may be omitted)
+        ``cpp_`` or ``f2py_`` may be omitted). If not provided, all binrary
+        extensions are built.
     :param types.SimpleNamespace global_options: namespace object with
         options accepted by (almost) all micc commands. Relevant attributes are 
         
@@ -588,6 +589,7 @@ def micc_build( module_to_build, global_options ):
                             build_logger.info(f"--clean: removing {d}/_f2py_build")
                             shutil.rmtree('_f2py_build') 
                         returncode = build_f2py(module_name, args=f2py_args)
+                    
                 elif module_type=='cpp':
                     if build_options.load:
                         with open(str(module_dir / build_options.save),'r') as f:
@@ -629,11 +631,18 @@ def micc_build( module_to_build, global_options ):
                         destination.unlink()
                     build_logger.debug(f">>> shutil.copyfile( '{built}', '{destination}' )\n")
                     shutil.copyfile(built, destination)
-                    
+                
+                    # Remove the build directory to avoid that it will be included in the wheel
+                    # (we cannot do this if build_options.soft_link is True 
+                    if module_type=='f2py':
+                        build_dir = module_dir / '_f2py_build'
+                    shutil.rmtree(build_dir) 
+                
             build_logger.info(f"Built: {destination}\n"
                               f"Check {build_log_file} for details."
                              )
-
+    
+    
     return 0
 
 
