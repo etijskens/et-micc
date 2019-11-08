@@ -1,6 +1,45 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+* started testing micc on Ubuntu (virtualbox). discovered that 
+  `` poetry install`` fails on micc. filed bug report #1492. The issue is there
+  for both poetry v0.12.17 and v1.0.0b1.
+  As a consequence i started worrying about the fitness of poetry for this.
+  Poetry_ aims at "Python dependency management and packaging made easy".
+  Flit_ aims at "Simplified packaging of Python modules", so not at dependency 
+  management. I am also not sure if flit is able to publish packages with binary
+  extension modules - it is not.
+  Basically, for packaging packages with binary extension modules, we still
+  have to rely on setuptools (see 
+  https://buildmedia.readthedocs.org/media/pdf/python-packaging-user-guide/latest/python-packaging-user-guide.pdf).
+  
+  Some interesting links: 
+  
+  * https://jichu4n.com/posts/how-to-add-custom-build-steps-and-commands-to-setuppy/
+  * https://stackoverflow.com/questions/14441955/how-to-perform-custom-build-steps-in-setup-py
+  * https://realitix.github.io/python/2016/11/09/python-customize-setup/
+  * https://coderwall.com/p/3q_czg/custom-subcommand-at-setup-py
+  * https://pythonhosted.org/an_example_pypi_project/setuptools.html
+  * https://blog.godatadriven.com/setup-py
+  * https://realpython.com/pypi-publish-python-package/
+  * https://packaging.python.org/tutorials/packaging-projects/
+  * https://luminousmen.com/post/resolve-cython-and-numpy-dependencies
+  * 
+  
+  That would mean to cut out poetry entirely until it has matured.
+  
+  Alternatives: 
+  
+  * require that packages with binary extension must be build locally using `micc build`
+  * provide our own tool for producing wheels including the binary extension.
+  
+* support markdown as an alternative to reStructuredText
+
+* make project structure compliant with Julien Danjou's  recommendation in 
+  `Serious Python <https://www.amazon.com/Serious-Python-Black-Belt-Deployment-Scalability-ebook/dp/B074S4G1L5/ref=pd_sim_351_1/140-6054425-3396237?_encoding=UTF8&pd_rd_i=B074S4G1L5&pd_rd_r=85bb9a96-660a-49c8-9fe5-ebba96467e06&pd_rd_w=zpXq6&pd_rd_wg=P0aog&pf_rd_p=5abf8658-0b5f-405c-b880-a6d1b558d4ea&pf_rd_r=65PKW9TR3QS9F2QT415E&psc=1&refRID=65PKW9TR3QS9F2QT415E>`_
+  Figure 1-2: i.e. put :file:`tests` under package directory
+  instead of under project directory.
+     
 v0.7.4 (2019-10-23)
 ===================
 * `Github issue #3 <https://github.com/etijskens/micc/issues/3>`_

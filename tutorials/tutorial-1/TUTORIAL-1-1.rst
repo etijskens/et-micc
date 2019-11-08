@@ -322,7 +322,8 @@ License file
    * GNU General Public License v3 and
    * Not open source. 
  
-   MIT license is a very liberal license and the default option.
+   MIT license is a very liberal license and the default option. If you’re unsure which 
+   license to choose, you can use resources such as `GitHub’s Choose a License <https://choosealicense.com>`_
    
    You can select the license file when you create the project:
    
