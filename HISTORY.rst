@@ -1,14 +1,10 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-
-
-issue: micc is no longer compatible with itself: `micc add foo --f2py` fails.
-That is of course only a problem for myself. 
-
 v0.7.5 (2019-11-11)
 ===================
-* fixed `Github issue #12 <https://github.com/etijskens/micc/issues/12>`_
+* `Github issue #17 <https://github.com/etijskens/micc/issues/17>`_ micc is no longer compatible with itself
+* Fixed `Github issue #12 <https://github.com/etijskens/micc/issues/12>`_
 
 v0.7.4 (2019-10-23)
 ===================
