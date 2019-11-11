@@ -3,7 +3,8 @@ including dead-ends.
 
 v0.7.5 (2019-11-11)
 ===================
-* `Github issue #17 <https://github.com/etijskens/micc/issues/17>`_ micc is no longer compatible with itself
+* Fixed wrong location of :file:`tests` directory in :file:`module-py` template
+* Fixed `Github issue #17 <https://github.com/etijskens/micc/issues/17>`_ micc is no longer compatible with itself
 * Fixed `Github issue #12 <https://github.com/etijskens/micc/issues/12>`_
 
 v0.7.4 (2019-10-23)
