@@ -10,4 +10,5 @@
 , "sphinx_html_theme": "sphinx_rtd_theme"
 , "open_source_license": "MIT license"
 , "project_short_description": "A Python project manager"
+, "py": "py"
 }
