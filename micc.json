@@ -50,5 +50,8 @@
 					  },
   "cookiecutter"	: {"default": "~/software/dev/workspace/micc/cookiecutter-mypackage"
   					  ,"text"   :"location of the cookiecutter template"
-  					  }
+  					  },
+  "py"				: {"default":"py"
+					  ,"text"   :"python file extension"
+					  }
 }

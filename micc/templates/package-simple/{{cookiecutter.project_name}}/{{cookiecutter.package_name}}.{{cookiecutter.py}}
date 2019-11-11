@@ -10,7 +10,7 @@ __version__ = "{{ cookiecutter.version }}"
 
 def hello(who='world'):
     """'Hello world' method.
-    
+
     :param str who: whom to say hello to
     :returns: a string
     """

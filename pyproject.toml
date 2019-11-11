@@ -12,6 +12,12 @@ homepage = "https://github.com/etijskens/micc"
 
 keywords = ['packaging', 'poetry']
 
+# packages = [
+#     { include = "micc" },
+# ]
+#include = ["templates/**/*"]
+build = "micc_custom_build.py"
+
 [tool.poetry.dependencies]
 python = "^3.7"
 click = "^7.0"
