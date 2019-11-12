@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Package micc
-============
+Package et-micc
+===============
 
-Top-level package for micc.
+Top-level package for :py:mod:`et-micc`.
 """
 #===============================================================================
 __version__ = "0.7.5"

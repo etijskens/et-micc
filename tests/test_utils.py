@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Tests for micc.utils package.
+Tests for et_micc.utils package.
 """
 #===============================================================================
 
@@ -37,9 +37,9 @@ echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
 #===============================================================================
 
 from tests.helpers import report, in_empty_tmp_dir 
-from micc import cli,commands
-import micc.utils
-import micc.logging_tools
+from et_micc import cli,commands
+import et_micc.utils
+import et_micc.logging_tools
 
 
 #===============================================================================
@@ -61,7 +61,7 @@ def run(runner,arguments,input_='short description'):
 #===============================================================================
 def test_module_to_package():
     with in_empty_tmp_dir():
-        micc.logging_tools.get_micc_logger(types.SimpleNamespace(verbosity=2
+        et_micc.logging_tools.get_micc_logger(types.SimpleNamespace(verbosity=2
                                              ,project_path=Path.cwd()
                                              ,clear_log=False
                                              ))
@@ -77,46 +77,46 @@ def test_module_to_package():
 def test_cpp_module_exists():
     with in_empty_tmp_dir():
         p = Path('foo')
-        assert not micc.utils.cpp_module_exists(p,'module')
+        assert not et_micc.utils.cpp_module_exists(p,'module')
         Path('foo/foo/cpp_module').mkdir(parents=True)
         Path('foo/foo/cpp_module/module.cpp').touch()
-        assert micc.utils.cpp_module_exists(p,'module')
+        assert et_micc.utils.cpp_module_exists(p,'module')
                 
 
 def test_f2py_module_exists():
     with in_empty_tmp_dir():
         p = Path('foo')
-        assert not micc.utils.f2py_module_exists(p,'module')
+        assert not et_micc.utils.f2py_module_exists(p,'module')
         Path('foo/foo/f2py_module').mkdir(parents=True)
         Path('foo/foo/f2py_module/module.f90').touch()
-        assert micc.utils.f2py_module_exists(p,'module')
+        assert et_micc.utils.f2py_module_exists(p,'module')
                 
 
 def test_py_module_exists():
     with in_empty_tmp_dir():
         p = Path('foo')
-        assert not micc.utils.py_module_exists(p,'module')
+        assert not et_micc.utils.py_module_exists(p,'module')
         Path('foo/foo/').mkdir(parents=True)
         Path('foo/foo/module.py').touch()
-        assert micc.utils.py_module_exists(p,'module')
+        assert et_micc.utils.py_module_exists(p,'module')
                 
 
 def test_py_package_exists():
     with in_empty_tmp_dir():
         p = Path('foo')
-        assert not micc.utils.py_module_exists(p,'module')
+        assert not et_micc.utils.py_module_exists(p,'module')
         Path('foo/foo').mkdir(parents=True)
         Path('foo/foo/module.py').touch()
-        assert micc.utils.py_module_exists(p,'module')
+        assert et_micc.utils.py_module_exists(p,'module')
                
 
 def test_get_project_path():
     p = Path.home()
     with pytest.raises(RuntimeError):
-        p = micc.utils.get_project_path(p)
+        p = et_micc.utils.get_project_path(p)
     p = Path.cwd()
-    p = micc.utils.get_project_path(p)
-    assert p==(Path.home() / 'software/dev/workspace/micc')
+    p = et_micc.utils.get_project_path(p)
+    assert p==(Path.home() / 'software/dev/workspace/et-micc')
     
 
 # ==============================================================================

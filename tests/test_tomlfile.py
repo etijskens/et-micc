@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Tests for micc.tomlfile module."""
+"""Tests for et_micc.tomlfile module."""
 
 import shutil
 from pathlib import Path
 
-from micc.tomlfile import TomlFile
+from et_micc.tomlfile import TomlFile
 
 
 def test_exists():
@@ -16,7 +16,7 @@ def test_exists():
 def test_read():
     toml = TomlFile('pyproject.toml')
     project_name = toml['tool']['poetry']['name']
-    assert project_name=='micc'
+    assert project_name=='et-micc'
 
 
 def test_write():

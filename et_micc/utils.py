@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Module micc.utils
+Module et_micc.utils
 =================
 
-Utility functions for micc.py.
+Utility functions for et_micc.py.
 """
 import os, sys, subprocess, logging, sysconfig, copy
 from contextlib import contextmanager
 # import toml
-from micc.tomlfile import TomlFile
+from et_micc.tomlfile import TomlFile
 
 from pathlib import Path
 from datetime import datetime
-import micc.logging_tools
+import et_micc.logging_tools
+
 
 def get_extension_suffix():
     return sysconfig.get_config_var('EXT_SUFFIX')
@@ -248,7 +249,7 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
     
     :param list cmds: list of OS commands (=list of list of str) or a single command (list of str)
     :parma callable logfun: a function to write output, typically 
-        ``logging.getLogger('micc').debug``.
+        ``logging.getLogger('et_micc').debug``.
     :returns int: return code of first failing command, or 0 if all
         commanbds succeed.
     """
@@ -257,7 +258,7 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
         cmds = [cmds]
         
     for cmd in cmds:
-        with micc.logging_tools.log(logfun, f"> {' '.join(cmd)}"):
+        with et_micc.logging_tools.log(logfun, f"> {' '.join(cmd)}"):
             completed_process = subprocess.run(cmd, capture_output=True,env=env)
             if not logfun is None:
                 if completed_process.returncode:

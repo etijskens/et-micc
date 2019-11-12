@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module micc.expand
+Module et_micc.expand
 ==================
 
 Helper functions for dealing with templates.
@@ -13,7 +13,7 @@ import json
 import click
 from cookiecutter.main import cookiecutter
 
-import micc.logging_tools
+import et_micc.logging_tools
 
 EXIT_OVERWRITE = -3
 
@@ -65,8 +65,8 @@ def get_preferences(micc_file):
     :param Path micc_file: path to a json file.
     """
     if micc_file.samefile('.'):
-        # There is no micc file with preferences yet.
-        dotmicc = Path().home() / '.micc'
+        # There is no et_micc file with preferences yet.
+        dotmicc = Path().home() / '.et_micc'
         dotmicc.mkdir(exist_ok=True)
         dotmicc_miccfile = dotmicc / 'micc.json'
         if dotmicc_miccfile.exists():
@@ -122,7 +122,7 @@ def expand_templates(templates, global_options):
         will be expanded as they appear. The template parameters are propagated 
         from each template to the next.
     :param types.SimpleNamespace global_options: namespace object with
-        options accepted by (almost) all micc commands. Relevant attributes are 
+        options accepted by (almost) all et_micc commands. Relevant attributes are 
         
         * **verbosity**
         * **project_path**: Path to the project on which the command operates.
@@ -134,7 +134,7 @@ def expand_templates(templates, global_options):
     project_path = global_options.project_path
     project_path.mkdir(parents=True, exist_ok=True)
     output_dir = project_path.parent
-    micc_logger = micc.logging_tools.get_micc_logger()
+    micc_logger = et_micc.logging_tools.get_micc_logger()
 
     # list existing files that would be overwritten if global_options.overwrite==True
     existing_files = {}

@@ -11,10 +11,10 @@ from operator import xor
 
 import click
 
-import micc.commands as cmds
-import micc.utils
-import micc.logging_tools
-import micc.expand
+import et_micc.commands as cmds
+import et_micc.utils
+import et_micc.logging_tools
+import et_micc.expand
 
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
@@ -43,7 +43,7 @@ __micc_file_help = ("The path to the *micc-file* with the parameter values used 
              , type=Path
              )
 @click.option('--clear-log'
-             , help="If specified clears the project's ``micc.log`` file."
+             , help="If specified clears the project's ``et_micc.log`` file."
              , default=False, is_flag=True
              )
 @click.pass_context
@@ -52,7 +52,7 @@ def main(ctx, verbosity, project_path, clear_log):
     
     All commands that change the state of the project produce some output that
     is send to the console (taking verbosity into account). It is also sent to
-    a logfile ``micc.log`` in the project directory. All output is always appended
+    a logfile ``et_micc.log`` in the project directory. All output is always appended
     to the logfile. If you think the file has gotten too big, or you are no more
     interested in the history of your project, you can specify the ``--clear-log``
     flag to clear the logfile before any command is executed. In this way the
@@ -69,7 +69,7 @@ def main(ctx, verbosity, project_path, clear_log):
                              , template_parameters={}
                              )
 
-#     if micc.utils.is_conda_python():
+#     if et_micc.utils.is_conda_python():
 #         click.echo( click.style("==========================================================\n"
 #                                 "WARNING: You are running in a conda Python environment.\n"
 #                                 "         Note that poetry does not play well with conda.\n",   fg='yellow')
@@ -80,12 +80,12 @@ def main(ctx, verbosity, project_path, clear_log):
     template_parameters_json = project_path / 'micc.json'
     if template_parameters_json.exists():
         ctx.obj.template_parameters.update(
-            micc.expand.get_template_parameters(template_parameters_json)
+            et_micc.expand.get_template_parameters(template_parameters_json)
         )
     else:
         ctx.obj.template_parameters.update(
-            micc.expand.get_template_parameters(
-                micc.expand.get_preferences(Path('.'))
+            et_micc.expand.get_template_parameters(
+                et_micc.expand.get_preferences(Path('.'))
             )
         )
     
@@ -173,13 +173,13 @@ def create( ctx
                ]
     for lic in licenses:
         if lic.startswith(license):
-            license = lic
+            license_ = lic
             break
     else:
-        license = licenses[0]
+        license_ = licenses[0]
 
     ctx.obj.template_parameters.update({'project_short_description' : description
-                                       ,'open_source_license'       : license
+                                       ,'open_source_license'       : license_
                                        }
                                       ) 
                                         
@@ -282,10 +282,10 @@ def add( ctx
                    ,fg='bright_red'
                    )
     if app:
-        if micc.utils.app_exists(ctx.obj.project_path, name):
+        if et_micc.utils.app_exists(ctx.obj.project_path, name):
             raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {name}.")
     
-        with micc.logging_tools.logtime(ctx.obj):
+        with et_micc.logging_tools.logtime(ctx.obj):
             if group:
                 if not template:
                     template = 'app-sub-commands'
@@ -302,12 +302,12 @@ def add( ctx
                                , global_options=ctx.obj
                                )
     else:
-        if micc.utils.module_exists(ctx.obj.project_path,name):
+        if et_micc.utils.module_exists(ctx.obj.project_path,name):
             raise AssertionError(f"Project {ctx.obj.project_path.name} has already a module named {name}.")
 
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
-        ctx.obj.template_parameters['path_to_cmake_tools'] = micc.utils.path_to_cmake_tools()
+        ctx.obj.template_parameters['path_to_cmake_tools'] = et_micc.utils.path_to_cmake_tools()
         
         if py:
             ctx.obj.structure = 'package' if package else 'module'
@@ -359,7 +359,7 @@ def add( ctx
 def version( ctx, rule, major, minor, patch, tag, short, poetry):
     """Increment or show the project's version number.
     
-    By default micc uses *bumpversion* for this, but it can also use *poetry*,
+    By default *micc* uses *bumpversion* for this, but it can also use *poetry*,
     by specifiying the ``--poetry`` flag.
     
     You can also avoide using ``micc version`` and use *bumpversion* directly. Note,
@@ -382,7 +382,7 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
     if patch:
         rule = 'patch'
     
-    with micc.logging_tools.logtime(ctx.obj):
+    with et_micc.logging_tools.logtime(ctx.obj):
         return_code = cmds.micc_version(rule, short, poetry, global_options=ctx.obj)
         if return_code==0 and tag:
             rc = cmds.micc_tag(global_options=ctx.obj)
@@ -397,7 +397,7 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
 def tag(ctx):
     """Create a git tag for the current version and push it to the remote repo."""
     
-    with micc.logging_tools.logtime(ctx.obj):
+    with et_micc.logging_tools.logtime(ctx.obj):
         return cmds.micc_tag(global_options=ctx.obj)
 
 
@@ -532,7 +532,7 @@ def build( ctx, module
         if not load.endswith('.json'):
             load += '.json'
     
-    with micc.logging_tools.logtime(ctx.obj):            
+    with et_micc.logging_tools.logtime(ctx.obj):            
         build_options=SimpleNamespace( build_type = build_type.upper() )
         build_options.clean = clean
         build_options.soft_link = soft_link
@@ -607,12 +607,12 @@ def convert_to_package(ctx, overwrite, backup):
     to the documentation structure.
     """
 
-    with micc.logging_tools.logtime(ctx.obj):
+    with et_micc.logging_tools.logtime(ctx.obj):
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
         rc = cmds.micc_convert_simple(global_options=ctx.obj)
-        if rc==micc.expand.EXIT_OVERWRITE:
-            micc.logging_tools.get_micc_logger(ctx.obj).warning(
+        if rc==et_micc.expand.EXIT_OVERWRITE:
+            et_micc.logging_tools.get_micc_logger(ctx.obj).warning(
                 f"It is normally ok to overwrite 'index.rst' as you are not supposed\n"
                 f"to edit the '.rst' files in '{ctx.obj.project_path}{os.sep}docs.'\n"
                 f"If in doubt: rerun the command with the '--backup' flag,\n"
@@ -635,7 +635,7 @@ def convert_to_package(ctx, overwrite, backup):
 def docs(ctx, html, latexpdf):
     """Build documentation for the project using Sphinx with the specified formats."""
     
-    with micc.logging_tools.logtime(ctx.obj):
+    with et_micc.logging_tools.logtime(ctx.obj):
         formats = []
         if html:
             formats.append('html')
@@ -675,7 +675,7 @@ def info(ctx):
 @click.pass_context
 def poetry(ctx,args,system):
     """A wrapper around poetry that warns for dangerous poetry commands in a conda environment."""
-    with micc.logging_tools.logtime(ctx.obj):
+    with et_micc.logging_tools.logtime(ctx.obj):
         ctx.obj.system = system
         rc = cmds.micc_poetry( *args, global_options=ctx.obj)
     if rc:
@@ -688,7 +688,7 @@ def dev_install(ctx):
     """Perform development install of the package. 
     
     (Changes to python source are immediately visible, changes to Fortran
-    or C++ source are visible after running ``micc build``. :py:mod:import.reload`
+    or C++ source are visible after running ``et_micc build``. :py:mod:import.reload`
     may be necessary.)
     
     Copy the directory structure of the project's package directory
@@ -697,18 +697,18 @@ def dev_install(ctx):
     This is a temporary workaround for installing packages
     with binary extensions. Some day poetry_ will take over.
     """
-    with micc.logging_tools.logtime(ctx.obj):
+    with et_micc.logging_tools.logtime(ctx.obj):
         cmds.micc_dev_install(ctx.obj)
 
 @main.command()
 @click.pass_context
 def dev_uninstall(ctx):
-    """Undo ``micc dev-install``.
+    """Undo ``et_micc dev-install``.
     
     This is a temporary workaround for uninstalling packages
     with binary extensions. Some day poetry_ will take over.
     """
-    with micc.logging_tools.logtime(ctx.obj):
+    with et_micc.logging_tools.logtime(ctx.obj):
         cmds.micc_dev_install(ctx.obj,install=False)
     
    

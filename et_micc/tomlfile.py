@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Module micc.tomlfile
+Module et_micc.tomlfile
 ====================
 """
 # This is a copy of poetry/utils/toml_file.py
-# It is there to avoid introducing a dependency on poetry in micc.
+# It is there to avoid introducing a dependency on poetry in et_micc.
 from tomlkit.toml_file import TOMLFile as BaseTOMLFile
 from typing import Union
 
 # from ._compat import Path
 from pathlib import Path
+
 
 class TomlFile(BaseTOMLFile):
     """Read/write access to .toml files (pyproject.toml in particular).

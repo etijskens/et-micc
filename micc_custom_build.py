@@ -6,7 +6,7 @@ def build(setup_kwargs):
     print('hello')
     for k,v in setup_kwargs.items():
         print(k,':',v)
-    d = Path.cwd() / 'micc'
+    d = Path.cwd() / 'et_micc'
     glob = d.glob('*')
     for v in glob:
         print(v)
