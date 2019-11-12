@@ -5,7 +5,7 @@
 #   > make <target>
 #-------------------------------------------------------------------------------
 
-module_name := micc
+module_name := et_micc
 
 # retrieve the version string from the module
 version := $(shell python -c 'from $(module_name) import __version__; print(__version__)')
@@ -63,7 +63,7 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 lint: ## check style with flake8
-	flake8 --max-line-length=100 micc tests
+	flake8 --max-line-length=100 et_micc tests
 
 test: ## run tests quickly with the default Python
 	poetry run py.test tests/test*
@@ -72,7 +72,7 @@ test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
-	coverage run --source micc -m pytest
+	coverage run --source et_micc -m pytest
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
