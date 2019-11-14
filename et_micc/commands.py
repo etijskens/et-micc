@@ -45,6 +45,7 @@ def micc_create( templates
     project_path.mkdir(parents=True,exist_ok=True)
     contents = os.listdir(str(project_path))
     if contents:
+        # do not log here, because project is not created yet.
         click.secho(f"Cannot create project in ({project_path}):\n"
                     f"  Directory must be empty."
                    , fg='bright_red'
@@ -64,7 +65,13 @@ def micc_create( templates
     
     project_name  = project_path.name
     package_name = et_micc.utils.convert_to_valid_module_name(project_name)
-    relative_project_path = project_path.relative_to(Path.cwd())
+    try:
+        relative_project_path = project_path.relative_to(Path.cwd())
+    except ValueError:
+        # project_path was specified relative to cwd using ../
+        # use full path instead.
+        relative_project_path = project_path
+        
     if global_options.structure=='module':
         structure = f"({relative_project_path}{os.sep}{package_name}.py)"
     elif global_options.structure=='package':
@@ -222,13 +229,41 @@ def micc_module_py( module_name
     """
     project_path = global_options.project_path
     
-    et_micc.utils.is_project_directory(project_path, raise_if=False)
-    et_micc.utils.is_package_project  (project_path, raise_if=False)
-    et_micc.utils.is_module_project   (project_path, raise_if=True )
+    try:
+        et_micc.utils.is_project_directory(project_path, raise_if=False)
+    except Exception as x:
+        click.secho(f"ERROR: {x}", fg='bright_red')
+        if global_options.verbosity>1:
+            raise
+        else:
+            return 1
+        
+    try:
+        et_micc.utils.is_package_project(project_path, raise_if=False)
+    except Exception as x:
+        click.secho(f"ERROR: {x}", fg='bright_red')
+        if global_options.verbosity>1:
+            raise
+        else:
+            return 1
+        
+    try:
+        et_micc.utils.is_module_project(project_path, raise_if=True )
+    except Exception as x:
+        click.secho(f"ERROR: {x}", fg='bright_red')
+        if global_options.verbosity>1:
+            raise 
+        else:
+            return 1
     
     if not module_name==et_micc.utils.convert_to_valid_module_name(module_name):
-        raise AssertionError(f"Not a valid module_name: {module_name}")
-
+        msg = f"Not a valid module_name: {module_name}"
+        click.secho("ERROR: " + msg, fg='bright_red')
+        if global_options.verbosity>1:
+            raise AssertionError(msg)
+        else:
+            return 1 
+        
     source_file = f"{module_name}.py" if global_options.structure=='module' else f"{module_name}{os.sep}__init__.py"
     
     micc_logger = et_micc.logging_tools.get_micc_logger(global_options)
