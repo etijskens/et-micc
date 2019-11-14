@@ -239,7 +239,7 @@ def is_package_project(project_path, raise_if=None):
         x = RuntimeError(f"Directory '{project_path}' is a package project")
         x.path = project_path
     elif raise_if==False:
-        x = RuntimeError(f"Directory '{project_path}' is NOT a package     project")
+        x = RuntimeError(f"Directory '{project_path}' is NOT a package project")
         x.path = project_path
     raise x
 

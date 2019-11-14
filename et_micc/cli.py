@@ -106,8 +106,8 @@ def main(ctx, verbosity, project_path, clear_log):
              , help="Short description of your project."
              , default='<Enter a one-sentence description of this project here.>'
              )
-@click.option('-l', '--license'
-             , help="Licence identifier."
+@click.option('-l', '--lic'
+             , help="License identifier."
              , default='MIT'
              )
 @click.option('-T', '--template' , help=__template_help , default=[])
@@ -120,7 +120,7 @@ def create( ctx
           , package
           , micc_file
           , description
-          , license
+          , lic
           , template
           , allow_nesting
           ):
@@ -171,9 +171,9 @@ def create( ctx
                ,'GNU General Public License v3'
                ,'Not open source'
                ]
-    for lic in licenses:
-        if lic.startswith(license):
-            license_ = lic
+    for l in licenses:
+        if l.startswith(lic):
+            license_ = l
             break
     else:
         license_ = licenses[0]
@@ -274,6 +274,7 @@ def add( ctx
         py_implied = ""
     
     if not (app or py or f2py or cpp) or not xor(xor(app,py),xor(f2py,cpp)):
+        # Do not log, as the state of the project is not changed.
         click.secho(f"ERROR: specify one and only one of \n"
                     f"  --app  ({int(app )}){app_implied}\n"
                     f"  --py   ({int(py  )}){py_implied}\n"
@@ -281,9 +282,16 @@ def add( ctx
                     f"  --cpp  ({int(cpp )})\n"
                    ,fg='bright_red'
                    )
+        ctx.exit(1)
+        
     if app:
         if et_micc.utils.app_exists(ctx.obj.project_path, name):
-            raise AssertionError(f"Project {ctx.obj.project_path.name} has already an app named {name}.")
+            msg = f"Project {ctx.obj.project_path.name} has already an app named {name}."
+            click.secho("ERROR: " + msg,fg='bright_red')
+            if ctx.obj.verbosity>1:
+                raise AssertionError(msg)
+            else:
+                ctx.exit(1) 
     
         with et_micc.logging_tools.logtime(ctx.obj):
             if group:
@@ -303,7 +311,12 @@ def add( ctx
                                )
     else:
         if et_micc.utils.module_exists(ctx.obj.project_path,name):
-            raise AssertionError(f"Project {ctx.obj.project_path.name} has already a module named {name}.")
+            msg = f"Project {ctx.obj.project_path.name} has already a module named {name}."
+            click.secho("ERROR: " + msg, fg='bright_red')
+            if ctx.obj.verbosity>1:
+                raise AssertionError(msg)
+            else:
+                ctx.exit(1) 
 
         ctx.obj.overwrite = overwrite
         ctx.obj.backup    = backup
@@ -373,7 +386,12 @@ def version( ctx, rule, major, minor, patch, tag, short, poetry):
         premajor, prerelease, or any valid version string.  
     """
     if rule and (major or minor or patch):
-        raise RuntimeError("Ambiguous arguments:\n  specify either 'rule' argments,\n  or one of [--major,--minor--patch], not both.")
+        msg = "Ambiguous arguments:\n  specify either 'rule' argments,\n  or one of [--major,--minor--patch], not both."
+        click.secho(msg,fg='bright_red')
+        if ctx.obj.verbosity>1:
+            raise RuntimeError(msg)
+        else:
+            ctx.exit(1)
 
     if major:
         rule = 'major'
