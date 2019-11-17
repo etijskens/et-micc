@@ -17,7 +17,7 @@ import click
 import et_micc.utils
 import et_micc.logging_tools
 import et_micc.expand
-from et_micc.f2py import build_f2py
+# from et_micc.f2py import build_f2py
 from et_micc.tomlfile import TomlFile
 
 
