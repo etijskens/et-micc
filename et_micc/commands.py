@@ -255,7 +255,7 @@ def micc_app( app_name
             # in the [toolpoetry.scripts] add a line 
             #    {app_name} = "{package_name}:{cli_app_name}"
             pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-            pyproject_toml['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}'
+            pyproject_toml['tool']['poetry']['scripts'][app_name] = f'{package_name}:{cli_app_name}.main'
             pyproject_toml.save()
 
     return 0
