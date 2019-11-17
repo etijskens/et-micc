@@ -121,6 +121,57 @@ def micc_create( templates
     return 0
 
 
+def add_dependencies(deps,global_options):
+    """
+    We want to call ``poetry add dep`` for every dep in :py:obj:`deps`.
+    This fails with :py:obj:`ConnectionError` if you are offline, which would 
+    normally leave the project in inconsistent state. In addition this prohibits 
+    the user to use micc when he is off-line. 
+
+    Therefor, we propose a two-step scenario.
+    
+    * First, if the dependency is written to :file:`new-deps.txt`
+    * then, the new dependencies are added by poetry and installed
+    
+    if this fails, the dep is added in pyproject.toml 
+    """
+    if not isinstance(deps, list):
+        deps = [deps]
+    current_deps = et_micc.utils.get_dependencies()
+    new_deps = []
+    for dep in deps:
+        if not dep in current_deps:
+            new_deps.append(dep)
+    if new_deps:
+        poetry_add_dependencies(new_deps,global_options)
+       
+       
+def poetry_add_dependencies(new_deps,global_options=None):
+    """
+    :param Path path: path to :file:`<project_dir>/new_dependencies.txt`
+    :param list new_deps: list of dependencies to be added with poetry, if None, to be read from *path*.
+    """
+    new_dependencies_txt = Path('new_dependencies.txt')
+    if new_deps:
+        new_deps_ = new_deps
+    else:
+        with new_dependencies_txt.open() as f:
+            new_deps_ = json.load(f)
+           
+    failed = []
+    for dep in new_deps_:
+        try:
+            micc_poetry('add',dep,global_options=global_options)
+            
+        except Exception as e:
+            print(e) 
+            failed.append(dep)
+    if failed:
+        with open(new_dependencies_txt,'w') as f:
+            json.dump(failed,f)
+    else:
+        new_dependencies_txt.unlink(missing_ok=True)
+
 def micc_app( app_name
             , templates
             , global_options
@@ -165,6 +216,8 @@ def micc_app( app_name
         micc_logger.info(f"- Python test code   {tst_file}.")
         
         with et_micc.utils.in_directory(project_path):            
+            # add dependencies:
+            add_dependencies(['click'], global_options)
             # docs 
             with open('docs/index.rst',"r") as f:
                 lines = f.readlines()
@@ -351,6 +404,8 @@ def micc_module_f2py( module_name
         micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
         
         with et_micc.utils.in_directory(project_path):
+            # add dependencies:
+            add_dependencies(['numpy'], global_options)
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. include:: ../{rst_file}\n")
@@ -415,6 +470,8 @@ def micc_module_cpp( module_name
         micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
         
         with et_micc.utils.in_directory(project_path):
+            # add dependencies:
+            add_dependencies(['numpy','cmake','pybind11'], global_options)
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
@@ -635,7 +692,7 @@ def micc_build( module_to_build, global_options ):
                         shutil.rmtree(build_dir) 
                     build_dir.mkdir(parents=True, exist_ok=True)
                     with et_micc.utils.in_directory(build_dir):
-                        cmake_cmd = ['cmake']
+                        cmake_cmd = ['poetry','run','cmake','-D',f"pybind11_DIR={et_micc.utils.path_to_cmake_tools()}"]
                         for key,val in build_options.cmake.items():
                             cmake_cmd.extend(['-D',f"{key}={val}"])
                         cmake_cmd.append('..')
@@ -858,28 +915,20 @@ def micc_poetry(*args, global_options):
     If you are working in a conda Python environment, using poetry commaands
     that cause trouble is prohibited.
     """
-    system = global_options.system
-    if et_micc.utils.is_poetry_available(system):
-        if et_micc.utils.is_conda_python():
-            if 'install' in args:
-                click.secho("WARNING: The command\n"
-                            "  >  poetry install\n"
-                            "is strongly discouraged in a conda Python environment!"
-                           , fg='bright_red'
-                           )
-                return 1
-        if system:
-            cmd = ['poetry_',*args]
-        else:
-            cmd = ['poetry',*args]
-        print(cmd)
-        myenv = os.environ.copy()
-        subprocess.run(cmd,env=myenv)
-    else:
-        click.secho("WARNING: poetry is not available in the environment."
-                   , fg='bright_red'
-                   )
-        return 1
+    if et_micc.utils.is_conda_python():
+        if 'install' in args:
+            click.secho("WARNING: The command\n"
+                        "  >  poetry install\n"
+                        "is strongly discouraged in a conda Python environment!"
+                       , fg='bright_red'
+                       )
+            return 1
+    cmd = ['poetry',*args]
+    print(' '.join(cmd))
+    myenv = os.environ.copy()
+    completed_process = subprocess.run(cmd, env=myenv) #capture_output=True, 
+    if completed_process.returncode:
+        raise Exception()
 
 
 import site

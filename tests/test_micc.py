@@ -9,35 +9,18 @@ Tests for et_micc package.
 import os
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 #===============================================================================
 import pytest
 from click import echo
 from click.testing import CliRunner
 
-#===============================================================================
-# Make sure that the current directory is the project directory.
-# 'make test" and 'pytest' are generally run from the project directory.
-# However, if we run/debug this file in eclipse, we end up in test
-if os.getcwd().endswith('tests'):
-    echo(f"Changing current working directory"
-         f"\n  from '{os.getcwd()}'"
-         f"\n  to   '{os.path.abspath(os.path.join(os.getcwd(),'..'))}'\n")
-    os.chdir('..')
-#===============================================================================    
-# Make sure that we can import the module being tested. When running 
-# 'make test" and 'pytest' in the project directory, the current working
-# directory is not automatically added to sys.path.
-if not ('.' in sys.path or os.getcwd() in sys.path):
-    p = os.path.abspath('.')
-    echo(f"Adding '{p}' to sys.path.\n")
-    sys.path.insert(0, p)
-echo(f"sys.path = \n{sys.path}".replace(',','\n,'))
-#===============================================================================
 
 from tests.helpers import in_empty_tmp_dir,report,get_version
 from et_micc import cli
 import et_micc.utils
+import et_micc.commands
 
 #===============================================================================
 # test scenario blocks
@@ -165,13 +148,27 @@ def test_scenario_2():
         
         run(runner, ['-p','foo','-vv','info'])
 
+
+def _test_add_dependency():
+    """
+    the outcome of this depends on whether we are online or not
+    this is mainly for debugging
+    """
+    runner = CliRunner()
+    with in_empty_tmp_dir():
+        run(runner, ['-vv', '-p', 'FOO', 'create', '--allow-nesting'])
+        assert Path('FOO/foo.py').exists()
+        with et_micc.utils.in_directory('FOO'):
+            et_micc.commands.add_dependencies(['numpy'],SimpleNamespace(verbosity=0))
+
+
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
     print(sys.version_info)
-    the_test_you_want_to_debug = test_scenario_1
+    the_test_you_want_to_debug = test_scenario_2
 
     with et_micc.logging_tools.log(print,f"__main__ running {the_test_you_want_to_debug}",'-*# finished #*-'):
         the_test_you_want_to_debug()

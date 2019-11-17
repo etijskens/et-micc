@@ -321,4 +321,12 @@ def is_bumpversion_available():
     result = subprocess.run(cmd,capture_output=True,env=myenv)
     return result.returncode==0
 
+
+def get_dependencies():
+    """
+    """
+    pyproject_toml = TomlFile('pyproject.toml')
+    current_deps = pyproject_toml['tool']['poetry']['dependencies']
+    return current_deps
+
 # end of file

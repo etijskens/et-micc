@@ -1,6 +1,13 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+* fixed `Github issue #19 <https://github.com/etijskens/micc/issues/19>`_
+
+v0.8.0 (2019-11-11)
+===================
+MICC exists on PyPI
+* project renamed to et-micc
+
 v0.7.5 (2019-11-11)
 ===================
 * Fixed wrong location of :file:`tests` directory in :file:`module-py` template
