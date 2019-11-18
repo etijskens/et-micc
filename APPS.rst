@@ -1,4 +1,4 @@
-.. click:: micc.cli:main
+.. click:: et_micc.cli:main
    :prog: micc
    :show-nested:
    

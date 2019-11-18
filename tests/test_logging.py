@@ -6,10 +6,10 @@ from pathlib import Path
 import types
 
 import et_micc.utils
-import et_micc.logging_tools
+import et_micc.logging
 
 def test_log():
-    with et_micc.logging_tools.log():
+    with et_micc.logging.log():
         print('test_log without logfun')
         
     logfile = et_micc.utils.get_project_path('.') / 'et_micc.log'
@@ -22,10 +22,10 @@ def test_log():
                                           ,project_path=Path('.').resolve()
                                           ,clear_log=False
                                           )
-    micc_logger = et_micc.logging_tools.get_micc_logger(global_options)
+    micc_logger = et_micc.logging.get_micc_logger(global_options)
 
-    with et_micc.logging_tools.logtime():
-        with et_micc.logging_tools.log(micc_logger.info):
+    with et_micc.logging.logtime():
+        with et_micc.logging.log(micc_logger.info):
             micc_logger.info('test_log with a logfun')
             micc_logger.debug('debug message\nwith 2 lines')
 

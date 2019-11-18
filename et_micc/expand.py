@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module et_micc_tools.expand
+Module et_micc.expand
 ==================
 
 Helper functions for dealing with templates.
@@ -13,7 +13,7 @@ import json
 import click
 from cookiecutter.main import cookiecutter
 
-import et_micc_tools.logging_tools
+import et_micc.logging
 
 EXIT_OVERWRITE = -3
 
@@ -101,49 +101,49 @@ def get_template_parameters(preferences):
     return template_parameters
     
     
-def expand_templates(templates, global_options):
+def expand_templates(options):
     """Expand a list of cookiecutter :py:obj:`templates` in directory :py:obj:`project_path`. 
 
     Expanding templates may require overwriting pre-existing files. *Micc* handles this
     situation in different ways:
 
-    * If :py:obj:`global_options.overwrite` equals :py:const:`False` the exansion will
+    * If :py:obj:`options.overwrite` equals :py:const:`False` the exansion will
       fail without overwriting any pre-existing files. The project is not modified. A
       warning is produced. This is the default. To continue, rerun the command with one
       of the two options below.
-    * If :py:obj:`global_options.overwrite` equals :py:const:`True` the exansion will
+    * If :py:obj:`options.overwrite` equals :py:const:`True` the exansion will
       overwrite any pre-existing files without backup, and produce a warning, listing
       the overwritten files.
-    * If :py:obj:`global_options.backup` equals :py:const:`True` pre-existing files
+    * If :py:obj:`options.backup` equals :py:const:`True` pre-existing files
       will be backed up (.bak) before the new files are expanded. If anything went
       wrong, you can inspect the backup files, and correct the errors manually.
       
-    :param list templates: ordered list of (paths to) cookiecutter templates that 
-        will be expanded as they appear. The template parameters are propagated 
-        from each template to the next.
-    :param types.SimpleNamespace global_options: namespace object with
-        options accepted by (almost) all et_micc commands. Relevant attributes are 
+    :param types.SimpleNamespace options: namespace object with
+        options accepted by et_micc commands. Relevant attributes are 
         
+        * templates: ordered list of (paths to) cookiecutter templates that 
+          will be expanded as they appear. The template parameters are propagated 
+          from each template to the next.
         * **verbosity**
         * **project_path**: Path to the project on which the command operates.
         * **template_parameters**: extra template parameters not read from *micc_file*
     """
-    
+    templates = options.templates
     if not isinstance(templates, list):
         templates = [templates]
-    project_path = global_options.project_path
+    project_path = options.project_path
     project_path.mkdir(parents=True, exist_ok=True)
     output_dir = project_path.parent
-    micc_logger = et_micc_tools.logging_tools.get_micc_logger()
+    micc_logger = et_micc.logging.get_micc_logger()
 
-    # list existing files that would be overwritten if global_options.overwrite==True
+    # list existing files that would be overwritten if options.overwrite==True
     existing_files = {}
     for template in templates:
         template = resolve_template(template)             
         # write a cookiecutter.json file in the cookiecutter template directory
         cookiecutter_json = template / 'cookiecutter.json'
         with open(cookiecutter_json,'w') as f:
-            json.dump(global_options.template_parameters, f, indent=2)
+            json.dump(options.template_parameters, f, indent=2)
         
         # run cookiecutter in an empty temporary directory to check if there are any
         # existing project files that would be overwritten.
@@ -176,7 +176,7 @@ def expand_templates(templates, global_options):
                     existing_files[template].append(file)
     
         if existing_files:
-            if global_options.backup:
+            if options.backup:
                 micc_logger.warning(f"Pre-existing files in {output_dir} will be backed up ('--backup' specified):\n")
                 micc_logger.indent(2)
                 for files in existing_files.values():
@@ -187,7 +187,7 @@ def expand_templates(templates, global_options):
                         micc_logger.warning(f"{src} -> {dst}")
                 micc_logger.dedent()
                 
-            elif not global_options.overwrite:
+            elif not options.overwrite:
                 micc_logger.warning(f"Pre-existing files in {output_dir} that would be overwrtitten:\n")
                 micc_logger.indent(2)
                 for files in existing_files.values():
@@ -208,7 +208,7 @@ def expand_templates(templates, global_options):
                         micc_logger.warning(f"     overwriting {src}")
                 
     # Now we can safely overwrite pre-existing files.
-    micc_logger.debug(f"Expanding templates using these parameters:\n{json.dumps(global_options.template_parameters,indent=2)}")
+    micc_logger.debug(f"Expanding templates using these parameters:\n{json.dumps(options.template_parameters,indent=2)}")
     for template in templates:
         template = resolve_template(template)
         micc_logger.debug(f"Expanding template {template}.")
