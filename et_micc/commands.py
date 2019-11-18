@@ -118,58 +118,68 @@ def micc_create( templates
     
     return 0
 
+# Adding dependencies like this doesn't work
+# def add_dependencies(deps,global_options):
+#     """
+#     We want to call ``poetry add dep`` for every dep in :py:obj:`deps`.
+#     This fails with :py:obj:`ConnectionError` if you are offline, which would 
+#     normally leave the project in inconsistent state. In addition this prohibits 
+#     the user to use micc when he is off-line. 
+# 
+#     Therefor, we propose a two-step scenario.
+#     
+#     * First, if the dependency is written to :file:`new-deps.txt`
+#     * then, the new dependencies are added by poetry and installed
+#     
+#     if this fails, the dep is added in pyproject.toml 
+#     """
+#     if not isinstance(deps, list):
+#         deps = [deps]
+#     current_deps = et_micc_tools.utils.get_dependencies()
+#     new_deps = []
+#     for dep in deps:
+#         if not dep in current_deps:
+#             new_deps.append(dep)
+#     if new_deps:
+#         poetry_add_dependencies(new_deps,global_options)
+#        
+#        
+# def poetry_add_dependencies(new_deps,global_options=None):
+#     """
+#     :param Path path: path to :file:`<project_dir>/new_dependencies.txt`
+#     :param list new_deps: list of dependencies to be added with poetry, if None, to be read from *path*.
+#     """
+#     new_dependencies_txt = Path('new_dependencies.txt')
+#     if new_deps:
+#         new_deps_ = new_deps
+#     else:
+#         with new_dependencies_txt.open() as f:
+#             new_deps_ = json.load(f)
+#            
+#     failed = []
+#     for dep in new_deps_:
+#         try:
+#             micc_poetry('add',dep,global_options=global_options)
+#             
+#         except Exception as e:
+#             print(e) 
+#             failed.append(dep)
+#     if failed:
+#         with open(new_dependencies_txt,'w') as f:
+#             json.dump(failed,f)
+#     else:
+#         new_dependencies_txt.unlink(missing_ok=True)
 
-def add_dependencies(deps,global_options):
+def add_dependencies(deps):
     """
-    We want to call ``poetry add dep`` for every dep in :py:obj:`deps`.
-    This fails with :py:obj:`ConnectionError` if you are offline, which would 
-    normally leave the project in inconsistent state. In addition this prohibits 
-    the user to use micc when he is off-line. 
-
-    Therefor, we propose a two-step scenario.
+    :param dict deps: dict of (package,version) pairs
+    """
+    pyproject_toml = TomlFile(Path('pyproject.toml'))
+    for key,value in deps.items():
+        pyproject_toml['tool']['poetry']['dependencies'][key] = value
+    pyproject_toml.save()
     
-    * First, if the dependency is written to :file:`new-deps.txt`
-    * then, the new dependencies are added by poetry and installed
     
-    if this fails, the dep is added in pyproject.toml 
-    """
-    if not isinstance(deps, list):
-        deps = [deps]
-    current_deps = et_micc_tools.utils.get_dependencies()
-    new_deps = []
-    for dep in deps:
-        if not dep in current_deps:
-            new_deps.append(dep)
-    if new_deps:
-        poetry_add_dependencies(new_deps,global_options)
-       
-       
-def poetry_add_dependencies(new_deps,global_options=None):
-    """
-    :param Path path: path to :file:`<project_dir>/new_dependencies.txt`
-    :param list new_deps: list of dependencies to be added with poetry, if None, to be read from *path*.
-    """
-    new_dependencies_txt = Path('new_dependencies.txt')
-    if new_deps:
-        new_deps_ = new_deps
-    else:
-        with new_dependencies_txt.open() as f:
-            new_deps_ = json.load(f)
-           
-    failed = []
-    for dep in new_deps_:
-        try:
-            micc_poetry('add',dep,global_options=global_options)
-            
-        except Exception as e:
-            print(e) 
-            failed.append(dep)
-    if failed:
-        with open(new_dependencies_txt,'w') as f:
-            json.dump(failed,f)
-    else:
-        new_dependencies_txt.unlink(missing_ok=True)
-
 def micc_app( app_name
             , templates
             , global_options
@@ -215,7 +225,7 @@ def micc_app( app_name
         
         with et_micc_tools.utils.in_directory(project_path):            
             # add dependencies:
-            add_dependencies(['click'], global_options)
+            add_dependencies({'click','^7.0'})
             # docs 
             with open('docs/index.rst',"r") as f:
                 lines = f.readlines()
@@ -403,7 +413,9 @@ def micc_module_f2py( module_name
         
         with et_micc_tools.utils.in_directory(project_path):
             # add dependencies:
-            add_dependencies(['numpy'], global_options)
+            add_dependencies({'et-micc-build':'^0.0.1',
+                              'numpy'        :'^1.17.4',
+                             })
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. include:: ../{rst_file}\n")
@@ -469,7 +481,12 @@ def micc_module_cpp( module_name
         
         with et_micc_tools.utils.in_directory(project_path):
             # add dependencies:
-            add_dependencies(['numpy','cmake','pybind11'], global_options)
+                        # add dependencies:
+            add_dependencies({'et-micc-tools':'^0.1.0',
+                              'numpy'        :'^1.17.4',
+                              'cmake'        :'^3.15.3',
+                              'pybind11'     :'^2.2.4',
+                             })
             # docs
             with open("API.rst","a") as f:
                 f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")

@@ -95,6 +95,14 @@ version = "7.0"
 
 [[package]]
 category = "main"
+description = "CMake is an open-source, cross-platform family of tools designed to build, test and package software"
+name = "cmake"
+optional = false
+python-versions = "*"
+version = "3.15.3"
+
+[[package]]
+category = "main"
 description = "Cross-platform colored terminal text."
 marker = "sys_platform == \"win32\""
 name = "colorama"
@@ -127,6 +135,21 @@ name = "docutils"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 version = "0.15.2"
+
+[[package]]
+category = "main"
+description = "<Enter a one-sentence description of this project here.>"
+name = "et-micc-tools"
+optional = false
+python-versions = ">=3.6,<4.0"
+version = "0.0.5"
+
+[package.dependencies]
+click = ">=7.0,<8.0"
+cmake = ">=3.15.3,<4.0.0"
+numpy = ">=1.17.4,<2.0.0"
+pybind11 = ">=2.4.3,<3.0.0"
+tomlkit = ">=0.5.5,<0.6.0"
 
 [[package]]
 category = "main"
@@ -559,7 +582,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "contextlib2", "unittest2"]
 
 [metadata]
-content-hash = "29399f94831a75813512386ac2ed66814cef88207f50f6f1c99aff3f4323bdb5"
+content-hash = "571c33fed736a561dc166acd8c74f5e8600f889455ded108e834b43ac5062284"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -603,6 +626,16 @@ click = [
     {file = "Click-7.0-py2.py3-none-any.whl", hash = "sha256:2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13"},
     {file = "Click-7.0.tar.gz", hash = "sha256:5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"},
 ]
+cmake = [
+    {file = "cmake-3.15.3-py2-none-macosx_10_6_x86_64.whl", hash = "sha256:90798f780f2cec4e835bfd882080f9ee9567a8e50a2860f430c5edee53a8584e"},
+    {file = "cmake-3.15.3-py2-none-manylinux2010_x86_64.whl", hash = "sha256:85887b43c5b68d498167af78c7b378f8c8395380a49e6e466eb34a6c2d630f4e"},
+    {file = "cmake-3.15.3-py2-none-win32.whl", hash = "sha256:445b2048654755295deaf8720c473c938fa0689ff2f0c6d08e679b7ab07b7d91"},
+    {file = "cmake-3.15.3-py2-none-win_amd64.whl", hash = "sha256:96aa07635690b629d7d6ed194cf5a1e713326767cecd7c11814e2735ab294bd7"},
+    {file = "cmake-3.15.3-py3-none-macosx_10_6_x86_64.whl", hash = "sha256:453ef105e443ff4ad4aeddeb419009a990d1176b5b6a5cb9890902dbae11a6c8"},
+    {file = "cmake-3.15.3-py3-none-manylinux2010_x86_64.whl", hash = "sha256:44a9ac9cb143f287de1f323c78cb099fbc27aa4668130ad5d47511010eac4994"},
+    {file = "cmake-3.15.3-py3-none-win32.whl", hash = "sha256:267b52df4e615286d5ef30a5db4ed8a4e7962103209b56b5e3bd99fe23fe45f9"},
+    {file = "cmake-3.15.3-py3-none-win_amd64.whl", hash = "sha256:48c8eadc52d765ab1b6417e7324ddfd3ac1452a5f88b30f328e937a149a0f40d"},
+]
 colorama = [
     {file = "colorama-0.4.1-py2.py3-none-any.whl", hash = "sha256:f8ac84de7840f5b9c4e3347b3c1eaa50f7e49c2b07596221daec5edaabbd7c48"},
     {file = "colorama-0.4.1.tar.gz", hash = "sha256:05eed71e2e327246ad6b38c540c4a3117230b19679b875190486ddd2d721422d"},
@@ -615,6 +648,10 @@ docutils = [
     {file = "docutils-0.15.2-py2-none-any.whl", hash = "sha256:9e4d7ecfc600058e07ba661411a2b7de2fd0fafa17d1a7f7361cd47b1175c827"},
     {file = "docutils-0.15.2-py3-none-any.whl", hash = "sha256:6c4f696463b79f1fb8ba0c594b63840ebd41f059e92b31957c46b74a4599b6d0"},
     {file = "docutils-0.15.2.tar.gz", hash = "sha256:a2aeea129088da402665e92e0b25b04b073c04b2dce4ab65caaa38b7ce2e1a99"},
+]
+et-micc-tools = [
+    {file = "et-micc-tools-0.0.5.tar.gz", hash = "sha256:b7948263ff5ac7312816ca2840df2c557066253f96016b358eb10e08a5d47b1e"},
+    {file = "et_micc_tools-0.0.5-py3-none-any.whl", hash = "sha256:d82eed0eeca2ea570edf07cf54825a4be2d549d111f7fa59d11f66ac3fe9c666"},
 ]
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
