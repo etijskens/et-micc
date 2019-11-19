@@ -7,7 +7,6 @@ Application micc
 import os,sys
 from types import SimpleNamespace
 from pathlib import Path
-# from operator import xor
 
 import click
 
@@ -93,8 +92,8 @@ def create( ctx
           ):
     """Create a new project skeleton.
     
-    The project name is taken to be the last directory of the *<project_path>*.
-    If this directory does not yet exist, it is created. If it exists already, it
+    The project name is taken to be the last directory of the *project_path*.
+    If this directory does not yet exist, it is created. If it does exist already, it
     must be empty.
     
     The package name is the derived from the project name, taking the
@@ -104,11 +103,8 @@ def create( ctx
     * all lowercase.
     * dashes ``'-'`` and spaces ``' '`` replaced with underscores ``'_'``.
     * in case the project name has a leading number, an underscore is prepended ``'_'``.
-    
-    If no *<project_path>* is provided, or if it is the same as the current working
-    directory, the user is prompted to enter one.
-    
-    If the *<project_path>* refers to an existing project, *micc* refuses to continu,
+        
+    If *project_path* is a subdirectory of a micc project, *micc* refuses to continu,
     unless ``--allow-nesting`` is soecified.
     """
     options = ctx.obj
@@ -155,9 +151,232 @@ def create( ctx
 #     with et_micc.logging.logtime(ctx.obj):
     project = Project(options)
     
-    if project.rc:
-        ctx.exit(project.rc)
+    if project.exit_code:
+        ctx.exit(project.exit_code)
     
    
+@main.command()
+@click.option('--overwrite', is_flag=True
+             , help="Overwrite pre-existing files (without backup)."
+             , default=False
+             )
+@click.option('--backup', is_flag=True
+             , help="Make backup files (.bak) before overwriting any pre-existing files."
+             , default=False
+             )
+@click.pass_context
+def convert_to_package(ctx, overwrite, backup):
+    """Convert a Python module project to a package.
+
+    A Python *module* project has only a ``<package_name>.py`` file, whereas
+    a Python *package* project has ``<package_name>/__init__.py`` and can contain
+    submodules, such as Python modules, packages and applications, as well as
+    binary extension modules.
+
+    This command also expands the ``package-general-docs`` template in this
+    project, which adds a ``AUTHORS.rst``, ``HISTORY.rst`` and ``installation.rst``
+    to the documentation structure.
+    """
+    options = ctx.obj
+    options.overwrite = overwrite
+    options.backup    = backup
+    
+    with et_micc.logging.logtime(options):
+        project = Project(options)
+        project.module_to_package_cmd()
+        
+        if project.exit_code==et_micc.expand.EXIT_OVERWRITE:
+            et_micc.logging.get_micc_logger(ctx.obj).warning(
+                f"It is normally ok to overwrite 'index.rst' as you are not supposed\n"
+                f"to edit the '.rst' files in '{options.project_path}{os.sep}docs.'\n"
+                f"If in doubt: rerun the command with the '--backup' flag,\n"
+                f"  otherwise: rerun the command with the '--overwrite' flag,\n"
+            )
+
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+            
+            
+@main.command()
+@click.pass_context
+def info(ctx):
+    """Show project info.
+        
+    * file location
+    * name
+    * version number
+    * structure (with ``-v``)
+    * contents (with ``-vv``)
+    
+    Use verbosity to produce more detailed info.
+    """ 
+    options = ctx.obj   
+    with et_micc.logging.logtime(options):
+        project = Project(options)
+        project.info_cmd()
+
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
+
+@main.command()
+@click.option('-M','--major'
+             , help='Increment the major version number component and set minor and patch components to 0.'
+             , default=False, is_flag=True
+             )
+@click.option('-m','--minor'
+             , help='Increment the minor version number component and set minor and patch component to 0.'
+             , default=False, is_flag=True
+             )
+@click.option('-p','--patch'
+             , help='Increment the patch version number component.'
+             , default=False, is_flag=True
+             )
+@click.option('-t', '--tag'
+             , help='Create a git tag for the new version, and push it to the remote repo.'
+             , default=False, is_flag=True
+             )
+@click.option('-s', '--short'
+             , help='Print the version on stdout.'
+             , default=False, is_flag=True
+             )
+@click.pass_context
+def version( ctx, major, minor, patch, tag, short):
+    """Increment or show the project's version number.
+    
+    *Micc* uses *bumpversion* for this.
+    
+    You can also avoide using ``micc version`` and use *bumpversion* directly. Note,
+    however, that the version string appears in both ``pyproject.toml`` and in the 
+    top-level package (``<mopdule_name>.py`` or ``<mopdule_name>/__init__.py``). 
+    
+    :param str rule: any string that is also accepted by poetry version. Typically, the empty
+        string (show current version), a valid rule: patch, minor, major, prepatch, preminor, 
+        premajor, prerelease, or any valid version string.  
+    """
+    options = ctx.obj
+    rule = ''
+    if major:
+        rule = 'major'
+    if minor:
+        rule = 'minor'
+    if patch:
+        rule = 'patch'
+    
+    with et_micc.logging.logtime(ctx.obj):
+        project = Project(options)
+        if short:
+            print(project.version)
+        else:
+            project.version_cmd(rule)
+            if project.exit_code==0 and tag:
+                project.tag_cmd()
+                
+    if project.exit_code: 
+        ctx.exit(project.exit_code)
+
+
+@main.command()
+@click.pass_context
+def tag(ctx):
+    """Create a git tag for the current version and push it to the remote repo."""
+
+
+@main.command()
+@click.option('--app'
+             , default=False, is_flag=True
+             , help="Add a CLI."
+             )
+@click.option('--group'
+             , default=False, is_flag=True
+             , help="Add a CLI with a group of sub-commands."
+             )
+@click.option('--py'
+             , default=False, is_flag=True
+             , help="Add a Python module."
+             )
+@click.option('--package'
+             , help="Add a Python module with a package structure rather than a module structure:\n\n"
+                    "* module  structure = ``<module_name>.py`` \n"
+                    "* package structure = ``<module_name>/__init__.py``\n\n"
+                    "Default = module structure."
+             , default=False, is_flag=True
+             )
+@click.option('--f2py'
+             , default=False, is_flag=True
+             , help="Add a f2py binary extionsion module (Fortran)."
+             )
+@click.option('--cpp'
+             , default=False, is_flag=True
+             , help="Add a cpp binary extionsion module (C++)."
+             )
+@click.option('-T', '--template', default='', help=__template_help)
+@click.option('--overwrite', is_flag=True
+             , help="Overwrite pre-existing files (without backup)."
+             , default=False
+             )
+@click.option('--backup', is_flag=True
+             , help="Make backup files (.bak) before overwriting any pre-existing files."
+             , default=False
+             )
+@click.argument('name',type=str)
+@click.pass_context
+def add( ctx
+       , name
+       , app, group
+       , py, package
+       , f2py
+       , cpp
+       , template
+       , overwrite
+       , backup
+       ):
+    """Add a module or CLI to the projcect.
+    
+    :param str name: name of the CLI or module added.
+    
+    If ``app==True``: (add CLI application)
+    
+    * :py:obj:`app_name` is also the name of the executable when the package is installed.
+    * The source code of the app resides in :file:`<project_name>/<package_name>/cli_<name>.py`.
+
+
+    If ``py==True``: (add Python module)
+    
+    * Python source  in :file:`<name>.py*`or :file:`<name>/__init__.py`, depending on the :py:obj:`package` flag.
+
+    If ``f2py==True``: (add f2py module)
+    
+    * Fortran source in :file:`f2py_<name>/<name>.f90` for f2py binary extension modules.
+
+    If ``cpp==True``: (add cpp module)
+    
+    * C++ source     in :file:`cpp_<name>/<name>.cpp` for cpp binary extension modules.
+    """
+    options = ctx.obj    
+    options.add_name = name
+    options.app = app
+    options.group = group
+    options.py = py
+    options.package = package
+    options.f2py = f2py
+    options.cpp = cpp
+    options.template = template
+    options.overwrite = overwrite
+    options.backup = backup
+        
+    with et_micc.logging.logtime(options):
+        project = Project(options)            
+        project.add_cmd()
+      
+    if project.exit_code: 
+        ctx.exit(project.exit_code)
+
+        
+    
+
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
+    
+    
+#eof

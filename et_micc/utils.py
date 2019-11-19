@@ -10,6 +10,7 @@ Module et_micc.utils
 Utility functions for et_micc.
 """
 import os
+import re
 import subprocess
 import copy
 from pathlib import Path
@@ -18,19 +19,49 @@ from contextlib import contextmanager
 from et_micc.tomlfile import TomlFile
 import et_micc.logging
 
+def constraint_to_version(constraint):
+
+    for i,c in enumerate(constraint):
+        if c.isdigit():
+            break
+    tpl = constraint[i:].split('.')
+    return tpl
+    
+def compare_constraints(left,right):
+    """
+    this fails for constraints with < and <=
+    """
+    left  = constraint_to_version(left)
+    right = constraint_to_version(right)
+    for i,j in zip(left,right):
+        if i<j:
+            return -1
+        if i>j:
+            return 1
+    return 0
+
+    
+def verify_project_name(project_name):
+    """Project names must start with a char, and  contain only chars, digits, underscores and dashes.
+    
+    :returns: bool
+    """
+    p = re.compile("\A[a-zA-Z][a-zA-Z0-9_-]*\Z")
+    return bool( p.match(project_name) )
+    
+    
 def pep8_module_name(name):
     """Convert a module name to a PEP8 compliant module name.
     
     * lowercase
     * whitespace -> underscore 
     * dash -> underscore 
-    * if leading numeric character, prepend '_'
-      Names like this are discouraged by https://www.python.org/dev/peps/pep-0008/#package-and-module-names,
-      but so are, names starting with a numeric character.
     """
     if name[0].isnumeric():
         name = '_'+name
-    valid_module_name = name.lower().replace('-', '_').replace(' ', '_')
+    
+    valid_module_name = name.lower().replace('-', '_').replace(' ', '_')            
+    
     return valid_module_name
 
 
@@ -58,25 +89,7 @@ def is_project_directory(path):
 
     return bool(package_or_module(path))
     
-
-def package_or_module(path):
-    """Test if *path* contains a python module or package.
-    :param Path path: path to a directory.
-    :returns: 'package' or 'module' if *path* contains a python package or
-      module, resp., or None if it contains neither.
-    """
-    project_name = path.name
-    package_name = pep8_module_name(project_name)
-    if (path / package_name / '__init__.py').exists():
-        # python package found
-        return 'package'
-    elif (path / (package_name + '.py')).exists():
-        # python module found
-        return 'module'
-    else:
-        return None
     
-
 @contextmanager
 def in_directory(path):
     """Context manager for changing the current working directory while the body of the

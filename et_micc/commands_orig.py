@@ -721,7 +721,6 @@ def micc_docs(formats, global_options):
 
 def micc_info(global_options):
     """Output info on the project.
-
     
     :param types.SimpleNamespace global_options: namespace object with options 
         accepted by (almost) all et_micc commands. Relevant attributes are 

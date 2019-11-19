@@ -15,7 +15,7 @@ from types import SimpleNamespace
 from click.testing import CliRunner
 
 import et_micc.logging
-from tests.helpers import in_empty_tmp_dir,report,get_version
+from tests.helpers import in_empty_tmp_dir, report, get_version
 from et_micc import cli_micc
 
 #===============================================================================
@@ -53,7 +53,26 @@ def test_scenario_1():
     with in_empty_tmp_dir():
         run(runner, ['-vv', '-p', 'FOO', 'create', '--allow-nesting'])
         assert Path('FOO/foo.py').exists()
+        run(runner, ['-vvv', '-p', 'FOO', 'info'])
  
+ 
+def test_scenario_2():
+    """
+    """
+    runner = CliRunner()
+    with in_empty_tmp_dir():
+        run(runner, ['-vv', '-p', 'FOO', 'create', '-p', '--allow-nesting'])
+        assert Path('FOO/foo/__init__.py').exists()
+        run(runner, ['-vvv', '-p', 'FOO', 'info'])
+        run(runner, ['-v', '-p', 'FOO', 'version'])
+        run(runner, ['-v', '-p', 'FOO', 'version','--short'])
+        run(runner, ['-vv', '-p', 'FOO', 'version','-M'])
+        run(runner, ['-v', '-p', 'FOO', 'version','--short'])
+        run(runner, ['-vv', '-p', 'FOO', 'version','-m'])
+        run(runner, ['-v', '-p', 'FOO', 'version','--short'])
+        run(runner, ['-vv', '-p', 'FOO', 'version','-p'])
+        run(runner, ['-v', '-p', 'FOO', 'version','--short'])
+        
  
 # def test_scenario_1b():
 #     """
@@ -164,7 +183,7 @@ def test_scenario_1():
 # ==============================================================================
 if __name__ == "__main__":
     print(sys.version_info)
-    the_test_you_want_to_debug = test_scenario_1
+    the_test_you_want_to_debug = test_scenario_2
 
     with et_micc.logging.log(print,f"__main__ running {the_test_you_want_to_debug}",'-*# finished #*-'):
         the_test_you_want_to_debug()
