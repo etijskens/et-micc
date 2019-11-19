@@ -8,8 +8,13 @@ from pathlib import Path
 from et_micc.project import Project
 
 def test_ctor():
-    global_options = SimpleNamespace(project_path=Path.cwd())
-    proj = Project(global_options)
+    options = SimpleNamespace(
+        project_path=Path.cwd(),
+        template_parameters={},
+        verbosity=3,
+        clear_log=False,
+    )
+    proj = Project(options)
     print(proj.pyproject_toml['tool']['poetry']['dependencies'])
     
 
