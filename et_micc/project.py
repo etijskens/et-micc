@@ -337,7 +337,7 @@ class Project:
         """
         if self.module:
             self.error(f"Cannot add to a module project ({self.module}).\n"
-                       f"  Use `micc convert_to_package' on this project to convert it to a package project."
+                       f"  Use `micc convert-to-package' on this project to convert it to a package project."
                       )
             return
         
@@ -366,9 +366,9 @@ class Project:
             return
     
         if self.options.app:
-            app_name = self.options.name
-            if self.app_exists(self.options.project_path, app_name):
-                self.error(f"Project {self.options.project_name} has already an app named {app_name}.")
+            app_name = self.options.add_name
+            if self.app_exists(app_name):
+                self.error(f"Project {self.project_name} has already an app named {app_name}.")
                 return
             
             if not et_micc.utils.verify_project_name(app_name):
@@ -380,17 +380,17 @@ class Project:
                 return
             
             if self.options.group:
-                if not self.options.template:
-                    self.options.template = 'app-sub-commands'
+                if not self.options.templates:
+                    self.options.templates = 'app-sub-commands'
             else:
-                if not self.options.template:
-                    self.options.template = 'app-simple'
+                if not self.options.templates:
+                    self.options.templates = 'app-simple'
                                 
             self.add_app()
             
         else:
             module_name = self.options.add_name
-            if self.module_exists(self.options.project_path,self.options.name):
+            if self.module_exists(module_name):
                 self.error(f"Project {self.options.project_name} has already a module named {module_name}.")
                 return
             
@@ -407,19 +407,20 @@ class Project:
             
             if self.options.py:
                 self.options.structure = 'package' if self.options.package else 'module'
-                if not self.options.template:
-                    self.options.template = 'module-py'
+                if not self.options.templates:
+                    self.options.templates = 'module-py'
                 self.add_python_module()
                         
             elif self.options.f2py:
-                if not self.options.template:
-                    self.options.template = 'module-f2py'
+                if not self.options.templates:
+                    self.options.templates = 'module-f2py'
                 self.add_f2py_module()
     
             elif self.options.cpp:
-                if not self.options.template:
-                    self.options.template = 'module-cpp'
+                if not self.options.templates:
+                    self.options.templates = 'module-cpp'
                 self.add_cpp_module()
+    
     
     def add_app(self):
         """Add a console script (app) to the package."""
@@ -488,7 +489,7 @@ class Project:
                 # TODO: add 'import <package_name>.cli_<app_name> to __init__.py
                 line = f"import {package_name}.cli_{app_name}\n"
                 file = project_path / self.package
-                et_micc.utils.insert_in_file(file, lines, before=True, startswith="__version__")
+                et_micc.utils.insert_in_file(file, [line], before=True, startswith="__version__")
 
 
     def add_python_module(self):
@@ -636,10 +637,10 @@ class Project:
         :param str module_name: module name
         :returns: bool
         """
-        return (self.  py_module_exists(self.options.project_path, module_name)
-             or self. py_package_exists(self.options.project_path, module_name)
-             or self. cpp_module_exists(self.options.project_path, module_name)
-             or self.f2py_module_exists(self.options.project_path, module_name)
+        return (self.  py_module_exists(module_name)
+             or self. py_package_exists(module_name)
+             or self. cpp_module_exists(module_name)
+             or self.f2py_module_exists(module_name)
                )
     
     def py_module_exists(self, module_name):
@@ -685,7 +686,7 @@ class Project:
         """Add dependencies to the pyproject.toms file.
         :param dict deps: (package,version_constraint) pairs.
         """
-        current_dependencies = self.pyproject_toml['poetry']['tool']['dependencies']
+        current_dependencies = self.pyproject_toml['tool']['poetry']['dependencies']
         for pkg,version in deps.items():
             if pkg in current_dependencies:
                 current_version = current_dependencies[pkg]

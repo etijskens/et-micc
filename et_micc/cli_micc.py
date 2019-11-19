@@ -310,7 +310,7 @@ def tag(ctx):
              , default=False, is_flag=True
              , help="Add a cpp binary extionsion module (C++)."
              )
-@click.option('-T', '--template', default='', help=__template_help)
+@click.option('-T', '--templates', default='', help=__template_help)
 @click.option('--overwrite', is_flag=True
              , help="Overwrite pre-existing files (without backup)."
              , default=False
@@ -327,7 +327,7 @@ def add( ctx
        , py, package
        , f2py
        , cpp
-       , template
+       , templates
        , overwrite
        , backup
        ):
@@ -361,7 +361,7 @@ def add( ctx
     options.package = package
     options.f2py = f2py
     options.cpp = cpp
-    options.template = template
+    options.templates = templates
     options.overwrite = overwrite
     options.backup = backup
         
