@@ -43,33 +43,11 @@ class Project:
                 )
             )
         
-        if et_micc.utils.is_project_directory(project_path):
+        if et_micc.utils.is_project_directory(project_path,self):
             # existing project
             self.pyproject_toml = TomlFile(project_path / 'pyproject.toml')
             self.project_name = self.pyproject_toml['tool']['poetry']['name']
-            self.package_name = et_micc.utils.pep8_module_name(self.project_name)
-        
-            # some sanity checks
-            self.module = self.options.project_path / (self.package_name + ".py")
-            if not self.module.exists():
-                self.module = ""
-            else:
-                self.module = self.module.relative_to(self.options.project_path)
-        
-            self.package = self.options.project_path / self.package_name / "__init__.py"
-            if not self.package.exists():
-                self.package = ""
-            else:
-                self.package = self.package.relative_to(self.options.project_path)
-            
-            if (self.module and self.package):
-                self.error(f"Package ({self.package_name}/__init__.py) and module ({self.package_name}.py) found.")
-                return
-            
-            if (not self.module and not self.package):
-                self.error(f"Neither package ({self.package_name}/__init__.py) nor module ({self.package_name}.py) found.")
-                return
-            
+            self.package_name = et_micc.utils.pep8_module_name(self.project_name)            
             self.micc_logger = et_micc.logging.get_micc_logger(self.options)
             self.version = self.pyproject_toml['tool']['poetry']['version']
         else:

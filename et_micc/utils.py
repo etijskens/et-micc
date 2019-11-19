@@ -19,6 +19,7 @@ from contextlib import contextmanager
 from et_micc.tomlfile import TomlFile
 import et_micc.logging
 
+
 def constraint_to_version(constraint):
 
     for i,c in enumerate(constraint):
@@ -26,6 +27,7 @@ def constraint_to_version(constraint):
             break
     tpl = constraint[i:].split('.')
     return tpl
+
     
 def compare_constraints(left,right):
     """
@@ -65,7 +67,7 @@ def pep8_module_name(name):
     return valid_module_name
 
 
-def is_project_directory(path):
+def is_project_directory(path,project=None):
     """Verify that the directory :file:`path` is a project directory. 
     
     :param Path path: path to a directory.
@@ -82,14 +84,44 @@ def is_project_directory(path):
     path_to_pyproject_toml = str(path /'pyproject.toml')
     
     try:
-        toml = TomlFile(path_to_pyproject_toml)
-        _ = toml['tool']['poetry']['name']
+        pyproject_toml = TomlFile(path_to_pyproject_toml)
+        project_name = pyproject_toml['tool']['poetry']['name']
+        if not project is None:
+            project.pyproject_toml = pyproject_toml
+            project.project_name = project_name
     except Exception:
         return False
 
-    return bool(package_or_module(path))
+    return verify_project_structure(path,project)
+
+
+def verify_project_structure(path,project=None):
+    """
+    :returns: a list, which should have length 1. If its length is 0, neither module.py, 
+        nor module/__init__.py were found. If its length is 2, both were found.
+    """
+    package_name = pep8_module_name(path.name)
     
+    module = path / (package_name + ".py")
+    module = str(module.relative_to(path)) if module.exists() else ""
+
+    package = path / package_name / "__init__.py"
+    package = str(package.relative_to(path)) if package.exists() else ""
     
+    if package and module:
+        if project:
+            project.error(f"Package ({package_name}/__init__.py) and module ({package_name}.py) found.")
+        return
+    elif (not module and not package):
+        if project:
+            project.error(f"Neither package ({package_name}/__init__.py) nor module ({package_name}.py) found.")
+        return
+    else:
+        if project:
+            project.module = module
+            project.package = package
+
+
 @contextmanager
 def in_directory(path):
     """Context manager for changing the current working directory while the body of the

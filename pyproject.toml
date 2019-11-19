@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "et-micc"
-version = "0.8.3"
+version = "0.9.0"
 description = "A practical Python project skeleton generator."
 authors = ["Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>"]
 license = "MIT"
@@ -21,13 +21,13 @@ sphinx-rtd-theme = "^0.4.3"
 pytest = "^4.4.2"
 bump2version="^0.5.11"
 walkdir="^0.4.1"
-et-micc-tools = "^0.1.1"
+tomlkit = "^0.5.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.4.2"
 
 [tool.poetry.scripts]
-micc = 'et_micc:cli.main'
+micc = 'et_micc:cli_micc.main'
 
 [build-system]
 requires = ["poetry>=0.12"]
