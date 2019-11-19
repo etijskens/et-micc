@@ -111,16 +111,17 @@ def verify_project_structure(path,project=None):
     if package and module:
         if project:
             project.error(f"Package ({package_name}/__init__.py) and module ({package_name}.py) found.")
-        return
+        return False
     elif (not module and not package):
         if project:
             project.error(f"Neither package ({package_name}/__init__.py) nor module ({package_name}.py) found.")
-        return
+        return False
     else:
         if project:
             project.module = module
             project.package = package
-
+            project.package_name = package_name
+        return True
 
 @contextmanager
 def in_directory(path):
@@ -183,4 +184,31 @@ def get_project_path(p):
     return p
 
 
+def insert_in_file(file, lines=[], before=False, startswith=None):
+    """Insert *lines* at a specific position in a <file>.
+    
+    :param Path file: path to file in which to insert
+    :param list lines: list of lines to insert. If a line does not end with 
+        a newline, it is added.
+    :param bool before: insert before or after a reference line.
+    :param str startswith: find the reference line as the first line that
+        starts with <startswith>.
+    """
+    if lines:
+        with file.open() as f:
+            content = f.readlines()
+        for l,line in enumerate(content):
+            if startswith and line.startswith(startswith):
+                if not before:
+                    l += 1
+                break
+        for i,line in enumerate(lines):
+            if not line.endswith('\n'):
+                line += '\n'
+            content.insert(l+i,line)
+        with file.open(mode='w') as f:
+            for line in content:
+                f.write(line)
+        
+    
 #eof

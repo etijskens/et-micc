@@ -45,9 +45,6 @@ class Project:
         
         if et_micc.utils.is_project_directory(project_path,self):
             # existing project
-            self.pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-            self.project_name = self.pyproject_toml['tool']['poetry']['name']
-            self.package_name = et_micc.utils.pep8_module_name(self.project_name)            
             self.micc_logger = et_micc.logging.get_micc_logger(self.options)
             self.version = self.pyproject_toml['tool']['poetry']['version']
         else:
@@ -154,34 +151,37 @@ class Project:
                         et_micc.utils.execute(cmds, self.micc_logger.debug, stop_on_error=False)
                 
 
-    def module_to_package_command(self):
+    def module_to_package_cmd(self):
         """
         """
         if self.package:
             self.warning(f"Project ({self.project_name}) is already a package ({self.package}).")
             return
         
-        if self.options.verbosity>0:
-            click.echo(f"Converting Python module project {self.project_name} to Python package project.")
-        
+        self.micc_logger.info(
+            f"Converting Python module project {self.project_name} to Python package project."
+        )
+
         # add documentation files for general Python project    
+        self.options.templates = "package-general-docs"
         self.options.template_parameters.update(
             {'project_short_description' : self.pyproject_toml['tool']['poetry']['description']}
         )
-    
-        self.exit_code = et_micc.expand.expand_templates( "package-general-docs", self.options )
+        self.exit_code = et_micc.expand.expand_templates(self.options)
         if self.exit_code:
-            et_micc.logging.get_micc_logger().critical(f"Exiting ({self.exit_code}) ...")
+            self.micc_logger.critical(
+                f"Expand failed during Project.module_to_package_cmd for project ({self.project_name})."
+            )
             return
         
-        package_path = self.project_path / self.package_name
+        # move <package_name>.py to <package_name>/__init__.py 
+        package_path = self.options.project_path / self.package_name
         package_path.mkdir(exist_ok=True)
-        src = self.project_path / (self.package_name + '.py')
-        dst = self.project_path / self.package_name / '__init__.py'
+        src = self.options.project_path / (self.package_name + '.py')
+        dst = self.options.project_path / self.package_name / '__init__.py'
         shutil.move(src, dst)
         
-        return 0
-        
+                
     def info_cmd(self):
         """Output info on the project.
         
@@ -484,8 +484,11 @@ class Project:
                 self.add_dependencies({'click':'^7.0'})
                 self.pyproject_toml['tool']['poetry']['scripts'][app_name] = f"{package_name}:{cli_app_name}.main"
                 self.pyproject_toml.save()
-    
-        return 0
+                
+                # TODO: add 'import <package_name>.cli_<app_name> to __init__.py
+                line = f"import {package_name}.cli_{app_name}\n"
+                file = project_path / self.package
+                et_micc.utils.insert_in_file(file, lines, before=True, startswith="__version__")
 
 
     def add_python_module(self):
@@ -527,7 +530,7 @@ class Project:
                     f.write(f"\n.. automodule:: {package_name}.{module_name}"
                              "\n   :members:\n\n"
                            )
-        return 0
+
         
     def add_f2py_module(self):
         """Add a f2py module to this project."""
@@ -700,7 +703,6 @@ class Project:
         """Move file :file:`module.py` to :file:`module/__init__.py`.
         
         :param str|Path module_py: path to module.py
-        
         """
         module_py = Path(module_py).resolve()
         
