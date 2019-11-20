@@ -1,6 +1,9 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+v0.9.1 (2019-11-19)
+===================
+* OOP version of micc, code much better organised now.
 * fixed `Github issue #19 <https://github.com/etijskens/micc/issues/19>`_
 
 v0.8.0 (2019-11-11)

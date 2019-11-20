@@ -31,17 +31,19 @@ class Project:
         self.options = options
         project_path = options.project_path
         
-        template_parameters_json = project_path / 'micc.json'
-        if template_parameters_json.exists():
-            options.template_parameters.update(
-                et_micc.expand.get_template_parameters(template_parameters_json)
-            )
-        else:
-            options.template_parameters.update(
-                et_micc.expand.get_template_parameters(
-                    et_micc.expand.get_preferences(Path('.'))
+        if hasattr(options, 'template_parameters'):
+            # only needed for expanding templates.
+            template_parameters_json = project_path / 'micc.json'
+            if template_parameters_json.exists():
+                options.template_parameters.update(
+                    et_micc.expand.get_template_parameters(template_parameters_json)
                 )
-            )
+            else:
+                options.template_parameters.update(
+                    et_micc.expand.get_template_parameters(
+                        et_micc.expand.get_preferences(Path('.'))
+                    )
+                )
         
         if et_micc.utils.is_project_directory(project_path,self):
             # existing project
