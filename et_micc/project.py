@@ -22,6 +22,8 @@ import et_micc.expand
 import et_micc.logging
 
 
+CURRENT_ET_MICC_BUILD_VERSION = "^0.1.1"
+
 class Project:
     """
     An OO interface to et-micc_ projects.
@@ -572,7 +574,7 @@ class Project:
             self.micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
             
             with et_micc.utils.in_directory(project_path):
-                self.add_dependencies({'et-micc-build':'^0.0.5'})
+                self.add_dependencies({'et-micc-build':CURRENT_ET_MICC_BUILD_VERSION})
                 # docs
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{rst_file}\n")
@@ -616,7 +618,7 @@ class Project:
             self.micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
             
             with et_micc.utils.in_directory(project_path):
-                self.add_dependencies({'et-micc-build':'^0.0.5'})
+                self.add_dependencies({'et-micc-build':CURRENT_ET_MICC_BUILD_VERSION})
                 # docs
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
