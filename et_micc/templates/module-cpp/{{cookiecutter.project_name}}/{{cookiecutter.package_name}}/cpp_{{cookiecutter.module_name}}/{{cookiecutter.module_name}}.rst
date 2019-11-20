@@ -4,7 +4,7 @@ You should document the Python interfaces, *NOT* the C++ interfaces.
 Module {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
 *********************************************************************
 
-Module ;py:mod:`{{ cookiecutter.module_name }}` built from C++ code in :file:`cpp_{{ cookiecutter.module_name }}/{{ cookiecutter.module_name }}.cpp`.
+Module :py:mod:`{{ cookiecutter.module_name }}` built from C++ code in :file:`cpp_{{ cookiecutter.module_name }}/{{ cookiecutter.module_name }}.cpp`.
 
 .. function:: add(x,y,z)
    :module: {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}

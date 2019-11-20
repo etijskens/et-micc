@@ -22,7 +22,7 @@ import et_micc.expand
 import et_micc.logging
 
 
-CURRENT_ET_MICC_BUILD_VERSION = "^0.1.1"
+CURRENT_ET_MICC_BUILD_VERSION = "0.2.5"
 
 class Project:
     """
@@ -577,7 +577,7 @@ class Project:
                 self.add_dependencies({'et-micc-build':CURRENT_ET_MICC_BUILD_VERSION})
                 # docs
                 with open("API.rst","a") as f:
-                    f.write(f"\n.. include:: ../{rst_file}\n")
+                    f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
         
         
     def add_cpp_module(self):
@@ -600,17 +600,17 @@ class Project:
             package_name = self.options.template_parameters['package_name']
             src_file = os.path.join(           project_path.name
                                    ,           package_name
-                                   , 'f2py_' + module_name
-                                   ,           module_name + '.f90'
+                                   , 'cpp_'  + module_name
+                                   ,           module_name + '.cpp'
                                    )
             tst_file = os.path.join(           project_path.name
                                    , 'tests'
-                                   , 'test_f2py_' + module_name + '.py'
+                                   , 'test_cpp_' + module_name + '.py'
                                    )
                 
             rst_file = os.path.join(           project_path.name
                                    ,           package_name
-                                   , 'f2py_' + module_name
+                                   , 'cpp_'  + module_name
                                    ,           module_name + '.rst'
                                    )
             self.micc_logger.info(f"- C++ source in           {src_file}.")
