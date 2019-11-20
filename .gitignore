@@ -130,3 +130,4 @@ tox.ini
 requirements_dev.txt
 
 +tests/data/
+micc.sh

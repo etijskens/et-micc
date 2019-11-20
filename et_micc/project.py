@@ -393,7 +393,7 @@ class Project:
         else:
             module_name = self.options.add_name
             if self.module_exists(module_name):
-                self.error(f"Project {self.options.project_name} has already a module named {module_name}.")
+                self.error(f"Project {self.project_name} has already a module named {module_name}.")
                 return
             
             if (not et_micc.utils.verify_project_name(module_name)
@@ -686,6 +686,7 @@ class Project:
     
     def add_dependencies(self,deps):
         """Add dependencies to the pyproject.toms file.
+        
         :param dict deps: (package,version_constraint) pairs.
         """
         current_dependencies = self.pyproject_toml['tool']['poetry']['dependencies']
