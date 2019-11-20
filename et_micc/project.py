@@ -69,7 +69,7 @@ class Project:
 
     
     def warning(self, msg):
-        click.secho("[WARNING]\n" + msg, fg='blue')
+        click.secho("[WARNING]\n" + msg, fg='green')
         
     
     def create(self):
