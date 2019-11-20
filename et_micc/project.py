@@ -22,7 +22,7 @@ import et_micc.expand
 import et_micc.logging
 
 
-CURRENT_ET_MICC_BUILD_VERSION = "0.2.5"
+CURRENT_ET_MICC_BUILD_VERSION = "0.2.6"
 
 class Project:
     """
