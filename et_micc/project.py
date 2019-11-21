@@ -290,7 +290,7 @@ class Project:
         elif self.options.short:
             print(self.version)
         else:
-            print(f"Project ({self.project.name}) version ({self.version})")
+            print(f"Project ({self.project_name}) version ({self.version})")
 
     
     def tag_cmd(self):
