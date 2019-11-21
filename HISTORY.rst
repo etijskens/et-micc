@@ -1,7 +1,20 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
-v0.9.1 (2019-11-19)
+v0.9.6 (2019-11-21)
+===================
+* Keeping version number between micc and micc-build consistent is error-prone.
+  Each has to know the other's version number because dependencies must be set.
+  Et-micc-build depends on et-micc. So et-micc-build/pyproject.toml must know 
+  the version number of et-micc. On the other hand, when et-micc adds a binary 
+  extension to a project it must add the dependency on et-micc-build to that 
+  project's pyproject.toml file, and thus et-micc must know the version number
+  of et-micc-build. 
+  bumpversion has a lot more in petto than we used so far. 
+ 
+  if they have the same version number it becomes much simpler.
+  
+v0.9.5 (2019-11-19)
 ===================
 * OOP version of micc, code much better organised now.
 * fixed `Github issue #19 <https://github.com/etijskens/micc/issues/19>`_

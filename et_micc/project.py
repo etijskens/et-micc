@@ -20,9 +20,9 @@ from et_micc.tomlfile import TomlFile
 import et_micc.utils
 import et_micc.expand
 import et_micc.logging
+from et_micc import __version__
 
-
-CURRENT_ET_MICC_BUILD_VERSION = "0.2.6"
+CURRENT_ET_MICC_BUILD_VERSION = __version__
 
 class Project:
     """
