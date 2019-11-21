@@ -7,8 +7,12 @@ Module {{cookiecutter.package_name}}.{{cookiecutter.module_name}}
 A module
 
 """
-#===============================================================================
+
 # your imports here ...
-#===============================================================================
-# your code here ...
-#===============================================================================
+
+def say_hello(to=''):
+	"""Say "Hello <to>!".
+	
+	:param str to: whom you want to say hello to.
+	"""
+	print(f"hello {to}!")

@@ -10,18 +10,17 @@ import pytest
 from click.testing import CliRunner
 from click import echo
 
-from {{ cookiecutter.package_name }} import {{ cookiecutter.package_name }}
-from {{ cookiecutter.package_name }} import __version__
+import {{ cookiecutter.package_name }} 
 {#
 {%- if cookiecutter.command_line_interface|lower == 'click' %}
 from {{ cookiecutter.project_name }} import cli
 {%- endif %}
 #}
 
-def test_sth():
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
+def test_greet():
+    expected = "Hello John!"
+    greeting = greet("John")
+    assert greeting==expected
 
 
 # ==============================================================================
