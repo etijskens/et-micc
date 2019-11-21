@@ -15,6 +15,8 @@ import subprocess
 from operator import xor
 
 import click 
+from bumpversion.cli import main as bumpversion
+from bumpversion.exceptions import WorkingDirectoryIsDirtyException
 
 from et_micc.tomlfile import TomlFile
 import et_micc.utils
@@ -257,7 +259,7 @@ class Project:
                     click.echo("    " + kind + click.style(str(f.relative_to(package_path)) + extra,fg=fg))
 
 
-    def version_cmd(self, rule):
+    def version_cmd(self):
         """
         Bump the version according to ``rule`` or show the current version if no
         ``rule`` was specified
@@ -266,43 +268,29 @@ class Project:
         ``__version__`` variable of the top-level package (which is either in file
         ``<package_name>.py`` or ``<package_name>/__init__.py`` 
         
-        :param str rule: one of the valid arguments for the ``poetry version <rule>``
-            command.
         """
-        project_path = self.options.project_path
-        
-        package_name = et_micc.utils.pep8_module_name(project_path.name)
-    
         self.options.verbosity = max(1,self.options.verbosity)
-        micc_logger = et_micc.logging.get_micc_logger(self.options)
         
-        if rule:
-            files = [ project_path / 'pyproject.toml'
-                    , project_path / package_name / '__init__.py'
-                    , project_path / (package_name + '.py')
-                    ]
-            
-            # Use bump(2)version for bumping versions
-            bumped_files = []
-            for f in files:
-                if f.exists():
-                    cmd = ['bumpversion','--allow-dirty','--verbose'
-                          ,'--current-version',self.version,rule,str(f)]
-                    rc = et_micc.utils.execute(cmd)
-                    if rc:
-                        return rc
-                    bumped_files.append(f)
-                     
-            # TODO: find out why this does not write to the terminal (it does write to et_micc.log)
-            old_version = self.version
-            self.pyproject_toml = TomlFile(project_path / 'pyproject.toml')
-            self.version = self.pyproject_toml['tool']['poetry']['version']
-            micc_logger.info(f"bumping version ({old_version}) -> ({self.version})")
-            for f in bumped_files:
-                micc_logger.debug(f". Updated ({f})")
-        
+        if self.options.rule:
+            args = [
+                '--verbose', 
+                '--config-file', str(self.options.project_path / '.bumpversion.cfg'),
+                self.options.rule
+            ]
+            if self.options.dry_run:
+                args.append('--dry-run')
+                click.echo("> bumpversion --dry-run")
+            bumpversion(args)
+            if not self.options.dry_run:
+                old_version = self.version
+                # reread pyproject.toml
+                self.pyproject_toml = TomlFile('pyproject.toml')
+                self.version = self.pyproject_toml['tool']['poetry']['version']
+                self.micc_logger.info(f"bumping version ({old_version}) -> ({self.version})")
+        elif self.options.short:
+            print(self.version)
         else:
-            print(f"Project ({project_path.name}) version ({self.version})")
+            print(f"Project ({self.project.name}) version ({self.version})")
 
     
     def tag_cmd(self):

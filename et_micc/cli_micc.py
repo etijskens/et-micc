@@ -240,8 +240,12 @@ def info(ctx):
              , help='Print the version on stdout.'
              , default=False, is_flag=True
              )
+@click.option('-d', '--dry-run'
+             , help='bumpversion --dry-run.'
+             , default=False, is_flag=True
+             )
 @click.pass_context
-def version( ctx, major, minor, patch, tag, short):
+def version( ctx, major, minor, patch, tag, short, dry_run):
     """Increment or show the project's version number.
     
     *Micc* uses *bumpversion* for this.
@@ -255,6 +259,7 @@ def version( ctx, major, minor, patch, tag, short):
         premajor, prerelease, or any valid version string.  
     """
     options = ctx.obj
+
     rule = ''
     if major:
         rule = 'major'
@@ -262,16 +267,16 @@ def version( ctx, major, minor, patch, tag, short):
         rule = 'minor'
     if patch:
         rule = 'patch'
-    
+    options.rule = rule
+    options.short = short
+    options.dry_run = dry_run
+        
     with et_micc.logging.logtime(ctx.obj):
         project = Project(options)
-        if short:
-            print(project.version)
-        else:
-            project.version_cmd(rule)
-            if project.exit_code==0 and tag:
-                project.tag_cmd()
-                
+        project.version_cmd()
+        if project.exit_code==0 and tag:
+            project.tag_cmd()
+            
     if project.exit_code: 
         ctx.exit(project.exit_code)
 
