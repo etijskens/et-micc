@@ -15,8 +15,7 @@ import subprocess
 from operator import xor
 
 import click 
-from bumpversion.cli import main as bumpversion
-from bumpversion.exceptions import WorkingDirectoryIsDirtyException
+import semantic_version
 
 from et_micc.tomlfile import TomlFile
 import et_micc.utils
@@ -271,26 +270,46 @@ class Project:
         """
         self.options.verbosity = max(1,self.options.verbosity)
         
-        if self.options.rule:
-            args = [
-                '--verbose', 
-                '--config-file', str(self.options.project_path / '.bumpversion.cfg'),
-                self.options.rule
-            ]
-            if self.options.dry_run:
-                args.append('--dry-run')
-                click.echo("> bumpversion --dry-run")
-            bumpversion(args)
-            if not self.options.dry_run:
-                old_version = self.version
-                # reread pyproject.toml
-                self.pyproject_toml = TomlFile('pyproject.toml')
-                self.version = self.pyproject_toml['tool']['poetry']['version']
-                self.micc_logger.info(f"bumping version ({old_version}) -> ({self.version})")
-        elif self.options.short:
-            print(self.version)
+        if not self.options.rule:
+            if self.options.short:
+                print(self.version)
+            else:
+                click.echo( "Project " + click.style(f"({self.project_name} ", fg='cyan')
+                          + "version " + click.style(f"({self.version})"     , fg='cyan')
+                          )  
         else:
-            print(f"Project ({self.project_name}) version ({self.version})")
+            r = f"--{self.options.rule}"
+            current_semver = semantic_version.Version(self.version)
+            if self.options.rule=='patch':
+                new_semver = current_semver.next_patch()
+            elif self.options.rule=='minor':
+                new_semver = current_semver.next_minor()
+            elif self.options.rule=='major':
+                new_semver = current_semver.next_major()
+            else:
+                r = f"--rule {self.options.rule}"
+                new_semver = semantic_version.Version(self.options.rule)
+                
+            # update pyproject.toml
+            if not self.options.dry_run:
+                self.pyproject_toml['tool']['poetry']['version'] = str(new_semver)
+                self.pyproject_toml.save()
+                # update __version__
+                look_for = f'__version = "{current_semver}"'
+                replace_with = f'__version = "{new_semver}"'
+                if self.project.module:
+                    # update in <package_name>.py
+                    et_micc.utils.replace_in_file(self.options.project_path / self.module, look_for, replace_with)
+                else:
+                    # update in <package_name>/__init__.py
+                    et_micc.utils.replace_in_file(self.options.project_path / self.package, look_for, replace_with)
+                
+                self.micc_logger.info(f"bumping version ({current_semver}) -> ({new_semver})")
+                self.version = str(new_semver)
+            else:
+                click.echo(f"micc version {r} --dry-run : " + click.style(f"({current_semver} ", fg='cyan')
+                          + "-> "                           + click.style(f"({new_semver})"    , fg='cyan')
+                          )  
 
     
     def tag_cmd(self):

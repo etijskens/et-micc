@@ -20,6 +20,13 @@ from et_micc.tomlfile import TomlFile
 import et_micc.logging
 
 
+def replace_in_file(file_to_search, look_for, replace_with):
+    path = Path(file_to_search)
+    text = path.read_text()
+    text = text.replace(look_for, replace_with)
+    path.write_text(text)
+
+
 def constraint_to_version(constraint):
 
     for i,c in enumerate(constraint):

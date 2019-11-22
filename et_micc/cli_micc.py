@@ -232,6 +232,10 @@ def info(ctx):
              , help='Increment the patch version number component.'
              , default=False, is_flag=True
              )
+@click.option('-r', '--rule'
+             , help='Any semver 2.0 version string.'
+             , default=''
+             )
 @click.option('-t', '--tag'
              , help='Create a git tag for the new version, and push it to the remote repo.'
              , default=False, is_flag=True
@@ -245,7 +249,7 @@ def info(ctx):
              , default=False, is_flag=True
              )
 @click.pass_context
-def version( ctx, major, minor, patch, tag, short, dry_run):
+def version( ctx, major, minor, patch, rule, tag, short, dry_run):
     """Increment or show the project's version number.
     
     *Micc* uses *bumpversion* for this.
@@ -260,13 +264,17 @@ def version( ctx, major, minor, patch, tag, short, dry_run):
     """
     options = ctx.obj
 
-    rule = ''
-    if major:
+    if rule and (major or minor or patch):
+        msg = ("Both --rule and --major|--minor|--patc specified.")
+        click.secho("[ERROR]\n" + msg, fg='bright_red')
+        ctx.exit(1)
+    elif major:
         rule = 'major'
-    if minor:
+    elif minor:
         rule = 'minor'
-    if patch:
+    elif patch:
         rule = 'patch'
+
     options.rule = rule
     options.short = short
     options.dry_run = dry_run

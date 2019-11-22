@@ -1,6 +1,8 @@
 This section summarizes all my steps on the way to a working micc,
 including dead-ends.
 
+https://sdss-python-template.readthedocs.io/en/latest/
+
 v0.9.6 (2019-11-21)
 ===================
 * Keeping version number between micc and micc-build consistent is error-prone.
