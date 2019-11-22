@@ -250,18 +250,7 @@ def info(ctx):
              )
 @click.pass_context
 def version( ctx, major, minor, patch, rule, tag, short, dry_run):
-    """Increment or show the project's version number.
-    
-    *Micc* uses *bumpversion* for this.
-    
-    You can also avoide using ``micc version`` and use *bumpversion* directly. Note,
-    however, that the version string appears in both ``pyproject.toml`` and in the 
-    top-level package (``<mopdule_name>.py`` or ``<mopdule_name>/__init__.py``). 
-    
-    :param str rule: any string that is also accepted by poetry version. Typically, the empty
-        string (show current version), a valid rule: patch, minor, major, prepatch, preminor, 
-        premajor, prerelease, or any valid version string.  
-    """
+    """Modify or show the project's version number."""
     options = ctx.obj
 
     if rule and (major or minor or patch):
