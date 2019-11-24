@@ -304,7 +304,7 @@ class Project:
                     # update in <package_name>/__init__.py
                     et_micc.utils.replace_in_file(self.options.project_path / self.package, look_for, replace_with)
                 
-                self.micc_logger.info(f"bumping version ({current_semver}) -> ({new_semver})")
+                self.micc_logger.info(f"({self.project_name}): bumping version ({current_semver}) -> ({new_semver})")
                 self.version = str(new_semver)
             else:
                 click.echo(f"micc version {r} --dry-run : " + click.style(f"({current_semver} ", fg='cyan')
