@@ -297,7 +297,7 @@ class Project:
                 # update __version__
                 look_for = f'__version = "{current_semver}"'
                 replace_with = f'__version = "{new_semver}"'
-                if self.project.module:
+                if self.module:
                     # update in <package_name>.py
                     et_micc.utils.replace_in_file(self.options.project_path / self.module, look_for, replace_with)
                 else:
