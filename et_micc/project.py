@@ -25,6 +25,11 @@ from et_micc import __version__
 
 CURRENT_ET_MICC_BUILD_VERSION = __version__
 
+
+def micc_version():
+    return __version__
+    
+    
 class Project:
     """
     An OO interface to et-micc_ projects.
@@ -295,8 +300,8 @@ class Project:
                 self.pyproject_toml['tool']['poetry']['version'] = str(new_semver)
                 self.pyproject_toml.save()
                 # update __version__
-                look_for = f'__version = "{current_semver}"'
-                replace_with = f'__version = "{new_semver}"'
+                look_for = f'__version__ = "{current_semver}"'
+                replace_with = f'__version__ = "{new_semver}"'
                 if self.module:
                     # update in <package_name>.py
                     et_micc.utils.replace_in_file(self.options.project_path / self.module, look_for, replace_with)

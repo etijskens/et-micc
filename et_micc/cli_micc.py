@@ -10,7 +10,7 @@ from pathlib import Path
 
 import click
 
-from et_micc.project import Project
+from et_micc.project import Project, micc_version
 import et_micc.logging
 
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
@@ -31,6 +31,7 @@ __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiec
              , help="If specified clears the project's ``et_micc.log`` file."
              , default=False, is_flag=True
              )
+@click.version_option(version=micc_version())
 @click.pass_context
 def main(ctx, verbosity, project_path, clear_log):
     """Micc command line interface.
