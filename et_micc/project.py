@@ -307,7 +307,12 @@ class Project:
                     et_micc.utils.replace_in_file(self.options.project_path / self.module, look_for, replace_with)
                 else:
                     # update in <package_name>/__init__.py
-                    et_micc.utils.replace_in_file(self.options.project_path / self.package, look_for, replace_with)
+                    p = self.options.project_path / self.package_name / "__version__.py"
+                    if p.exists():
+                        et_micc.utils.replace_in_file(p, look_for, replace_with)
+                    else:
+                        p = self.options.project_path / self.package
+                        et_micc.utils.replace_in_file(p, look_for, replace_with)
                 
                 self.micc_logger.info(f"({self.project_name})> micc version ({current_semver}) -> ({new_semver})")
             else:
