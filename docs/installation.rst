@@ -1,50 +1,24 @@
 .. highlight:: shell
 
-
 ************
 Installation
 ************
 
-Stable release
-==============
-
-To install micc, run this command in your terminal:
+It is recommended to install micc system-wide with `pipx <https://github.com/pipxproject/pipx>`_.
 
 .. code-block:: console
 
-    $ pip install micc
-
-This is the preferred method to install micc, as it will always install the most recent stable release.
-
-If you don't have `pip`_ installed, this `Python installation guide`_ can guide
-you through the process.
-
-.. _pip: https://pip.pypa.io
-.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
-
-
-From sources
-============
-
-The sources for micc can be downloaded from the `Github repo`_.
-
-You can either clone the public repository:
+    $ pipx install et-micc
+    
+Upgrading to a newer version is done as:
 
 .. code-block:: console
 
-    $ git clone git://github.com/etijskens/micc
+    $ pipx upgrade et-micc
 
-Or download the `tarball`_:
+To install micc in your current Python environment, run this command in your terminal:
 
 .. code-block:: console
 
-    $ curl -OL https://github.com/etijskens/micc/tarball/master
+    $ pip install et-micc
 
-
-Once you have a copy of the source, you can install it with:
-
-TODO
-
-
-.. _Github repo: https://github.com/etijskens/micc
-.. _tarball: https://github.com/etijskens/micc/tarball/master
