@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module et_micc_tools.logging_tools
-=========================
+Module et_micc.logging
+======================
 
 Helper functions for logging.
 """
@@ -15,7 +15,8 @@ from et_micc.static_vars import static_vars
 
 
 def verbosity_to_loglevel(verbosity):
-    """
+    """Tranlate :py:obj:`verbosity` into a loglevel.
+    
     :param int verbosity:
     """
     if verbosity==0:
@@ -93,8 +94,7 @@ class IndentingLogger(logging.Logger):
         
         
     def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False):
-        """overloaded functon from logging.Logger
-        """
+        """Overloaded functon from logging.Logger"""
         msg = msg.strip()
         # ensure that the indentation is independent of the lenght of the levelname.
         w = (10-len(logging.getLevelName(level))) * ' '
@@ -115,7 +115,7 @@ class IndentingLogger(logging.Logger):
     def dedent(self):
         """Increase the indentation level.
         
-        Future log messages will shift to the left by. The width of the shift
+        Future log messages will shift to the left. The width of the shift
         is determined by the last call to :py:meth:`~et_micc_tools.logging_tools.IndentingLogger.indent`
         """
         if self._stack:

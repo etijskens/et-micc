@@ -21,37 +21,15 @@ import et_micc.logging
 
 
 def replace_in_file(file_to_search, look_for, replace_with):
+    """Replace the text :py:obj:`look_for` with :py:obj:`replace_with` in file :file:`file_to_search`"""
     path = Path(file_to_search)
     text = path.read_text()
     text = text.replace(look_for, replace_with)
     path.write_text(text)
 
 
-def constraint_to_version(constraint):
-
-    for i,c in enumerate(constraint):
-        if c.isdigit():
-            break
-    tpl = constraint[i:].split('.')
-    return tpl
-
-    
-def compare_constraints(left,right):
-    """
-    this fails for constraints with < and <=
-    """
-    left  = constraint_to_version(left)
-    right = constraint_to_version(right)
-    for i,j in zip(left,right):
-        if i<j:
-            return -1
-        if i>j:
-            return 1
-    return 0
-
-    
 def verify_project_name(project_name):
-    """Project names must start with a char, and  contain only chars, digits, underscores and dashes.
+    """Project names must start with a char, and contain only chars, digits, underscores and dashes.
     
     :returns: bool
     """
@@ -82,8 +60,8 @@ def is_project_directory(path,project=None):
     
     As a sufficident condition, we request that 
     
-    * there is a pyproject.toml file, exposing ``['tool']['poetry']['name']``
-    * that there is a python package or module with that name.
+    * there is a pyproject.toml file, exposing the project's name:py:obj:`['tool']['poetry']['name']`
+    * that there is a python package or module with that name, converted by :py:meth:`pep8_module_name`.
     """
     if not isinstance(path, Path):
         path = Path(path)
@@ -103,9 +81,12 @@ def is_project_directory(path,project=None):
 
 
 def verify_project_structure(path,project=None):
-    """
-    :returns: a list, which should have length 1. If its length is 0, neither module.py, 
-        nor module/__init__.py were found. If its length is 2, both were found.
+    """Verify that there is either a Python module :file:`<package_name>.py`, or
+    a package :file:`<package_name>/__init__.py` (and not both).
+    
+    :returns: a list with what was found. This list should have length 1. If its 
+        length is 0, neither module.py, nor module/__init__.py were found. If its 
+        length is 2, both were found.
     """
     package_name = pep8_module_name(path.name)
     
@@ -142,7 +123,7 @@ def in_directory(path):
 
 
 def execute(cmds,logfun=None,stop_on_error=True,env=None):
-    """Executes a list of OS commands, and log with logfun.
+    """Executes a list of OS commands, and logs with logfun.
     
     :param list cmds: list of OS commands (=list of list of str) or a single command (list of str)
     :parma callable logfun: a function to write output, typically 

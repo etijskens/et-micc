@@ -13,9 +13,9 @@ from pathlib import Path
 
 
 class TomlFile(BaseTOMLFile):
-    """Read/write access to .toml files (pyproject.toml in particular).
+    """Read/write access to :file:`.toml` files (:file:`pyproject.toml` in particular).
     
-    Open a .toml file and read its content
+    Open a :file:`.toml` file and read its content
     
     The content is accessed by subscripting:
     
@@ -43,11 +43,11 @@ class TomlFile(BaseTOMLFile):
 
     @property
     def path(self):  # type: () -> Path
-        """Path object of the .toml file"""
+        """Path object of the :file:`.toml` file"""
         return self._path_
 
     def exists(self):  # type: () -> bool
-        """Does the .toml file exist?"""
+        """Does the :file:`.toml` file exist?"""
         return self._path_.exists()
 
     def __getattr__(self, item):
@@ -59,15 +59,15 @@ class TomlFile(BaseTOMLFile):
         return str(self._path)
     
     def __getitem__(self,item):
-        """Read access the content of the .toml file."""
+        """Read access the content of the :file:`.toml` file."""
         return self._content_[item]
 
     def __setitem__(self,item,value):
-        """Write access the content of the .toml file."""
+        """Write access the content of the :file:`.toml` file."""
         self._content_[item] = value
 
     def save(self):
-        """Write the current content of the .toml file back to file."""
+        """Write the current content of the :file:`.toml` file back to file."""
         self.write(self._content_)\
         
 # eof

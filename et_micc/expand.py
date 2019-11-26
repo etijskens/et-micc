@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Module et_micc.expand
-==================
+=====================
 
-Helper functions for dealing with templates.
+Helper functions for dealing with *Cookiecutter* templates.
 """
 
-import os,shutil,platform
+import os, shutil, platform
 from pathlib import Path
 import json
 

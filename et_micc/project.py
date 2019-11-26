@@ -4,7 +4,7 @@
 Module et_micc.project 
 ======================
 
-An OO interface to et-micc_ projects
+An OO interface to *micc* projects.
 
 """
 import os
@@ -32,7 +32,9 @@ def micc_version():
     
 class Project:
     """
-    An OO interface to et-micc_ projects.
+    An OO interface to *micc* projects.
+    
+    :param types.SimpleNameSpace options: all options from the ``micc`` CLI.
     """
     def __init__(self,options):
         self.exit_code = 0
@@ -72,20 +74,20 @@ class Project:
                 
             
     def error(self, msg):
+        """Print an error message :py:obj:`msg` and set the project's :py:obj:`exit_code`."""
         click.secho("[ERROR]\n" + msg, fg='bright_red')
         self.exit_code = 1
 
     
     def warning(self, msg):
+        """Print an warning message :py:obj:`msg` and set the project's :py:obj:`exit_code`."""
         click.secho("[WARNING]\n" + msg, fg='green')
         
     
     def create(self):
-        """
-        """
+        """Create a new project skeleton."""
         project_path = self.options.project_path
         project_path.mkdir(parents=True,exist_ok=True)
-
         
         if not self.options.allow_nesting:
             # Prevent the creation of a project inside another project    
@@ -162,8 +164,7 @@ class Project:
                 
 
     def module_to_package_cmd(self):
-        """
-        """
+        """Convert a module project (:file:`module.py`) to a package project (:file:`package/__init__.py`)."""
         if self.package:
             self.warning(f"Project ({self.project_name}) is already a package ({self.package}).")
             return
@@ -193,18 +194,7 @@ class Project:
         
                 
     def info_cmd(self):
-        """Output info on the project.
-        
-        :param types.SimpleNamespace self.options: namespace object with options 
-            accepted by (almost) all et_micc commands. Relevant attributes are 
-            
-            * **verbosity**: If **verbosity** is 0, outputs the project name,
-              the project location, the package name and the version number. 
-              If **verbosity** is 1, lists also the structure and the applications
-              and submodules it contains. If **verbosity** is 2, lists also the
-              detailed structure of the package.
-            * **project_path**: Path to the project on which the command operates..
-        """
+        """Output info on the project."""
         
         if self.options.verbosity>=0:
             self.options.verbosity = 10
@@ -264,14 +254,13 @@ class Project:
 
 
     def version_cmd(self):
-        """
-        Bump the version according to ``rule`` or show the current version if no
-        ``rule`` was specified
+        """Bump the version according to :py:obj:`self.options.rule` or show the 
+        current version if no rule is specified.
         
         The version is stored in pyproject.toml in the project directory, and in
-        ``__version__`` variable of the top-level package (which is either in file
-        ``<package_name>.py`` or ``<package_name>/__init__.py`` 
-        
+        :py:obj:`__version__` variable of the top-level package, which is either 
+        in :file:`<package_name>.py`, :file:`<package_name>/__init__.py`, or in 
+        :file:`<package_name>/__version__.py`.
         """
         self.options.verbosity = max(1,self.options.verbosity)
         
@@ -324,7 +313,7 @@ class Project:
 
     
     def tag_cmd(self):
-        """Create and push a version tag ``vM.m.p`` for the current version."""
+        """Create and push a version tag ``v<Major>.<minor>.<patch>`` for the current version."""
         tag = f"v{self.version}"
     
         micc_logger = et_micc.logging.get_micc_logger(self.options)
@@ -355,7 +344,14 @@ class Project:
 
 
     def add_cmd(self):
-        """
+        """Add some source file to the project.
+        
+        This method dispatches to 
+        
+        * :py:meth:`add_app`, 
+        * :py:meth:`add_python_module`, 
+        * :py:meth:`add_f2py_module`, 
+        * :py:meth:`add_cpp_module` 
         """
         if self.module:
             self.error(f"Cannot add to a module project ({self.module}).\n"
@@ -656,6 +652,8 @@ class Project:
     def module_exists(self, module_name):
         """Test if there is already a module with name py:obj:`module_name` in this project.
     
+        This can be either a Python module, package, or a binary extension module.
+        
         :param str module_name: module name
         :returns: bool
         """
@@ -705,7 +703,7 @@ class Project:
     
     
     def add_dependencies(self,deps):
-        """Add dependencies to the pyproject.toms file.
+        """Add dependencies to the :file:`pyproject.toml` file.
         
         :param dict deps: (package,version_constraint) pairs.
         """

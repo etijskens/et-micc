@@ -61,13 +61,13 @@ class Stopwatch:
 
 
     def start(self):
-        """Start or restart the :py:class:`Stopwatch`."""
+        """Start or restart this :py:class:`Stopwatch` object."""
         self.started = timer()
         self.stopped = self.started
     
 
     def stop(self):
-        """Stop the :py:class:`Stopwatch` and return the number of seconds since it was started."""
+        """Stop the :py:class:`Stopwatch` object and return the number of seconds since it was started."""
         self.stopped = timer()
         return self.time
     

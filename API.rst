@@ -2,13 +2,13 @@
 .. automodule:: et_micc
    :members:
 
-.. automodule:: et_micc.commands
+.. automodule:: et_micc.project
    :members:
 
 .. automodule:: et_micc.expand
    :members:
 
-.. automodule:: et_micc.logging_tools
+.. automodule:: et_micc.logging
    :members:
 
 .. automodule:: et_micc.utils
@@ -19,7 +19,7 @@
    
 .. automodule:: et_micc.stopwatch
    :members:
-   
-.. automodule:: et_micc.project
-   :members:
 
+.. automodule:: et_micc.static_vars
+   :members:
+   
