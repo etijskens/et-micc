@@ -14,7 +14,7 @@ from types import SimpleNamespace
 #===============================================================================
 from click.testing import CliRunner
 
-import et_micc.logging
+import et_micc.logging_
 from tests.helpers import in_empty_tmp_dir, report, get_version
 from et_micc import cli_micc
 
@@ -185,6 +185,6 @@ if __name__ == "__main__":
     print(sys.version_info)
     the_test_you_want_to_debug = test_scenario_2
 
-    with et_micc.logging.log(print,f"__main__ running {the_test_you_want_to_debug}",'-*# finished #*-'):
+    with et_micc.logging_.log(print,f"__main__ running {the_test_you_want_to_debug}",'-*# finished #*-'):
         the_test_you_want_to_debug()
 # ==============================================================================

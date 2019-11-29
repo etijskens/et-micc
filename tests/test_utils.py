@@ -10,51 +10,48 @@ import et_micc.utils
 from tests.helpers import in_empty_tmp_dir
 
 
-def test_bounds():
+def test_version_range():
     vs = "1.2.3"
     vv = sv.Version(vs)
     vn = vv.next_patch()
     
     vc = f"=={vs}"
-    bounds = et_micc.utils.bounds(vc)
+    bounds = et_micc.utils.version_range(vc)
     assert bounds[0] == vv
     assert bounds[1] == sv.Version("1.2.4")
 
     vc = f">={vs}"
-    bounds = et_micc.utils.bounds(vc)
+    bounds = et_micc.utils.version_range(vc)
     assert bounds[0] == vv
     assert bounds[1] is None
 
     vc = f">{vs}"
-    bounds = et_micc.utils.bounds(vc)
+    bounds = et_micc.utils.version_range(vc)
     assert bounds[0] == vn
     assert bounds[1] is None
 
     vc = f"<={vs}"
-    bounds = et_micc.utils.bounds(vc)
-    vn = vv.next_patch()
+    bounds = et_micc.utils.version_range(vc)
     assert bounds[0] is None
     assert bounds[1] == vn
 
     vc = f"<{vs}"
-    bounds = et_micc.utils.bounds(vc)
-    vn = vv.next_patch()
+    bounds = et_micc.utils.version_range(vc)
     assert bounds[0] is None
     assert bounds[1] == vv
     
     vc = f"^{vs}"
     vu = sv.Version("2.0.0")
-    bounds = et_micc.utils.bounds(vc)
-    vn = vv.next_patch()
-    assert bounds[0] is vv
+    bounds = et_micc.utils.version_range(vc)
+    assert bounds[0] == vv
     assert bounds[1] == vu
 
 
-def test_spec_str():
+def test_convert_caret_specification():
     spec = ">=1.1.2"
-    assert et_micc.utils.spec_str(spec) == spec
+    assert et_micc.utils.convert_caret_specification(spec) == spec
     spec = "^1.1.2"
-    spec_new = et_micc.utils.spec_str(spec)
+    spec_new = et_micc.utils.convert_caret_specification(spec)
     assert spec_new == ">=1.1.2,<2.0.0"
     assert     sv.SimpleSpec("1.1.2").match(sv.Version("1.1.2"))
     assert not sv.Version("1.1.1") in sv.SimpleSpec(spec_new)
@@ -113,7 +110,7 @@ def test_insert_in_file():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_bounds
+    the_test_you_want_to_debug = test_version_range
 
     print(f"__main__ running {the_test_you_want_to_debug}")
     the_test_you_want_to_debug()

@@ -103,14 +103,15 @@ class Project:
                               )
                     return
                 p = p.parent
-        
 
-        if not et_micc.utils.verify_project_name(self.project_name):
-            self.error(f"Invalid project name ({self.project_name}):\n"
+        project_name = self.project_path.name
+        if not et_micc.utils.verify_project_name(project_name):
+            self.error(f"Invalid project name ({project_name}):\n"
                        f"  project name must start with char, and contain only chars, digits, hyphens and underscores."
                       )
             return
-            
+        self.project_name = project_name
+        self.package_name = et_micc.utils.pep8_module_name(project_name)
         try:
             relative_project_path = self.project_path.relative_to(Path.cwd())
         except ValueError:
@@ -590,7 +591,7 @@ class Project:
             self.micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
             
             with et_micc.utils.in_directory(project_path):
-                self.add_dependencies({'et-micc-build':f"{CURRENT_ET_MICC_BUILD_VERSION}"})
+                self.add_dependencies({'et-micc-build':f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
@@ -634,7 +635,7 @@ class Project:
             self.micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
             
             with et_micc.utils.in_directory(project_path):
-                self.add_dependencies({'et-micc-build':f"{CURRENT_ET_MICC_BUILD_VERSION}"})
+                self.add_dependencies({'et-micc-build':f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
@@ -710,22 +711,29 @@ class Project:
         :param dict deps: (package,version_constraint) pairs.
         """
         tool_poetry_dependencies = self.pyproject_toml['tool']['poetry']['dependencies']
+        modified = False
         for pkg,version_constraint in deps.items():
             if pkg in tool_poetry_dependencies:
                 # project was already depending on this package
-                # What we infact need is the intersection of 
-                #   version_constraint and
-                #   tool_poetry_dependencies[pkg]
-                
-                tool_poetry_dependencies[pkg] = et_micc.utils.intersect(
-                    version_constraint, tool_poetry_dependencies[pkg]
-                )
+                range1 = et_micc.utils.version_range(version_constraint)
+                range2 = et_micc.utils.version_range(tool_poetry_dependencies[pkg])
+                if range1==range2:
+                    # nothing to do: new and old version specifcation are the same
+                    continue
+                intersection = et_micc.utils.intersect(range1, range2)
+                if et_micc.utils.validate_intersection(intersection):
+                    range = intersection
+                else:
+                    range = most_recent(version_constraint, tool_poetry_dependencies[pkg])
+                tool_poetry_dependencies[pkg] = et_micc.utils.version_constraint(range)
+                modified = True
             else:
                 # an entirely new dependency
                 tool_poetry_dependencies[pkg] = version_constraint
-                
-        self.pyproject_toml.save()
-        
+                modified = True
+        if modified:
+            self.pyproject_toml.save()
+            self.micc_logger.warning("Dependencies added. Run `poetry update` to update the project's virtual environment.")
                 
     def module_to_package(self, module_py):
         """Move file :file:`module.py` to :file:`module/__init__.py`.

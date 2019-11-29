@@ -22,38 +22,44 @@ from et_micc.tomlfile import TomlFile
 import et_micc.logging_
 
 
-def constraint_to_version(constraint):
+def operator_version(version_constraint_string):
+    """Split version_constraint_string in operator and version.
+
+    :returns: (str,semantic_version.Version)
+    """
     for i in range(2):
-        if constraint[i].isdigit():
-            operator = constraint[:i]
+        if version_constraint_string[i].isdigit():
+            operator = version_constraint_string[:i]
             if not operator:
                 operator = '=='
-            version = sv.Version(constraint[i:])
-            return (operator,version)
-    return (constraint[:2], sv.Version(constraint[2:]))
+            version = sv.Version(version_constraint_string[i:])
+            break
+    else:
+        operator = version_constraint_string[:2]
+        version  = sv.Version(version_constraint_string[2:])
+    return (operator,version)
 
 
-def bounds(version_constraint):
-    """Return bounds interval [lower_bound,upper_bound[ as a tuple.
+def version_range(version_constraint_string):
+    """Return interval [lower_bound,upper_bound[ as a tuple for a given version constraint.
     
     Note that the lower bound is inclusive, but the upper bound is exclusive.
     If one of the bounds is None, then it is unbound in that direction.
     """
-    if version_constraint.startswith('^'):
-        vc = version_constraint[1:]
-        version_constraint = f">={vc},<{vc}"
-        print(version_constraint)
-    if ',' in version_constraint:
-        constraints = version_constraint.split(',')
+    if version_constraint_string.startswith('^'):
+        vc = version_constraint_string[1:]
+        vn = sv.Version(vc).next_major()
+        version_constraint_string = f">={vc},<{vn}"
+
+    if ',' in version_constraint_string:
+        constraints = version_constraint_string.split(',')
         bnds = (None, None)
         for constraint in constraints:
-            b = bounds(constraint)
-            print(b)
+            b = version_range(constraint)
             bnds = intersect(bnds,b)
-            print(bnds)
         return bnds
         
-    operator,version = constraint_to_version(version_constraint)
+    operator,version = operator_version(version_constraint_string)
     if operator == '==':
         return (version, version.next_patch())
     elif operator == '>=':
@@ -67,32 +73,58 @@ def bounds(version_constraint):
     
 
 def largest_lower_bound(l,r):
+    # None is always smaller
     if l is None:
         return r
     if r is None:
         return l
     else:
-        return r if sv.compare(l,r)==-1 else l
+        return r if l.__cmp__(r)==-1 else l
 
         
 def smallest_upper_bound(l,r):
+    # None is always larger
     if l is None:
         return r
     if r is None:
         return l
     else:
-        return l if sv.compare(l,r)==-1 else r
+        return l if l.__cmp__(r)==-1 else r
 
         
-def intersect(version_constraint1, version_constraint2):
-    """Compute the intersection of two version constraints"""
-    vc1 = bounds(version_constraint1)
-    vc2 = bounds(version_constraint2)
-    return ( largest_lower_bound (vc1[0],vc2[0])
-           , smallest_upper_bound(vc1[1],vc2[1])
-           )
+def intersect(version_range_1, version_range_2):
+    """Compute the intersection of two version ranges"""
+    llb = largest_lower_bound (version_range_1[0],version_range_2[0])
+    sub = smallest_upper_bound(version_range_1[1],version_range_2[1])
+    return (llb,sub)
 
-def spec_str(spec):
+
+def validate_intersection(intersection):
+    """Test if the intersection is not empty.
+    :returns: bool
+    """
+    if None in intersection[0]:
+        return True
+    else:
+        return intersection[0].__cmp__(intersection[1]) != 1
+
+
+def most_recent(version_constraint_string1, version_constraint_string2):
+    range1 = version_range(version_constraint_string1)
+    range2 = version_range(version_constraint_string2)
+    if (not range1[1] is None) and (not range2[0] is None) and sv.compare(range1[1],range2[0])==-1:
+        return version_constraint(range2)
+    elif (not range2[1] is None) and (not range1[0] is None) and sv.compare(range2[1],range1[0])==-1:
+        return version_constraint(range1)
+    raise ValueError(f"ERROR: {range1} and {range2} intersect.")
+
+
+def version_constraint(version_range):
+    """Convert a version_range to a version constraing string"""
+    return f">={version_range[0]},<{version_range[1]}"
+
+
+def convert_caret_specification(spec):
     """"""
     if spec.startswith('^'):
         v = spec[1:]
