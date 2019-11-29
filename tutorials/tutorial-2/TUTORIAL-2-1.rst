@@ -1,49 +1,5 @@
-Converting a module structure to a package structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Module structure projects are meant for small projects consisting of a single
-module files in the project directory. For more involved projects a package 
-structure is more appropriate. Package structure projects can contain additional
-python modules, binary extension modules based on Fortran and C++, as well as
-command line interfaces (CLIs).
-  
-Since we started out with a module project ET-dot, its module structure 
-(:file:`ET-dot/et_dot.py`) must be converted to a package structure 
-(:file:`ET-dot/et_dot/__init__.py`) before we can add a f2py (Fortran) binary
-extension module to it.
-
-.. code-block:: bash
-   
-   > micc convert-to-package
-   Converting simple Python project ET-dot to general Python project.
-   [WARNING]        Pre-existing files in /Users/etijskens/software/dev/workspace that would be overwrtitten:
-   [WARNING]          /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
-      Aborting because 'overwrite==False'.
-        Rerun the command with the '--backup' flag to first backup these files (*.bak).
-        Rerun the command with the '--overwrite' flag to overwrite these files without backup.
-      Aborting.
-   [CRITICAL]       Exiting (-3) ...
-   [WARNING]        It is normally ok to overwrite 'index.rst' as you are not supposed
-                    to edit the '.rst' files in '/Users/etijskens/software/dev/workspace/ET-dot/docs.'
-                    If in doubt: rerun the command with the '--backup' flag,
-                      otherwise: rerun the command with the '--overwrite' flag,     
-                      
-Without extra options the command fails because it wants to replace the file 
-:file:`ET-dot/docs/index.rst`, which we do not allow, because the user may have 
-modified that file (although the files :file:`ET-dot/docs` directory are in fact not 
-meant for being edited by the user). If he has not edited :file:`ET-dot/docs/index.rst` the user 
-can safely rerun the command with the ``--overwrite`` flag. Otherwise he must use the
-``--backup`` flag to keep a backup of the original :file:`ET-dot/docs/index.rst`. That
-way he can inspect the original file and transfer his changes to the new file.
-
-.. code-block:: bash
-   
-   > micc convert-to-package --overwrite
-   Converting simple Python project ET-dot to general Python project.
-   [WARNING]        '--overwrite' specified: pre-existing files in /Users/etijskens/software/dev/workspace will be overwritten WITHOUT backup:
-   [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
-   
-Building binary extensions from Fortran
----------------------------------------
+2.1 Building binary extensions from Fortran
+-------------------------------------------
 Binary extension modules based on Fortran are called *f2py modules* because these 
 modules are build with the f2py tool, which is part of Numpy. Since our project 
 ET-dot now has a package structure, we are now ready to add a f2py module. Let us 

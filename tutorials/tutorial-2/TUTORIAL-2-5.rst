@@ -1,5 +1,5 @@
-Documenting binary extension modules
-------------------------------------
+2.5 Documenting binary extension modules
+----------------------------------------
 
 For Python modules the documentation is automatically extracted from the doc-strings 
 in the module. However, when it comes to documenting binary extension modules, this

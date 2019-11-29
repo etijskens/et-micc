@@ -20,7 +20,7 @@ import semantic_version
 from et_micc.tomlfile import TomlFile
 import et_micc.utils
 import et_micc.expand
-import et_micc.logging
+import et_micc.logging_
 from et_micc import __version__
 
 CURRENT_ET_MICC_BUILD_VERSION = __version__
@@ -57,7 +57,7 @@ class Project:
         
         if et_micc.utils.is_project_directory(project_path,self):
             # existing project
-            self.micc_logger = et_micc.logging.get_micc_logger(self.options)
+            self.micc_logger = et_micc.logging_.get_micc_logger(self.options)
             self.version = self.pyproject_toml['tool']['poetry']['version']
         else:
             # not a project directory or not a directory at all
@@ -71,8 +71,12 @@ class Project:
             else:
                 # all other micc commands require a project directory.
                 self.error(f"Not a project directory ({project_path}).")
-                
-            
+
+
+    @property
+    def project_path(self):
+        return self.options.project_path
+
     def error(self, msg):
         """Print an error message :py:obj:`msg` and set the project's :py:obj:`exit_code`."""
         click.secho("[ERROR]\n" + msg, fg='bright_red')
@@ -86,12 +90,12 @@ class Project:
     
     def create(self):
         """Create a new project skeleton."""
-        project_path = self.options.project_path
-        project_path.mkdir(parents=True,exist_ok=True)
+
+        self.project_path.mkdir(parents=True,exist_ok=True)
         
         if not self.options.allow_nesting:
             # Prevent the creation of a project inside another project    
-            p = project_path.parent.resolve()
+            p = self.project_path.parent.resolve()
             while not p.samefile('/'):
                 if et_micc.utils.is_project_directory(p):
                     self.error(f"Cannot create project in ({project_path}):\n"
@@ -101,37 +105,35 @@ class Project:
                 p = p.parent
         
 
-        project_name = project_path.name
-        if not et_micc.utils.verify_project_name(project_name):
-            self.error(f"Invalid project name ({project_name}):\n"
+        if not et_micc.utils.verify_project_name(self.project_name):
+            self.error(f"Invalid project name ({self.project_name}):\n"
                        f"  project name must start with char, and contain only chars, digits, hyphens and underscores."
                       )
             return
             
-        package_name = et_micc.utils.pep8_module_name(project_name)
         try:
-            relative_project_path = project_path.relative_to(Path.cwd())
+            relative_project_path = self.project_path.relative_to(Path.cwd())
         except ValueError:
             # project_path was specified relative to cwd using ../
             # use full path instead.
-            relative_project_path = project_path
+            relative_project_path = self.project_path
             
         if self.options.structure=='module':
-            structure = f"({relative_project_path}{os.sep}{package_name}.py)"
+            structure = f"({relative_project_path}{os.sep}{self.package_name}.py)"
         elif self.options.structure=='package':
-            structure = f"({relative_project_path}{os.sep}{package_name}{os.sep}__init__.py)"
+            structure = f"({relative_project_path}{os.sep}{self.package_name}{os.sep}__init__.py)"
         else:
             structure = ''
         
         self.options.verbosity = max(1,self.options.verbosity)
-        self.micc_logger = et_micc.logging.get_micc_logger(self.options)
-        with et_micc.logging.logtime():
-            with et_micc.logging.log( self.micc_logger.info
-                          , f"Creating project ({project_name}):"
+        self.micc_logger = et_micc.logging_.get_micc_logger(self.options)
+        with et_micc.logging_.logtime():
+            with et_micc.logging_.log( self.micc_logger.info
+                          , f"Creating project ({self.project_name}):"
                           ):
-                self.micc_logger.info(f"Python {self.options.structure} ({package_name}): structure = {structure}")
-                template_parameters = { 'project_name' : project_name
-                                      , 'package_name' : package_name
+                self.micc_logger.info(f"Python {self.options.structure} ({self.package_name}): structure = {structure}")
+                template_parameters = { 'project_name' : self.project_name
+                                      , 'package_name' : self.package_name
                                       }
                 template_parameters.update(self.options.template_parameters)
                 self.options.template_parameters = template_parameters
@@ -142,13 +144,13 @@ class Project:
                     self.micc_logger.critical(f"Exiting ({self.exit_code}) ...")
                     return
                 
-                my_micc_file = project_path / 'micc.json'
+                my_micc_file = self.project_path / 'micc.json'
                 with my_micc_file.open('w') as f:
                     json.dump(template_parameters,f)
                     self.micc_logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
             
-                with et_micc.logging.log(self.micc_logger.info,"Creating git repository"):
-                    with et_micc.utils.in_directory(project_path):
+                with et_micc.logging_.log(self.micc_logger.info,"Creating git repository"):
+                    with et_micc.utils.in_directory(self.project_path):
                         cmds = [ ['git', 'init']
                                , ['git', 'add', '*']
                                , ['git', 'add', '.gitignore']
@@ -156,7 +158,7 @@ class Project:
                                ]
                         if template_parameters['github_username']:
                             cmds.extend(
-                               [ ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{project_name}"]
+                               [ ['git', 'remote', 'add', 'origin', f"https://github.com/{template_parameters['github_username']}/{self.project_name}"]
                                , ['git', 'push', '-u', 'origin', 'master']
                                ]
                             )
@@ -186,10 +188,10 @@ class Project:
             return
         
         # move <package_name>.py to <package_name>/__init__.py 
-        package_path = self.options.project_path / self.package_name
+        package_path = self.project_path / self.package_name
         package_path.mkdir(exist_ok=True)
-        src = self.options.project_path / (self.package_name + '.py')
-        dst = self.options.project_path / self.package_name / '__init__.py'
+        src = self.project_path / (self.package_name + '.py')
+        dst = self.project_path / self.package_name / '__init__.py'
         shutil.move(src, dst)
         
                 
@@ -200,9 +202,9 @@ class Project:
             self.options.verbosity = 10
     
         if self.options.verbosity>=1:
-            click.echo("Project " + click.style(str(self.project_name), fg='green') 
+            click.echo("Project " + click.style(str(self.project_name), fg='green')
                                   + " located at " 
-                                  + click.style(str(self.options.project_path), fg='green')
+                                  + click.style(str(self.project_path), fg='green')
                       + "\n  package: " + click.style(str(self.package_name), fg='green')
                       + "\n  version: " + click.style(self.version, fg='green')
                       )
@@ -217,7 +219,7 @@ class Project:
             click.echo("  structure: " + click.style(source, fg='green') + kind)
 
         if self.options.verbosity>=3 and self.package:
-            package_path = self.options.project_path / self.package_name
+            package_path = self.project_path / self.package_name
             files = []
             files.extend(package_path.glob('**/*.py'))
             files.extend(package_path.glob('**/cpp_*/'))
@@ -293,14 +295,14 @@ class Project:
                 replace_with = f'__version__ = "{new_semver}"'
                 if self.module:
                     # update in <package_name>.py
-                    et_micc.utils.replace_in_file(self.options.project_path / self.module, look_for, replace_with)
+                    et_micc.utils.replace_in_file(self.project_path / self.module, look_for, replace_with)
                 else:
                     # update in <package_name>/__init__.py
-                    p = self.options.project_path / self.package_name / "__version__.py"
+                    p = self.project_path / self.package_name / "__version__.py"
                     if p.exists():
                         et_micc.utils.replace_in_file(p, look_for, replace_with)
                     else:
-                        p = self.options.project_path / self.package
+                        p = self.project_path / self.package
                         et_micc.utils.replace_in_file(p, look_for, replace_with)
                 
                 self.micc_logger.info(f"({self.project_name})> micc version ({current_semver}) -> ({new_semver})")
@@ -316,8 +318,8 @@ class Project:
         """Create and push a version tag ``v<Major>.<minor>.<patch>`` for the current version."""
         tag = f"v{self.version}"
     
-        micc_logger = et_micc.logging.get_micc_logger(self.options)
-        with et_micc.utils.in_directory(self.options.project_path):
+        micc_logger = et_micc.logging_.get_micc_logger(self.options)
+        with et_micc.utils.in_directory(self.project_path):
             micc_logger.info(f"Creating git tag {tag} for project {self.project_name}")
             cmd = ['git', 'tag', '-a', tag, '-m', f'"tag version {self.version}"']
             micc_logger.debug(f"Running '{' '.join(cmd)}'")
@@ -442,13 +444,13 @@ class Project:
     
     def add_app(self):
         """Add a console script (app) to the package."""
-        project_path = self.options.project_path
+        project_path = self.project_path
         app_name = self.options.add_name
         cli_app_name = 'cli_' + et_micc.utils.pep8_module_name(app_name)
         w = 'with' if self.options.group else 'without' 
         
-        micc_logger = et_micc.logging.get_micc_logger(self.options)
-        with et_micc.logging.log(micc_logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
+        micc_logger = et_micc.logging_.get_micc_logger(self.options)
+        with et_micc.logging_.log(micc_logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
             self.options.template_parameters.update(
                 {'app_name': app_name, 'cli_app_name' : cli_app_name}
             )
@@ -512,7 +514,7 @@ class Project:
 
     def add_python_module(self):
         """Add a python sub-module or sub-package to this project."""
-        project_path = self.options.project_path
+        project_path = self.project_path
         module_name = self.options.add_name
         if not module_name==et_micc.utils.pep8_module_name(module_name):
             self.error(f"Not a valid module_name: {module_name}")
@@ -520,7 +522,7 @@ class Project:
             
         source_file = f"{module_name}.py" if self.options.structure=='module' else f"{module_name}{os.sep}__init__.py"
         
-        with et_micc.logging.log(self.micc_logger.info,
+        with et_micc.logging_.log(self.micc_logger.info,
                 f"Adding python module {source_file} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
@@ -553,10 +555,10 @@ class Project:
         
     def add_f2py_module(self):
         """Add a f2py module to this project."""
-        project_path = self.options.project_path
+        project_path = self.project_path
         module_name = self.options.add_name
         
-        with et_micc.logging.log(self.micc_logger.info, 
+        with et_micc.logging_.log(self.micc_logger.info, 
                 f"Adding f2py module {module_name} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
@@ -588,7 +590,7 @@ class Project:
             self.micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
             
             with et_micc.utils.in_directory(project_path):
-                self.add_dependencies({'et-micc-build':CURRENT_ET_MICC_BUILD_VERSION})
+                self.add_dependencies({'et-micc-build':f"{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
@@ -596,10 +598,10 @@ class Project:
         
     def add_cpp_module(self):
         """Add a cpp module to this project."""
-        project_path = self.options.project_path
+        project_path = self.project_path
         module_name = self.options.add_name
         
-        with et_micc.logging.log(self.micc_logger.info,
+        with et_micc.logging_.log(self.micc_logger.info,
                 f"Adding cpp module cpp_{module_name} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
@@ -632,7 +634,7 @@ class Project:
             self.micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
             
             with et_micc.utils.in_directory(project_path):
-                self.add_dependencies({'et-micc-build':CURRENT_ET_MICC_BUILD_VERSION})
+                self.add_dependencies({'et-micc-build':f"{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
@@ -646,7 +648,7 @@ class Project:
         :param str app_name: app name
         :returns: bool
         """
-        return (self.options.project_path / self.package_name / f"cli_{app_name}.py").is_file()
+        return (self.project_path / self.package_name / f"cli_{app_name}.py").is_file()
         
 
     def module_exists(self, module_name):
@@ -670,7 +672,7 @@ class Project:
         :param str module_name: module name
         :returns: bool
         """
-        file = self.options.project_path / self.package_name / f'{module_name}.py'
+        file = self.project_path / self.package_name / f'{module_name}.py'
         return file.is_file()
     
     
@@ -681,7 +683,7 @@ class Project:
         :param str module_name: module name
         :returns: bool
         """
-        return (self.options.project_path / self.package_name / module_name / '__init__.py').is_file()
+        return (self.project_path / self.package_name / module_name / '__init__.py').is_file()
     
     
     def f2py_module_exists(self, module_name):
@@ -690,7 +692,7 @@ class Project:
         :param str module_name: module name
         :returns: bool
         """
-        return (self.options.project_path / self.package_name / ('f2py_' + module_name) / f"{ module_name}.f90").is_file() 
+        return (self.project_path / self.package_name / ('f2py_' + module_name) / f"{ module_name}.f90").is_file()
 
 
     def cpp_module_exists(self, module_name):
@@ -699,7 +701,7 @@ class Project:
         :param str module_name: module name
         :returns: bool
         """
-        return (self.options.project_path / self.package_name / ('cpp_' + module_name) / f"{ module_name}.cpp").is_file() 
+        return (self.project_path / self.package_name / ('cpp_' + module_name) / f"{ module_name}.cpp").is_file()
     
     
     def add_dependencies(self,deps):
@@ -707,16 +709,20 @@ class Project:
         
         :param dict deps: (package,version_constraint) pairs.
         """
-        current_dependencies = self.pyproject_toml['tool']['poetry']['dependencies']
-        for pkg,version in deps.items():
-            if pkg in current_dependencies:
-                current_version = current_dependencies[pkg]
-                cv = et_micc.utils.constraint_to_version(current_version)
-                v  = et_micc.utils.constraint_to_version(version)
-                if cv < v:
-                    current_dependencies[pkg] = version
+        tool_poetry_dependencies = self.pyproject_toml['tool']['poetry']['dependencies']
+        for pkg,version_constraint in deps.items():
+            if pkg in tool_poetry_dependencies:
+                # project was already depending on this package
+                # What we infact need is the intersection of 
+                #   version_constraint and
+                #   tool_poetry_dependencies[pkg]
+                
+                tool_poetry_dependencies[pkg] = et_micc.utils.intersect(
+                    version_constraint, tool_poetry_dependencies[pkg]
+                )
             else:
-                current_dependencies[pkg] = version
+                # an entirely new dependency
+                tool_poetry_dependencies[pkg] = version_constraint
                 
         self.pyproject_toml.save()
         
@@ -738,7 +744,22 @@ class Project:
         dst = str(package / '__init__.py')
         shutil.move(src, dst)
     
-        et_micc.logging.log(self.micc_logger.debug, 
+        et_micc.logging_.log(self.micc_logger.debug, 
             f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py."
         )
+        
+        
+    def docs_cmd(self):
+        """Build documentation."""
+        docs = self.project_path / 'docs'
+        cmds = []
+        if self.options.html:
+            cmds.append(['make', 'html'])
+            if self.options.open:
+                cmds.append(['open', str(docs / '_build' / 'html' / 'index.html')])
+        if self.options.pdf:
+            cmds.append(['make', 'latexpdf'])
+            if self.options.open:
+                cmds.append(['open', str(docs / '_build' / 'latex' / (self.project_name + ".pdf"))])
+        et_micc.utils.execute(cmds, logfun=print, cwd=str(docs))
 #eof

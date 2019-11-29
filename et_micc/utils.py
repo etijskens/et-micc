@@ -16,9 +16,92 @@ import copy
 from pathlib import Path
 from contextlib import contextmanager
 
-from et_micc.tomlfile import TomlFile
-import et_micc.logging
+import semantic_version as sv
 
+from et_micc.tomlfile import TomlFile
+import et_micc.logging_
+
+
+def constraint_to_version(constraint):
+    for i in range(2):
+        if constraint[i].isdigit():
+            operator = constraint[:i]
+            if not operator:
+                operator = '=='
+            version = sv.Version(constraint[i:])
+            return (operator,version)
+    return (constraint[:2], sv.Version(constraint[2:]))
+
+
+def bounds(version_constraint):
+    """Return bounds interval [lower_bound,upper_bound[ as a tuple.
+    
+    Note that the lower bound is inclusive, but the upper bound is exclusive.
+    If one of the bounds is None, then it is unbound in that direction.
+    """
+    if version_constraint.startswith('^'):
+        vc = version_constraint[1:]
+        version_constraint = f">={vc},<{vc}"
+        print(version_constraint)
+    if ',' in version_constraint:
+        constraints = version_constraint.split(',')
+        bnds = (None, None)
+        for constraint in constraints:
+            b = bounds(constraint)
+            print(b)
+            bnds = intersect(bnds,b)
+            print(bnds)
+        return bnds
+        
+    operator,version = constraint_to_version(version_constraint)
+    if operator == '==':
+        return (version, version.next_patch())
+    elif operator == '>=':
+        return (version, None)
+    elif operator == '<=':
+        return (None, version.next_patch())
+    elif operator == '>':
+        return (version.next_patch(),None)
+    elif operator == '<':
+        return (None,version)
+    
+
+def largest_lower_bound(l,r):
+    if l is None:
+        return r
+    if r is None:
+        return l
+    else:
+        return r if sv.compare(l,r)==-1 else l
+
+        
+def smallest_upper_bound(l,r):
+    if l is None:
+        return r
+    if r is None:
+        return l
+    else:
+        return l if sv.compare(l,r)==-1 else r
+
+        
+def intersect(version_constraint1, version_constraint2):
+    """Compute the intersection of two version constraints"""
+    vc1 = bounds(version_constraint1)
+    vc2 = bounds(version_constraint2)
+    return ( largest_lower_bound (vc1[0],vc2[0])
+           , smallest_upper_bound(vc1[1],vc2[1])
+           )
+
+def spec_str(spec):
+    """"""
+    if spec.startswith('^'):
+        v = spec[1:]
+        vlower = sv.Version(v)
+        vupper = vlower.next_major()
+        new_spec = f">={vlower},<{vupper}"
+        return new_spec 
+    else:
+        return spec
 
 def replace_in_file(file_to_search, look_for, replace_with):
     """Replace the text :py:obj:`look_for` with :py:obj:`replace_with` in file :file:`file_to_search`"""
@@ -56,6 +139,12 @@ def is_project_directory(path,project=None):
     """Verify that the directory :file:`path` is a project directory. 
     
     :param Path path: path to a directory.
+    :param Project project: if not None these variables are set:
+
+        * project.project_name
+        * project.package_name
+        * project.pyproject_toml
+
     :returns: bool.
     
     As a sufficident condition, we request that 
@@ -122,7 +211,7 @@ def in_directory(path):
     os.chdir(previous_dir)
 
 
-def execute(cmds,logfun=None,stop_on_error=True,env=None):
+def execute(cmds,logfun=None,stop_on_error=True,env=None,cwd=None):
     """Executes a list of OS commands, and logs with logfun.
     
     :param list cmds: list of OS commands (=list of list of str) or a single command (list of str)
@@ -136,12 +225,15 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None):
         cmds = [cmds]
         
     for cmd in cmds:
-        with et_micc.logging.log(logfun, f"> {' '.join(cmd)}"):
-            completed_process = subprocess.run(cmd, capture_output=True,env=env)
+        with et_micc.logging_.log(logfun, f"> {' '.join(cmd)}"):
+            completed_process = subprocess.run(cmd, capture_output=True,env=env,cwd=cwd)
             if not logfun is None:
                 if completed_process.returncode:
                     logfun0 = logfun
-                    logfun = logfun.__self__.warning
+                    try:
+                        logfun = logfun.__self__.warning
+                    except:
+                        pass
                     logfun(f"> {' '.join(cmd)}")
                 if completed_process.stdout:
                     logfun(' (stdout)\n' + completed_process.stdout.decode('utf-8'))

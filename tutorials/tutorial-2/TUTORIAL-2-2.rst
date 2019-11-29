@@ -1,5 +1,5 @@
-Building binary extensions from C++
------------------------------------
+2.2 Building binary extensions from C++
+---------------------------------------
 .. note:: To add binary extension modules to a project, it must have a package structure.
    To check, you may run the ``micc info`` command:
 

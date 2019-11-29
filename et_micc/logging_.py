@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Module et_micc.logging
-======================
+Module et_micc.logging_
+=======================
 
 Helper functions for logging.
 """
 
 import sys
 from contextlib import contextmanager
-import logging
+import logging 
 from datetime import datetime
 
 from et_micc.static_vars import static_vars

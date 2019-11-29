@@ -1,5 +1,5 @@
-Improving efficiency
---------------------
+1.3 Improving efficiency
+------------------------
 There are times when a correct solution - i.e. a code that solves the problem correctly - 
 is sufficient. Most of the time, however, the solution also needs use resources efficiently, 
 runtime, memory, ... Especially in High Performance Computing, where compute tasks may run 
@@ -14,81 +14,10 @@ version it can serve as a reference solution to verify the correctness of later 
 improvements. In addition, the analysis of this version can highlight the sources of 
 inefficiency and help you focus your attention to the parts that really need it.
     
-Timing your code
-^^^^^^^^^^^^^^^^
+1.3.1 Timing your code
+^^^^^^^^^^^^^^^^^^^^^^
 The simplest way to probe the efficiency of your code is to time it: write a simple script 
 and record how long it takes to execute. Let us first look at the structure of a Python script. 
-
-   **Python tip: The structure of a script**
-   
-   Here's a neat way of structuring a Python script:
-   
-   .. code-block:: python
-      
-      """file: my_script.py"""
-      
-      # imports
-      
-      # function and class definitions your script needs
-      def hello(arg="world"):
-         print("hello",arg)
-      
-      if __name__=="__main__":
-         # your script
-         hello("from my_script")
-         print("-*# done #*-") 
-         
-   There are two interesting points in this file. 
-   
-   #. The body of the if statement ``if __name__=="__main__":`` is only executed if the file is run as a script:
-   
-      .. code-block:: bash
-      
-         > python my_script.py
-         hello from my_script
-         -*# done #*-
-         >
-   
-      Thus, if the file is imported in some other Python file that body is not executed, but all 
-      de function and class definitions, such as :py:meth:`hello` are made available to the importing 
-      file. In this way your file can both behave as a script and as a module.
-      
-      .. code-block:: python
-      
-         >>> import my_script
-         >>> my_script.hello()
-         hello world
-         >>>
-      
-      Note that import script does not generate output as the statements ``hello("from my_script")``
-      and ``print("-*# done #*-")`` are not executed.
-     
-      This trick comes in handy in unit test scripts. If you add these lines to a test file,
-      
-      .. code-block:: python
-      
-         if __name__ == "__main__":
-            the_test_you_want_to_debug = test_dot_aa
-
-            print("__main__ running", the_test_you_want_to_debug)
-            the_test_you_want_to_debug()
-            print('-*# finished #*-')
-                   
-      Executing this file as a script will execute only the test ``test_dot_aa``, 
-      
-      .. code-block:: bash
-      
-         > python test_ET_dot.py
-         __main__ running <function test_dot_aa at 0x1065064d0>
-         -*# finished #*-
-         >
-         
-      You can use this to debug a failing test. Just make the variable ``the_test_you_want_to_debug``
-      point to the test you want to debug.
-         
-   #. It is recommended that the last line that your script executes is a print statement 
-      that assures you that the script has done its work and that is is not lost in an infinite 
-      loop or waiting for something. 
 
 Here's a script (using the above structure) that computes the dot product of two long arrays 
 of random numbers. 
@@ -101,7 +30,7 @@ of random numbers.
    
    def random_array(n=1000):
        """Initialize an array with n random numbers in [0,1[."""
-       # Below we use a list comprehension. That is a Python idiom that creates a list. 
+       # Below we use a list comprehension (a Python idiom for creating a list from an iterable object). 
        a = [random.random() for i in range(n)]
        return a
    
@@ -111,57 +40,28 @@ of random numbers.
        print(dot(a,b))
        print('-*# done #*-')       
      
-We created a directory :file:`prof` in the project directory (using the command line or any
-kind of file manager) to store the script, which we rather simply called :file:`run1.py`.
+We store this file, which we rather simply called :file:`run1.py`, in a directory :file:`prof` 
+in the project directory where we intend to keep all our profiling work. 
 You can execute the script from the command line (with the project directory as the current
 working directory:
        
 .. code-block:: bash
 
-   > PYTHONPATH='.' python ./prof/run1.py
+   (.venv) > python ./prof/run1.py
    251.08238559724717
    -*# done #*-
-   
-The command ``PYTHONPATH='.'`` in front of the ``python command`` sets the ``PYTHONPATH``
-environment variable for the lifetime of the ``python command``. It extends the path 
-where Python looks for imports with the current directory, which is where it should find
-:file:`ET_dot.py`. You can also set the variable for the lifetime of the terminal session:  
-
-.. code-block:: bash
-
-   > export PYTHONPATH='.'
-   > python ./prof/run1.py
-   247.11469232296827
-   -*# done #*-
-   
-As our script did not fix the random number seed, every run has a different outcome.
-A third option is to extend the path in your script:
-
-.. code-block:: python
-
-   """file ET_dot/prof/run1.py"""
-   # add the current working directory to the import search path:
-   import sys
-   sys.path.insert(0,'.')
-   
-   import random
-   from et_dot import dot
+      
+.. note:: As our script does not fix the random number seed, every run has a different outcome.
    
 We are now ready to time our script. Micc_ provides a practical context manager class 
-:py:class:`micc.stopwatch` to time pieces of code. 
+:py:class:`et_micc.Stopwatch` to time pieces of code. 
 
 .. code-block:: python
 
    """file ET_dot/prof/run1.py"""
-   import random
-   from et_dot import dot
-   from micc.stopwatch import Stopwatch
+   from et_micc.stopwatch import Stopwatch
    
-   def random_array(n=1000):
-       """Initialize an array with n random numbers in [0,1[."""
-       # Below we use a list comprehension. That is a Python idiom that creates a list. 
-       a = [random.random() for i in range(n)]
-       return a
+   ...   
    
    if __name__=='__main__':
        with Stopwatch() as timer:
@@ -178,7 +78,7 @@ Finally, upon exit the :py:obj:`Stopwatch` will print the total time.
 
 .. code-block:: bash
 
-   > python ./prof/run1.py
+   (.venv) > python ./prof/run1.py
    init: 0.000281 s
    dot : 0.000174 s
    0.000465 s
@@ -186,29 +86,41 @@ Finally, upon exit the :py:obj:`Stopwatch` will print the total time.
    >
 
 Note that the initialization phase took longer than the computation. Random number 
-generation is rather expensive. 
+generation is rather expensive. The last number is the total time spent inside the 
+stopwatch body, and is printed automatically. If you like you can customise this 
+message by setting the ``message`` parameter in the constructor of the stopwatch:
 
-As said earlier, our implementation of the dot product is rather naive. If you want to
-become a good programmer, you should understand that you are probably not first researcher
-in need of a dot product implementation. For most linear algebra problems, `Numpy <https://numpy.org>`_
-provides very efficient implementations. Below the :file:`run1.py` script adds timing results
-for the Numpy_ equivalent of our code.
+.. code-block:: python
+
+   with Stopwatch(message="total") as timer:
+      ...
+
+which would have output:
+
+.. code-block:: bash
+
+   (.venv) > python ./prof/run1.py
+   init: 0.000281 s
+   dot : 0.000174 s
+   total 0.000465 s
+   -*# done #*-
+   >
+
+1.3.2 Comparing to Numpy
+^^^^^^^^^^^^^^^^^^^^^^^^
+As said earlier, our implementation of the dot product is rather naive. If you want 
+to become a good programmer, you should understand that you are probably not the 
+first researcher in need of a dot product implementation. For most linear algebra 
+problems, `Numpy <https://numpy.org>`_ provides very efficient implementations. 
+Below the :file:`run1.py` script adds timing results for the Numpy_ equivalent of 
+our code.
 
 .. code-block:: python
 
    """file ET_dot/prof/run1.py"""
-   import random
-   from et_dot import dot
-   from micc.stopwatch import Stopwatch
-   
    import numpy as np
    
-   def random_array(n=1000):
-       """Initialize an array with n random numbers in [0,1[."""
-       # Below we use a list comprehension. That is a Python idiom that creates a list. 
-       a = [random.random() for i in range(n)]
-       return a
-   
+   ...   
    
    if __name__=='__main__':
        with Stopwatch() as timer:
@@ -217,7 +129,7 @@ for the Numpy_ equivalent of our code.
            print("et init:",timer.timelapse(),'s')
            dot(a,b)
            print("et dot :",timer.timelapse(),'s')
-   
+
        with Stopwatch() as timer:
            a = np.random.rand(1000)
            b = np.random.rand(1000)
@@ -227,12 +139,49 @@ for the Numpy_ equivalent of our code.
        
        print('-*# done #*-') 
        
-Here are the results. Note that the Numpy_ version is significantly faster, both for 
-initialization (x3.2) and for the dot product (x6.8). 
+When you run this code, you will get a :py:exc:`ModuleNotFoundError` for Numpy_, as it 
+it not yet a dependency of our ET-dot project and Numpy_ is not yet installed in our 
+virtual environment. If you do not want Numpy_ to become a dependency of ET-dot, just
+install it in the virtual environment ::
 
 .. code-block:: bash
 
-   > python ./prof/run1.py
+   (.venv) > pip install numpy
+   Collecting numpy
+   
+     Using cached https://files.pythonhosted.org/packages/60/9a/a6b3168f2194fb468dcc4cf54c8344d1f514935006c3347ede198e968cb0/numpy-1.17.4-cp37-cp37m-macosx_10_9_x86_64.whl
+     
+   Installing collected packages: numpy
+   Successfully installed numpy-1.17.4
+   Here are the results. Note that the Numpy_ version is significantly faster, both for 
+   initialization (x3.2) and for the dot product (x6.8). 
+   (.venv) >
+  
+If, on the other hand, you want Numpy_ to become a dependency of ET-dot, and have 
+it always automatically installed together with ET-dot, you must run:"
+
+.. code-block:: bash
+
+   (.venv) > poetry add numpy
+   Using version ^1.17.4 for numpy
+   
+   Updating dependencies
+   Resolving dependencies... (0.2s)
+   
+   Writing lock file
+   
+   
+   Package operations: 1 install, 0 updates, 0 removals
+   
+     - Installing numpy (1.17.4)
+   
+   (.venv) >
+ 
+Here are the results of the modified script:
+
+.. code-block:: bash
+
+   (.venv) > python ./prof/run1.py
    et init: 0.000252 s
    et dot : 0.000219 s
    0.000489 s
@@ -242,11 +191,12 @@ initialization (x3.2) and for the dot product (x6.8).
    -*# done #*-
    >
        
+Obviously, Numpy_ does significantly better than our naive dot product implementation. 
 The reasons for this improvement are:
 
-* *Numpy* arrays are contiguous data structures of floating point numbers, unlike Python's
-  :py:class:`list`. Contiguous memory access ifs far more efficient.
-* The loop over *Numpy* arrays is implemented in a low-level programming languange (C).
+* Numpy_ arrays are contiguous data structures of floating point numbers, unlike Python's
+  :py:class:`list`. Contiguous memory access is far more efficient.
+* The loop over Numpy_ arrays is implemented in a low-level programming languange.
   This allows to make full use of the processors hardware features, such as vectorization and
   fused multiply-add (FMA).
   

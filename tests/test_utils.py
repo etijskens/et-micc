@@ -4,52 +4,65 @@
 
 from pathlib import Path 
 
+import semantic_version as sv
+
 import et_micc.utils
 from tests.helpers import in_empty_tmp_dir
 
 
-def test_constraint_to_version():
-    constraint = "^1.2.3"
-    expected = ['1','2','3']
-    version = et_micc.utils.constraint_to_version(constraint)
-    assert version == expected
+def test_bounds():
+    vs = "1.2.3"
+    vv = sv.Version(vs)
+    vn = vv.next_patch()
     
-def test_compare_constraints():
-    c123 = "^1.2.3"
-    c023 = "^0.2.3"
-    c003 = "^0.0.3"
-    result = et_micc.utils.compare_constraints(c003, c003)
-    assert result==0
-    result = et_micc.utils.compare_constraints(c003, c023)
-    assert result==-1
-    result = et_micc.utils.compare_constraints(c003, c123)
-    assert result==-1
+    vc = f"=={vs}"
+    bounds = et_micc.utils.bounds(vc)
+    assert bounds[0] == vv
+    assert bounds[1] == sv.Version("1.2.4")
 
-    result = et_micc.utils.compare_constraints(c023, c003)
-    assert result==1
-    result = et_micc.utils.compare_constraints(c023, c023)
-    assert result==0
-    result = et_micc.utils.compare_constraints(c023, c123)
-    assert result==-1
+    vc = f">={vs}"
+    bounds = et_micc.utils.bounds(vc)
+    assert bounds[0] == vv
+    assert bounds[1] is None
 
-    result = et_micc.utils.compare_constraints(c123, c003)
-    assert result==1
-    result = et_micc.utils.compare_constraints(c123, c023)
-    assert result==1
-    result = et_micc.utils.compare_constraints(c123, c123)
-    assert result==0
+    vc = f">{vs}"
+    bounds = et_micc.utils.bounds(vc)
+    assert bounds[0] == vn
+    assert bounds[1] is None
 
-    c023 = "^0.2"
-    result = et_micc.utils.compare_constraints(c023, c003)
-    assert result==1
-    result = et_micc.utils.compare_constraints(c003, c023)
-    assert result==-1
-    result = et_micc.utils.compare_constraints(c023, c023)
-    assert result==0
-    result = et_micc.utils.compare_constraints(c023, c123)
-    assert result==-1
-    result = et_micc.utils.compare_constraints(c123, c023)
-    assert result==1
+    vc = f"<={vs}"
+    bounds = et_micc.utils.bounds(vc)
+    vn = vv.next_patch()
+    assert bounds[0] is None
+    assert bounds[1] == vn
+
+    vc = f"<{vs}"
+    bounds = et_micc.utils.bounds(vc)
+    vn = vv.next_patch()
+    assert bounds[0] is None
+    assert bounds[1] == vv
+    
+    vc = f"^{vs}"
+    vu = sv.Version("2.0.0")
+    bounds = et_micc.utils.bounds(vc)
+    vn = vv.next_patch()
+    assert bounds[0] is vv
+    assert bounds[1] == vu
+
+
+def test_spec_str():
+    spec = ">=1.1.2"
+    assert et_micc.utils.spec_str(spec) == spec
+    spec = "^1.1.2"
+    spec_new = et_micc.utils.spec_str(spec)
+    assert spec_new == ">=1.1.2,<2.0.0"
+    assert     sv.SimpleSpec("1.1.2").match(sv.Version("1.1.2"))
+    assert not sv.Version("1.1.1") in sv.SimpleSpec(spec_new)
+    assert     sv.Version("1.1.2") in sv.SimpleSpec(spec_new)
+    assert     sv.Version("1.1.2") in sv.SimpleSpec(spec_new)
+    assert     sv.Version("1.2.2") in sv.SimpleSpec(spec_new)
+    assert not sv.Version("2.0.0") in sv.SimpleSpec(spec_new)
+    assert not sv.Version("2.2.2") in sv.SimpleSpec(spec_new)
 
 
 def test_verify_project_name():
@@ -100,7 +113,7 @@ def test_insert_in_file():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug =  test_insert_in_file
+    the_test_you_want_to_debug = test_bounds
 
     print(f"__main__ running {the_test_you_want_to_debug}")
     the_test_you_want_to_debug()

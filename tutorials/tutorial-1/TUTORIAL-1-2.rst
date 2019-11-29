@@ -1,6 +1,9 @@
-Your first code
----------------
+1.2 Your first project
+----------------------
    
+Let's continue with the goal of our project: create a Python module that provides a 
+function to compute the dot product of two arrays.
+
 Open module file :file:`et_dot.py` in your favourite editor and change it as follows:
 
 .. code-block:: python
@@ -29,7 +32,10 @@ Open module file :file:`et_dot.py` in your favourite editor and change it as fol
            d += a[i]*b[i]
        return d
 
-We could use the dot method in a script as follows
+We defined a :py:meth:`dot` method with an informative doc-string that describes 
+the parameters, the return value and the kind of exceptions it may raise.
+ 
+We could use the dot method in a script as follows:
 
 .. code-block:: python
 
@@ -40,14 +46,14 @@ We could use the dot method in a script as follows
    a_dot_b = dot(a,b) 
 
 .. note::
-   This implementation is naive for many reasons:
+   This dot product implementation is naive for many reasons:
    
    * Python is very slow at executing loops, as compared to Fortran or C++. 
    * The objects we are passing in are plain Python :py:obj:`list`s. A :py:obj:`list`
      is a very powerfull data structure, with array-like properties, but it is not
      exactly an array. A :py:obj:`list` is in fact an array of pointers to Python
-     objects, and therefor list elements can reference anything, not just a numeric 
-     value as we would expect from an array. Elements being pointers, looping over the
+     objects, and therefor list elements can reference anything, not just a numeric value
+     as we would expect from an array. With elements being pointers, looping over the
      array elements implies non-contiguous memory access, another source of inefficiency.   
    * The dot product is a subject of Linear Algebra. Many excellent libraries have been
      designed for this purpose. Numpy_ should be your starting
@@ -56,7 +62,6 @@ We could use the dot method in a script as follows
      a C++ library for linear algebra that is neatly exposed to Python by 
      pybind11_.
       
-   
 In order to verify that our implementation of the dot product is correct, we write a 
 test. For this we open the file ``tests/test_et_dot.py``. Remove the original tests, 
 and add a new one: 
@@ -195,7 +200,7 @@ is another test:
        assert result==expected
 
 Clearly, it is a special case of the test above the expected result is the sum of the elements
-in ``a``, that is ``1.0``. Yet it - unexpectedly - fails. Fortunately *pytest* produces a readable
+in ``a``, that is ``1.0``. Yet it - unexpectedly - fails. Fortunately pytest_ produces a readable
 report about the failure:
 
 .. code-block:: bash
@@ -225,7 +230,7 @@ report about the failure:
    >
 
 Mathematically, our expectations about the outcome of the test are certainly correct. Yet,
-*pytest* tells us it found that the result is ``0.0`` rather than ``1.0``. What could possibly
+pytest_ tells us it found that the result is ``0.0`` rather than ``1.0``. What could possibly
 be wrong? Well our mathematical expectations are based on our - false - assumption that the 
 elements of ``a`` are real numbers, most of which in decimal representation are characterised
 by an infinite number of digits. Computer memory being finite, however, Python (and for that

@@ -1,5 +1,5 @@
-Specifying compiler options for binary extension modules
---------------------------------------------------------
+2.4 Specifying compiler options for binary extension modules
+------------------------------------------------------------
 
 [ **Advanced Topic** ] 
 As we have seen, binary extension modules can be programmed in Fortran and C++. 
@@ -9,8 +9,8 @@ CMake_. Obviously, in both cases there is a compiler under the hood doing the
 hard work. By default these tools use the compiler they find on the path, but 
 you may as well specify your favorite compiler.
 
-Building a single module only
------------------------------
+2.4.1 Building a single module only
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If you want to build a single binary extension module rather than all binary
 extension modules in the project, add the ``-m|--module`` option:
 
@@ -20,8 +20,8 @@ extension modules in the project, add the ``-m|--module`` option:
    
 This will only build module *my_module*.
 
-Performing a clean build
-------------------------
+2.4.2 Performing a clean build
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To perform a clean build, add the ``--clean`` flag to the ``micc build`` command:
 
 .. code-block:: 
@@ -31,8 +31,8 @@ To perform a clean build, add the ``--clean`` flag to the ``micc build`` command
 This will remove the previous build directory and as well as the binary extension 
 module.
 
-Controlling the build of f2py modules
--------------------------------------
+2.4.3 Controlling the build of f2py modules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To specify the Fortran compiler, e.g. the GNU fortran compiler:
 
 .. code-block:: 
@@ -64,8 +64,8 @@ Finally, the ``--debug`` flag adds debug information during the compilation.
    various compilers, you will most probably have to change the compiler options when 
    you change the compiler.
 
-Controlling the build of cpp modules
-------------------------------------
+2.4.4 Controlling the build of cpp modules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The C++ compiler, e.g. the Intel C++ compiler, is specified as:
 
 .. code-block:: 
@@ -94,8 +94,8 @@ overwritten by using the ``--cxx-flags-all`` option,
    account the chosen compiler. For tweeking, however, you will most probably have to 
    change the compiler options when you change the compiler.
 
-Save and Load build options to/from file
-----------------------------------------
+2.4.5 Save and Load build options to/from file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 With the ``--save`` option you can save the current build options to a file in .json 
 format. This acts on a per project basis. E.g.:
 
@@ -112,26 +112,7 @@ later build as:
   
    > micc build --load build[.json]
 
-Installing packages with binary extension modules
--------------------------------------------------
-Normally, installation would be performed with poetry_, but as this part of poetry_ is
-not implemented yet, we have to rely on workarounds. 
+2.4.6 Installing packages with binary extension modules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[work in progress]
 
-If your package contains CLIs, you must run (in the project directory):
-
-.. code-block:: 
-  
-   > micc build 
-   > make [re]install
-   > micc dev-install
-   
-The last step replaces the directory :file:`site-packages/micc` in your current Python
-environment by the directory structure of the :file:`micc` package, but replaces all files
-with symlinks. 
-
-Alternatively, instead of the last step, you may move/copy/symlink the :file:`.so` files 
-in the :file:`micc` package manually to :file:`site-packages/micc` in your current Python 
-environment.
-
-
-Currently, there are two options

@@ -1,5 +1,8 @@
-Binary extension modules and data types
----------------------------------------
+2.3 Intermediate topics
+-----------------------
+
+2.3.1 Binary extension modules and data types
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 An importand point of attention when writing binary extension modules - and a
 common source of problems - is that the data types of the variables passed in from
@@ -20,8 +23,8 @@ complex           complex64      complex*4   std::complex<float>
 complex           complex128     complex*8   std::complex<double>
 ================  ============   =========   ====================
                
-F2py
-^^^^
+2.3.2 F2py
+^^^^^^^^^^
    
 F2py_ is very flexible in this respect - but that comes at a cost. In between the 
 Fortran routine and Python there is a wrapper function which translates the function
@@ -34,8 +37,8 @@ warning everytime the wrapper decides to copy an array. Basically, this warning
 means that you have to modify your Python data structure to have the same data
 type as the Fortran source code, or vice versa.
 
-Returning large data structures
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2.3.4 Returning large data structures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The result of a Fortran function and a C++ function is **always** copied back to the 
 Python variable that will hold it. As copying large data structures is detrimental
 to performance this shoud be avoided. The solution to this problem is to write 

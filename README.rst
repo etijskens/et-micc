@@ -45,18 +45,20 @@ practice by a large part of the Python community.
 * Micc_ helps you with **publishing** your code to e.g. `PyPI <https://pypi.org>`_, so
   that you colleagues can use your code by simply running `pip install your_nifty_package`.
   
-Micc_ does not do al of this by itself. For many things it relies on other strong 
+For details see the `Micc documentation <https://et-micc.readthedocs.io/en/latest/>`_.
+
+Micc_ does not do all of this by itself. For many things it relies on other strong 
 open source tools and it is therefor open source as well (MIT Licence). Here is a list 
 of tools micc_ is using or cooperating with happily:
 
-* `Poetry <https://github.com/sdispater/poetry>`_: dependency management, virtual 
+* `poetry <https://github.com/sdispater/poetry>`_: dependency management, virtual 
   environments.
-* `Pyenv <https://github.com/pyenv/pyenv>`_: management of different Python versions
-* `Pipx <https://github.com/pipxproject/pipx/>`_: installation of CLIs in a system-wide  
+* `pyenv <https://github.com/pyenv/pyenv>`_: management of different Python versions
+* `pipx <https://github.com/pipxproject/pipx/>`_: installation of CLIs in a system-wide  
   way.
-* `Cookiecutter <https://github.com/audreyr/cookiecutter>`_ for creating templates for 
+* `cookiecutter <https://github.com/audreyr/cookiecutter>`_ for creating templates for 
   all the things that can be added to your project.
-* `Sphinx <http://www.sphinx-doc.org/>`_: building of documentation.
+* `sphinx <http://www.sphinx-doc.org/>`_: building of documentation.
 * `git <https://www.git-scm.com/>`_: version control.
 * `python-semanticversion <https://github.com/rbarrois/python-semanticversion/blob/master/docs/index.rst>`_:
   management of version string according to version specification `Semver 2.0 <http://semver.org/>`_.
