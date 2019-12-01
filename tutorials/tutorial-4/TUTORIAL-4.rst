@@ -4,7 +4,7 @@ Tutorial 4: Version control and version management
 Git support
 -----------
 When you create a new project, Micc_ immediately provides a local git_ repository for 
-you and commits the initial files Micc_ set up for you. If you have github_ account you 
+you and commits the initial files Micc_ set up for you. If you have a github_ account you
 can register it in the preferences file :file:`~/.micc/micc.json`, using the 
 ``github_username`` entry::
 
@@ -30,7 +30,7 @@ Version management
 Version numbers are practical, even for a small software project used only by 
 yourself. For larger projects, certainly when other users start using them, 
 they become indispensable. When giving version numbers to a project, we highly
-recommend to follow the guidelines `Semantic Versioning 2.0.0 <https://semver.org>`_. 
+recommend to follow the guidelines `Semantic Versioning 2.0 <https://semver.org>`_.
 Such a version number consists of ``Major.minor.patch``. According to 
 semantic versioning you should increment the:
 
@@ -57,6 +57,8 @@ To bump the patch component:
        
 .. code-block:: bash
 
+   > micc version
+   Project (ET-dot version (0.0.0)
    > micc version --patch
    [INFO]           bumping version (0.0.0) -> (0.0.1)
 

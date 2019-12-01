@@ -8,7 +8,7 @@
 .. automodule:: et_micc.expand
    :members:
 
-.. automodule:: et_micc.logging
+.. automodule:: et_micc.logger
    :members:
 
 .. automodule:: et_micc.utils

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Module et_micc.logging_
-=======================
+Module et_micc.logger
+=====================
 
 Helper functions for logging.
 """
@@ -116,7 +116,7 @@ class IndentingLogger(logging.Logger):
         """Increase the indentation level.
         
         Future log messages will shift to the left. The width of the shift
-        is determined by the last call to :py:meth:`~et_micc_tools.logging_tools.IndentingLogger.indent`
+        is determined by the last call to :py:meth:`~et_micc.logger.IndentingLogger.indent`
         """
         if self._stack:
             n = self._stack.pop()
@@ -167,12 +167,12 @@ def create_logger(filepath,filemode='a'):
 def log(logfun=None, before='doing', after='done.',bracket=True):
     """Print a message before and after executing the body of the contextmanager.
 
-    :param callable logfun: a function that can print a log message, e.g. :py:meth:`print`, :py:meth:`~et_micc_tools.logging_tools.get_micc_logger.the_logger.info`. 
+    :param callable logfun: a function that can print a log message, e.g. :py:meth:`print`, :py:meth:`~et_micc.logger.get_micc_logger.the_logger.info`. 
     :param str before: print this before body is executed
     :param str after: print this after body is executed
     :param bool bracket: append ' [' to before and prepend '] ' to after.
     
-    This works best with the :py:class:`~et_micc_tools.logging_tools.IndentingLogger`.
+    This works best with the :py:class:`~et_micc.logger.IndentingLogger`.
     """
     if logfun:
         if bracket:

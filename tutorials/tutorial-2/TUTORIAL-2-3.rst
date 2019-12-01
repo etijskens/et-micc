@@ -26,11 +26,13 @@ complex           complex128     complex*8   std::complex<double>
 2.3.2 F2py
 ^^^^^^^^^^
    
-F2py_ is very flexible in this respect - but that comes at a cost. In between the 
-Fortran routine and Python there is a wrapper function which translates the function
-call, and if it detects that the data type on both sides are different, the wrapper
-is allow to copy/convert the variable both on input and on output. When the 
-input/output variables are large arrays copy/conversion can have a detrimental 
+F2py_ is very flexible with respect to data types. In between the
+Fortran routine and Python call is a wrapper function which translates the
+function call, and if it detects that the data type on the Python sides and
+the Fortran sideare different, the wrapper function is allowed to copy/convert
+the variable when passing it to Fortran routine both, and also when passing the
+result back from the Fortran routine to the Python caller. When the input/output
+variables are large arrays copy/conversion operations can have a detrimental
 effect on performance and this is in HPC highly undesirable. Micc_ runs f2py_ with
 the ``-DF2PY_REPORT_ON_ARRAY_COPY=1`` option. This causes your code to produce a
 warning everytime the wrapper decides to copy an array. Basically, this warning
@@ -43,7 +45,9 @@ The result of a Fortran function and a C++ function is **always** copied back to
 Python variable that will hold it. As copying large data structures is detrimental
 to performance this shoud be avoided. The solution to this problem is to write 
 Fortran functions or subroutines and C++ functions that accept the result variable 
-as an argument and modify it in place. Here are some examples of array addition:
+as an argument and modify it in place, so that the copy operaton is avoided. Consider
+this example of a Fortran subroutine that computes the sum of two arrays.
+are some examples of array addition:
 
 .. code-block:: fortran
    
@@ -63,10 +67,10 @@ as an argument and modify it in place. Here are some examples of array addition:
        end do
    end subroutine add
    
-The crucial thing here is that the result array *sumab* has ``intent(inout)``. If
+The crucial issue here is that the result array *sumab* has ``intent(inout)``. If
 you qualify the intent of *sumab* as ``in`` you will not be able to overwrite it,
 whereas - surprisingly - qualifying it with ``intent(out)`` will force f2py to consider
-it as a lefthandside variable, which implies copying the result on returning. 
+it as a left hand side variable, which implies copying the result on returning.
 
 The code below does exactly the same but uses a function, not to return the result
 of the computation, but an error code.

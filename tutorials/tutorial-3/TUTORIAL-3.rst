@@ -1,8 +1,8 @@
 Tutorial 3: Adding Python components
 ====================================
 
-Adding a Python module
-----------------------
+3.1 Adding a Python module
+--------------------------
 
 Just as one can add binary extension modules to a package, one can add python modules.
 
@@ -23,9 +23,20 @@ As with ``micc create`` the default structure is that of a simple module, i.e.
 :file:`ET-doc/et_doc/foo.py`. If you want a package you can add the ``--package``
 flag.
 
-Adding a Python Command Line Interface
---------------------------------------
-*Command Line Interfaces* are Python scripts that you want to be installed as 
+3.1.1 Testing the module
+^^^^^^^^^^^^^^^^^^^^^^^^
+When adding a module :py:mod:`foo`, Micc_ automacally adds a test script for the new module:
+:file:`tests/test_foo,py`. In this file you add tests for module :py:mod:`foo`.
+
+3.1.2 Documenting the module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+When adding a module :py:mod:`foo`, Micc_ automatically adds documentation entries
+in :file:`API.rst`. Calling ``micc docs`` will automatically extract documentation from
+the doc-strings in your new module.
+
+3.2 Adding a Python Command Line Interface
+------------------------------------------
+*Command Line Interfaces* are Python scripts that you want to be installed as
 executable programs when a user installs your package.
 
 As an example, assume that we need quite often to read two arrays from file and
@@ -52,7 +63,7 @@ so we can create it like:
 
 For a CLI with sub-commands one should add the flag ``--sub-commands``.
 
-The source code :file:`ET-dot/et_dot/cli_dot-files.py` should be modified as:
+The source code :file:`ET-dot/et_dot/cli_dot_files.py` should be modified as:
 
 .. code-block:: python
 
@@ -92,21 +103,22 @@ The source code :file:`ET-dot/et_dot/cli_dot-files.py` should be modified as:
 Here's how to use it from the command line (without installing):
 
 .. code-block:: bash
- 
-   > cat file1.txt
+
+   > source .venv/bin/activate
+   (.venv) > cat file1.txt
    1,2,3,4,5
    > cat file2.txt
    2,2,2,2,2
-   > python et_dot/cli_dot_files.py file1.txt file2.txt
+   (.venv) > python et_dot/cli_dot_files.py file1.txt file2.txt
    30.0
-   > python et_dot/cli_dot_files.py file1.txt file2.txt -vv
+   (.venv) > python et_dot/cli_dot_files.py file1.txt file2.txt -vv
    dot-files(file1.txt,file2.txt) = 30.0
-   
-When installing this package, an executable :file:`dot-files` will be installed in 
-the :file"`bin` directory of the current Python environment. The modules will be
-installed in the current Python environment's site-packages as usual.
 
-Testing CLIs is a bit more complex than testing modules, but Click_ provides some tools 
+3.2.1 Testing the application
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+When you add an a application like ``dot-files`` Micc_ automatically adds a test script
+:file:`tests/test_cli_dot_files.py` where you can add your tests.
+Testing CLIs is a bit more complex than testing modules, but Click_ provides some tools
 for `Testing click applications <https://click.palletsprojects.com/en/7.x/testing/>`_. 
 Here is the test code:
 
@@ -143,44 +155,9 @@ Finally, we run pytest_:
    
    ================================== 10 passed in 0.33 seconds ==========================   
 
-Installing packages with Python components
-------------------------------------------
-This is automated using ``make``. The project directory contains a :file:`Makefile` that
-holds some commands that build on other tools that micc_, notably poetry_.
-
-To install your package in the current Python environment:
-
-.. code-block::
-  
-   > make install
-   
-To uninstall your package in the current Python environment:
-
-.. code-block::
-  
-   > make uninstall
-   
-To reinstall (after source code modifications) your package in the current Python 
-environment:
-
-.. code-block::
-  
-   > make install
-   
-There is also a micc_ command that allows to install a package in your current 
-Python environment in development mode. Any modyfications to the source code 
-are immediately visible in the installed package, exept, of course for code 
-modifications to the source of binary extension modules, which must be built first:
-
-.. code-block::
-  
-   > make [re]install
-   > micc dev-install
-   
-and to uninstall:
-
-.. code-block::
-  
-   > micc dev-uninstall
-   > make uninstall
-
+3.2.2 Documenting an application
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+When adding a CLI, Micc_ automatically adds documentation entries for it. in :file:`APPS.rst`.
+Calling ``micc docs`` will automatically extract documentation from the doc-strings of the command
+and  the ``:param ...:`` of the :py:obj:`click.argument` decorators in these doc-strings, and
+from the ``help`` parameters of the :py:obj:`click.option` decorators.

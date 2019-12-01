@@ -279,11 +279,14 @@ modified command prompt. You can verify that the active Python command is correc
 .. code-block:: bash
 
    (.venv) > which python
-   /Users/etijskens/software/dev/ET-dot/.venv/bin/python 
+   /Users/etijskens/software/dev/ET-dot/.venv/bin/python
    (.venv)> python --version
    > python --version
    Python 3.7.5
-            
+
+.. note:: Whenever you see a command prompt like ``(.venv) >`` the local virtual environment
+   of the project has been activated. If you want to try yourself, you must activate it too.
+
 1.1.4 Modules and scripts
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 Note that micc_ always creates fully functional examples, complete with test code and 

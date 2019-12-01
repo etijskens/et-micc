@@ -12,16 +12,6 @@ it allows us to illustrate the usefulness of Python as a language for High
 Performance Computing, as well as the capabilities of 
 `micc <https://et-micc.readthedocs.io/en/latest/>`_.
 
-Here are a number of interesting links covering Python as a language for
-High Performance Computing:
-
-* `Performance Python: Seven Strategies for Optimizing Your Numerical Code <https://www.youtube.com/watch?v=zQeYx87mfyw>`_
-* `High performance Python 1 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-1>`_
-* `High performance Python 2 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-2>`_
-* `High performance Python 3 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-3>`_
-* `High performance Python 4 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-4>`_
-* `Why you should use Python for scientific research <https://developer.ibm.com/dwblog/2018/use-python-for-scientific-research/>`_
-
 Development environment
 -----------------------
 

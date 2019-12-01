@@ -2,14 +2,16 @@ Tutorial 5 - Publishing your code
 =================================
 Publishing your code is an easy way to make your code available to other users.
 
-Publishing to the Python Packag Index
--------------------------------------
+5.1 Publishing to the Python Package Index
+------------------------------------------
 For this we rely on poetry_. If you do not have a PyPI_  account, create one and 
-run this command in your project directory, c.q. :py:mod:`et-foo`:
+run this command in your project directory, e.g. :file:`et-foo`:
 
 .. code-block::
 
-   > poetry publish --build
+   > cd path/to/et-foo
+   > source .venv/bin/activate
+   (.venv) > poetry publish --build
    Building et-foo (0.1.0)
     - Building sdist
     - Built et-foo-0.1.0.tar.gz
@@ -24,35 +26,25 @@ run this command in your project directory, c.q. :py:mod:`et-foo`:
     - Uploading et-foo-0.1.0.tar.gz 100%
     - Uploading et_foo-0.1.0-py3-none-any.whl 100%
     
-.. note:: It is crucial that your project name is not already taken.\
+.. note:: It is crucial that your project name is not already taken. For this reason,
+   we recommend that
+
+   #. before you create a project that you might want to publish, you check wether
+      your project name is not already taken.
+   #. immediately after your project is created, you publish it, as to reserve the
+      name forever.
 
 Now everyone can install the package in his current Python environment as::
 
-.. code-block::
-
    > pip install et-foo
 
-Unfortunately poetry_ (v0.12.17 at the time of writing) is not yet capable of 
-publishing code with binary extension modules. Here is a workaround.
 
-Workaround for publishing packages with binary extension modules
-----------------------------------------------------------------
-The workaround is based on a putting your code in a git_ repository and 
-pushing your code onto a github_ repository. The above package :py:mod:`et-foo`
-is available at https://github.com/etijskens/et-foo. Interested users can install 
-the code in their current Python environment by executing the following commands:
 
-.. code-block::
+5.2 Publishing packages with binary extension modules
+-----------------------------------------------------
+Packages with binary extension modules are published in exactly the same way. When Micc_
+adds a binary extension module it adds a dependency on micc-build_. The binary extensions
+are then build locally by running::
 
-   > cd path/to/interesting/git-repos
-   > git clone https://github.com/etijskens/et-foo
-   > cd et-foo
-   > micc build
-   > make install
-   > micc dev-install
-   
-Here, the last step can be replaced by a move/copy/symlink of all :file:`.so` files
-into the directory :file:`site-packages/et_foo`. The former version has the advantage
-that all changes you make to the source code are immediately available in the installed
-version.
+    (.venv) > micc-build
 

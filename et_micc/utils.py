@@ -19,7 +19,7 @@ from contextlib import contextmanager
 import semantic_version as sv
 
 from et_micc.tomlfile import TomlFile
-import et_micc.logging_
+import et_micc.logger
 
 
 def operator_version(version_constraint_string):
@@ -257,7 +257,7 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None,cwd=None):
         cmds = [cmds]
         
     for cmd in cmds:
-        with et_micc.logging_.log(logfun, f"> {' '.join(cmd)}"):
+        with et_micc.logger.log(logfun, f"> {' '.join(cmd)}"):
             completed_process = subprocess.run(cmd, capture_output=True,env=env,cwd=cwd)
             if not logfun is None:
                 if completed_process.returncode:

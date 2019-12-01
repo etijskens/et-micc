@@ -20,7 +20,7 @@ import semantic_version
 from et_micc.tomlfile import TomlFile
 import et_micc.utils
 import et_micc.expand
-import et_micc.logging_
+import et_micc.logger
 from et_micc import __version__
 
 CURRENT_ET_MICC_BUILD_VERSION = __version__
@@ -57,7 +57,7 @@ class Project:
         
         if et_micc.utils.is_project_directory(project_path,self):
             # existing project
-            self.micc_logger = et_micc.logging_.get_micc_logger(self.options)
+            self.micc_logger = et_micc.logger.get_micc_logger(self.options)
             self.version = self.pyproject_toml['tool']['poetry']['version']
         else:
             # not a project directory or not a directory at all
@@ -127,9 +127,9 @@ class Project:
             structure = ''
         
         self.options.verbosity = max(1,self.options.verbosity)
-        self.micc_logger = et_micc.logging_.get_micc_logger(self.options)
-        with et_micc.logging_.logtime():
-            with et_micc.logging_.log( self.micc_logger.info
+        self.micc_logger = et_micc.logger.get_micc_logger(self.options)
+        with et_micc.logger.logtime():
+            with et_micc.logger.log( self.micc_logger.info
                           , f"Creating project ({self.project_name}):"
                           ):
                 self.micc_logger.info(f"Python {self.options.structure} ({self.package_name}): structure = {structure}")
@@ -150,7 +150,7 @@ class Project:
                     json.dump(template_parameters,f)
                     self.micc_logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
             
-                with et_micc.logging_.log(self.micc_logger.info,"Creating git repository"):
+                with et_micc.logger.log(self.micc_logger.info,"Creating git repository"):
                     with et_micc.utils.in_directory(self.project_path):
                         cmds = [ ['git', 'init']
                                , ['git', 'add', '*']
@@ -319,7 +319,7 @@ class Project:
         """Create and push a version tag ``v<Major>.<minor>.<patch>`` for the current version."""
         tag = f"v{self.version}"
     
-        micc_logger = et_micc.logging_.get_micc_logger(self.options)
+        micc_logger = et_micc.logger.get_micc_logger(self.options)
         with et_micc.utils.in_directory(self.project_path):
             micc_logger.info(f"Creating git tag {tag} for project {self.project_name}")
             cmd = ['git', 'tag', '-a', tag, '-m', f'"tag version {self.version}"']
@@ -450,8 +450,8 @@ class Project:
         cli_app_name = 'cli_' + et_micc.utils.pep8_module_name(app_name)
         w = 'with' if self.options.group else 'without' 
         
-        micc_logger = et_micc.logging_.get_micc_logger(self.options)
-        with et_micc.logging_.log(micc_logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
+        micc_logger = et_micc.logger.get_micc_logger(self.options)
+        with et_micc.logger.log(micc_logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
             self.options.template_parameters.update(
                 {'app_name': app_name, 'cli_app_name' : cli_app_name}
             )
@@ -523,7 +523,7 @@ class Project:
             
         source_file = f"{module_name}.py" if self.options.structure=='module' else f"{module_name}{os.sep}__init__.py"
         
-        with et_micc.logging_.log(self.micc_logger.info,
+        with et_micc.logger.log(self.micc_logger.info,
                 f"Adding python module {source_file} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
@@ -559,7 +559,7 @@ class Project:
         project_path = self.project_path
         module_name = self.options.add_name
         
-        with et_micc.logging_.log(self.micc_logger.info, 
+        with et_micc.logger.log(self.micc_logger.info, 
                 f"Adding f2py module {module_name} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
@@ -602,7 +602,7 @@ class Project:
         project_path = self.project_path
         module_name = self.options.add_name
         
-        with et_micc.logging_.log(self.micc_logger.info,
+        with et_micc.logger.log(self.micc_logger.info,
                 f"Adding cpp module cpp_{module_name} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
@@ -752,7 +752,7 @@ class Project:
         dst = str(package / '__init__.py')
         shutil.move(src, dst)
     
-        et_micc.logging_.log(self.micc_logger.debug, 
+        et_micc.logger.log(self.micc_logger.debug, 
             f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py."
         )
         

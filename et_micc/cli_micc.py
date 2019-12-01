@@ -11,7 +11,7 @@ from pathlib import Path
 import click
 
 from et_micc.project import Project, micc_version
-import et_micc.logging_
+import et_micc.logger
 
 __template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
@@ -149,7 +149,7 @@ def create( ctx
                                        ,'open_source_license'       : license_
                                        }
                                       ) 
-#     with et_micc.logging_.logtime(ctx.obj):
+#     with et_micc.logger.logtime(ctx.obj):
     project = Project(options)
     
     if project.exit_code:
@@ -182,12 +182,12 @@ def convert_to_package(ctx, overwrite, backup):
     options.overwrite = overwrite
     options.backup    = backup
     
-    with et_micc.logging_.logtime(options):
+    with et_micc.logger.logtime(options):
         project = Project(options)
         project.module_to_package_cmd()
         
         if project.exit_code==et_micc.expand.EXIT_OVERWRITE:
-            et_micc.logging_.get_micc_logger(ctx.obj).warning(
+            et_micc.logger.get_micc_logger(ctx.obj).warning(
                 f"It is normally ok to overwrite 'index.rst' as you are not supposed\n"
                 f"to edit the '.rst' files in '{options.project_path}{os.sep}docs.'\n"
                 f"If in doubt: rerun the command with the '--backup' flag,\n"
@@ -212,7 +212,7 @@ def info(ctx):
     Use verbosity to produce more detailed info.
     """ 
     options = ctx.obj   
-    with et_micc.logging_.logtime(options):
+    with et_micc.logger.logtime(options):
         project = Project(options)
         if not project.exit_code:
             project.info_cmd()
@@ -270,7 +270,7 @@ def version( ctx, major, minor, patch, rule, tag, short, dry_run):
     options.short = short
     options.dry_run = dry_run
         
-    with et_micc.logging_.logtime(ctx.obj):
+    with et_micc.logger.logtime(ctx.obj):
         project = Project(options)
         project.version_cmd()
         if project.exit_code==0 and tag:
@@ -369,7 +369,7 @@ def add( ctx
     options.overwrite = overwrite
     options.backup = backup
         
-    with et_micc.logging_.logtime(options):
+    with et_micc.logger.logtime(options):
         project = Project(options)            
         project.add_cmd()
       
@@ -401,7 +401,7 @@ def docs(ctx,html,pdf,open):
     options.pdf  = pdf
     options.open = open
 
-    with et_micc.logging_.logtime(options):
+    with et_micc.logger.logtime(options):
         project = Project(options)            
         project.docs_cmd()
       

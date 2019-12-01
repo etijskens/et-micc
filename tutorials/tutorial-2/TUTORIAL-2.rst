@@ -5,11 +5,42 @@ Binary extensions are
 
 Suppose for a moment that Numpy_ did not have a dot product implementation and that 
 the implementation provided in Tutorial-1 is way too slow to be practical for your
-research project. For the reasons mention you would have to provide your own low-level 
-implementation yourself in Fortran, C or C++. Such modules are called *binary extensions*.
-Micc_ can assist you with building binary extensions and gives you the option to choose 
-between Fortran and C++. As C is approximately a subset of C++ there is little reason to 
-provide support for both C++ and C.
+research project. Consequently, you are forced to accelarate your dot product code
+in some way or another. There are several approaches for this. Here are a number of
+interesting links covering them:
+
+* `Why you should use Python for scientific research <https://developer.ibm.com/dwblog/2018/use-python-for-scientific-research/>`_
+* `Performance Python: Seven Strategies for Optimizing Your Numerical Code <https://www.youtube.com/watch?v=zQeYx87mfyw>`_
+* `High performance Python 1 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-1>`_
+* `High performance Python 2 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-2>`_
+* `High performance Python 3 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-3>`_
+* `High performance Python 4 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-4>`_
+
+Most of these approaches do not require special support from Micc_ to get you going, and
+we encourage you to go try out the *High Performance Python* series 1-3 for the ET-dot
+project. Two of the approacheq discussed involve rewriting your code in Modern Fortran or
+C++ and generate a shared library that can be imported in Python just as any Python module.
+Such shared libraries are called *binary extension modules*. This approach is by far the most
+scalable and flexible of all current acceleration strategies, as these languages are designed
+to squeeze the maximum of performance out of a CPU. However, figuring out how to make this work
+is a bit of a challenge, especially in the case of C++.
+
+Micc_ automates the task of generating the binary extensions from source code in Fortran and
+C++. It is as simple as this:
+
+Add a som binary extension module: to your project::
+
+    > micc add foo --f2py   # add a binary extension written in Fortran
+    > micc add bar --cpp    # add a binary extension written in C++
+
+You put your own code in the source code files and execute ::
+
+    (.venv) > micc-build
+
+Mind that the virtual environment must be activated to execute the ``micc-build``
+(see `1.1.3 Virtual environments`_).
+Now you can import modules :py:mod:`foo` and :py:mod:`bar` in your project and use
+their subroutines and functions.
 
 2.1 Binary extensions in Micc_ projects
 ---------------------------------------
