@@ -56,7 +56,7 @@ def get_micc_logger(global_options=None):
             
     if get_micc_logger.the_logger is None:
         
-        if global_options.clear_log:
+        if getattr(global_options,'clear_log',False):
             logfile = global_options.project_path / 'et_micc.log'
             if logfile.exists():
                 logfile.unlink()
@@ -75,7 +75,7 @@ def get_micc_logger(global_options=None):
     # set the log level from the verbosity
     get_micc_logger.the_logger.console_handler.setLevel(verbosity_to_loglevel(global_options.verbosity))
 
-    if global_options.clear_log:
+    if getattr(global_options,'clear_log',False):
         global_options.clear_log = False
         get_micc_logger.the_logger.debug("The log file was cleared.")
 
