@@ -61,7 +61,7 @@ class Project:
             self.version = self.pyproject_toml['tool']['poetry']['version']
         else:
             # not a project directory or not a directory at all
-            if options.create:
+            if getattr(options,'create',False):
                 if project_path.exists() and os.listdir(str(project_path)):
                     self.error(f"Cannot create project in ({project_path}):\n"
                                f"  Directory must be empty."
