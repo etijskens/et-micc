@@ -168,6 +168,8 @@ class Project:
                     "Run 'poetry install' in the project directory to create a virtual "
                     "environment and install its dependencies."
                 )
+
+
     def module_to_package_cmd(self):
         """Convert a module project (:file:`module.py`) to a package project (:file:`package/__init__.py`)."""
         if self.package:
@@ -598,8 +600,7 @@ class Project:
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
 
-        if self.options.auto_build:
-            self.add_auto_build_code()
+        self.add_auto_build_code()
 
     def add_auto_build_code(self):
         """Add auto build code for binary extension modules in :file:`__init__.py` of the package."""
@@ -668,8 +669,7 @@ class Project:
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
 
-        if self.options.auto_build:
-            self.add_auto_build_code()
+        self.add_auto_build_code()
 
 
     def app_exists(self, app_name):
