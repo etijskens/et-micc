@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """Tests for f2py module `{{ cookiecutter.project_name }}.{{ cookiecutter.module_name }}`."""
 
-import {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }} as f90
+import {{ cookiecutter.package_name }}
+# create an alias for the binary extension cpp module
+f90 = {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
 
 import numpy as np
 

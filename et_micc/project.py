@@ -610,7 +610,7 @@ class Project:
             "try:",
            f"    import {self.package_name}.{module_name}",
             "except ModuleNotFoundError as e:",
-            "    # Try to build this binary extension:"
+            "    # Try to build this binary extension:",
             "    from pathlib import Path",
             "    import click",
             "    from et_micc_build.cli_micc_build import auto_build_binary_extension",
