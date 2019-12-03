@@ -15,8 +15,8 @@ call this module :py:mod:`dotf`, where the ``f`` stands for Fortran:
    [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
    [INFO]           ] done.
  
- The output explains you where to put the Fortran source code, the test code and the documentation  
- Enter this code in the Fortran source file :file:`ET-dot/et_dot/f2py_dotf/dotf.f90`
+The output explains you where to put the Fortran source code, the test code and the documentation
+Enter this code in the Fortran source file :file:`ET-dot/et_dot/f2py_dotf/dotf.f90`
  
 .. code-block:: fortran
  
@@ -53,7 +53,7 @@ environment, run:
    > poetry update
    ...
    > source .venv/bin/activate
-   (.venv)
+   (.venv) >
 
 Then build the module:
  
@@ -75,7 +75,7 @@ failed to build. If the source file does not have any syntax errors, you will se
 :file:`dotf.cpython-37m-darwin.so` in directory :file:`ET-dot/et_dot`.
 
 .. note:: The extension of the module :file:`dotf.cpython-37m-darwin.so` 
-   will depend on the Python version you are using, and on the operating system. 
+   will depend on the Python version you are using, and on youe operating system.
 
 Here is the test code. Enter it in :file:`ET-dot/tests/test_f2py_dotf.py`:
 
@@ -156,7 +156,7 @@ reader.
       >>> et_dot.my_F90_module.dot(a,b)
       12.0
 
-   If having to type that much every time, annoys use this trick::
+   If having to type that much every time, annoys you, use this trick::
 
       >>> import et_dot
       >>> f90 = et_dot.my_F90_module

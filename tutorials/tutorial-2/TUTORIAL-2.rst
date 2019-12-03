@@ -28,28 +28,32 @@ is a bit of a challenge, especially in the case of C++.
 Micc_ automates the task of generating the binary extensions from source code in Fortran and
 C++. It is as simple as this:
 
-Add a som binary extension module: to your project::
+Add a som binary extension module: to your project:
 
-    > micc add foo --f2py   # add a binary extension written in Fortran
-    > micc add bar --cpp    # add a binary extension written in C++
+.. code-block:: bash
 
-You put your own code in the source code files and execute ::
+   > micc add foo --f2py   # add a binary extension written in Fortran
+   > micc add bar --cpp    # add a binary extension written in C++
 
-    (.venv) > micc-build
+You put your own code in the source code files and execute :
+
+.. code-block:: bash
+
+   (.venv) > micc-build
 
 Mind that the virtual environment must be activated to execute the ``micc-build``
 (see `1.1.3 Virtual environments`_).
 Now you can import modules :py:mod:`foo` and :py:mod:`bar` in your project and use
 their subroutines and functions.
 
-2.1 Binary extensions in Micc_ projects
+2.0 Binary extensions in Micc_ projects
 ---------------------------------------
 Micc_ provides boilerplate code for binary extensions as well as some practical wrappers
 around top-notch tools for building binary extensions from Fortran and C++. Fortran code 
 is compiled into a Python module using `f2py <https://docs.scipy.org/doc/numpy/f2py/>`_ 
 (which comes with Numpy_). For C++ we use Pybind11_ and CMake_.
 
-2.1.1 Choosing between Fortran and C++ for binary extension modules
+2.0.1 Choosing between Fortran and C++ for binary extension modules
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Here are a number of arguments that you may wish to take into account for choosing the
 programming language for your binary extension modules:  
@@ -73,7 +77,7 @@ programming language for your binary extension modules:
   
 In short, C++ provides much more possibilities, but it is not for the novice.   
  
-2.1.2 Converting a module structure to a package structure
+2.0.2 Converting a module structure to a package structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Module structure projects are meant for small projects consisting of a single
 module file, here :file:`et_dot.py` in the project directory. For more involved 
@@ -93,7 +97,7 @@ extension module to it.
    
    > micc convert-to-package
    Converting simple Python project ET-dot to general Python project.
-   [WARNING]        Pre-existing files in /Users/etijskens/software/dev/workspace that would be overwrtitten:
+   [WARNING]        Pre-existing files in /Users/etijskens/software/dev/workspace that would be overwritten:
    [WARNING]          /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
       Aborting because 'overwrite==False'.
         Rerun the command with the '--backup' flag to first backup these files (*.bak).
@@ -120,4 +124,4 @@ way he can inspect the original file and transfer his changes to the new file.
    [WARNING]        '--overwrite' specified: pre-existing files in /Users/etijskens/software/dev/workspace will be overwritten WITHOUT backup:
    [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
    
- 
+_

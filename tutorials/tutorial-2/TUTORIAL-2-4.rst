@@ -112,3 +112,4 @@ later build as:
   
    > micc build --load build[.json]
 
+2.4.6 Installing packages with and building installed
