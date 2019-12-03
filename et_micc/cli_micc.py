@@ -315,7 +315,7 @@ def tag(ctx):
              , help="Add a cpp binary extionsion module (C++)."
              )
 @click.option('--auto-build'
-             , default=True, is_flag=True
+             , default=False, is_flag=True
              , help="Inserts auto-build code in this package __init__'py."
              )
 @click.option('-T', '--templates', default='', help=__template_help)
@@ -329,7 +329,7 @@ def tag(ctx):
              )
 @click.argument('name',type=str)
 @click.pass_context
-def add(ctx,
+def add( ctx
        , name
        , app, group
        , py, package
@@ -374,7 +374,7 @@ def add(ctx,
     options.overwrite = overwrite
     options.backup = backup
     options.auto_build = auto_build
-        
+
     with et_micc.logger.logtime(options):
         project = Project(options)            
         project.add_cmd()

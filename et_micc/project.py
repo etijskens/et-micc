@@ -601,18 +601,21 @@ class Project:
 
     def add_auto_build_code(self):
         """Add auto build code for binary extension modules in :file:`__init__.py` of the package."""
+        module_name = self.options.add_name
         text_to_insert = [
+            "",
             "try:",
-            f"    import {self.package_name}.{self.module_name}",
+           f"    import {self.package_name}.{module_name}",
             "except ModuleNotFoundError as e:",
+            "    # Try to build this binary extension:"
             "    from pathlib import Path",
             "    import click",
-            "    from et_micc_build.cli_micc_build import auto_build_binary_extension:",
-            F"    msg = auto_build_binary_extension(Path(__file__).parent, '{self.module_name}')",
+            "    from et_micc_build.cli_micc_build import auto_build_binary_extension",
+           f"    msg = auto_build_binary_extension(Path(__file__).parent, '{module_name}')",
             "    if not msg:",
-            f"        import {self.package_name}.{self.module_name}",
+           f"        import {self.package_name}.{module_name}",
             "    else:",
-            f"        click,secho(msg, fg='bright_red')",
+           f"        click.secho(msg, fg='bright_red')",
         ]
         et_micc.utils.insert_in_file(
             self.project_path / self.package_name / "__init__.py",
@@ -750,7 +753,7 @@ class Project:
                 if et_micc.utils.validate_intersection(intersection):
                     range = intersection
                 else:
-                    range = most_recent(version_constraint, tool_poetry_dependencies[pkg])
+                    range = et_micc.utils.most_recent(version_constraint, tool_poetry_dependencies[pkg])
                 tool_poetry_dependencies[pkg] = et_micc.utils.version_constraint(range)
                 modified = True
             else:
