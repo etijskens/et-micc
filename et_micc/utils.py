@@ -304,7 +304,8 @@ def insert_in_file(file, lines=[], before=False, startswith=None):
         a newline, it is added.
     :param bool before: insert before or after a reference line.
     :param str startswith: find the reference line as the first line that
-        starts with <startswith>.
+        starts with <startswith>. If no such line is found the text is inserted
+        at the end.
     """
     if lines:
         with file.open() as f:

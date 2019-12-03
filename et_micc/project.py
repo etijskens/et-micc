@@ -595,8 +595,31 @@ class Project:
                 # docs
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
-        
-        
+
+        if self.options.auto_build:
+            self.add_auto_build_code()
+
+    def add_auto_build_code(self):
+        """Add auto build code for binary extension modules in :file:`__init__.py` of the package."""
+        text_to_insert = [
+            "try:",
+            f"    import {self.package_name}.{self.module_name}",
+            "except ModuleNotFoundError as e:",
+            "    from pathlib import Path",
+            "    import click",
+            "    from et_micc_build.cli_micc_build import auto_build_binary_extension:",
+            F"    msg = auto_build_binary_extension(Path(__file__).parent, '{self.module_name}')",
+            "    if not msg:",
+            f"        import {self.package_name}.{self.module_name}",
+            "    else:",
+            f"        click,secho(msg, fg='bright_red')",
+        ]
+        et_micc.utils.insert_in_file(
+            self.project_path / self.package_name / "__init__.py",
+            text_to_insert,
+            startswith="__version__ = ",
+        )
+
     def add_cpp_module(self):
         """Add a cpp module to this project."""
         project_path = self.project_path
@@ -640,7 +663,10 @@ class Project:
                 with open("API.rst","a") as f:
                     f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
 
-    
+        if self.options.auto_build:
+            self.add_auto_build_code()
+
+
     def app_exists(self, app_name):
         """Test if there is already an app with name ``app_name`` in this project.
         
