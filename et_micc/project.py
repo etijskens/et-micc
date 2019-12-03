@@ -164,8 +164,10 @@ class Project:
                                ]
                             )
                         et_micc.utils.execute(cmds, self.micc_logger.debug, stop_on_error=False)
-                
-
+                self.micc_logger.warning(
+                    "Run 'poetry install' in the project directory to create a virtual "
+                    "environment and install its dependencies."
+                )
     def module_to_package_cmd(self):
         """Convert a module project (:file:`module.py`) to a package project (:file:`package/__init__.py`)."""
         if self.package:
