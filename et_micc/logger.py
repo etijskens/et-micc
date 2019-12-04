@@ -11,8 +11,6 @@ from contextlib import contextmanager
 import logging 
 from datetime import datetime
 
-from et_micc.static_vars import static_vars
-
 
 def verbosity_to_loglevel(verbosity):
     """Tranlate :py:obj:`verbosity` into a loglevel.
@@ -87,8 +85,8 @@ class IndentingLogger(logging.Logger):
     
     This is the class for the et_micc logger.
     """
-    def __init__(self,name,level=logging.NOTSET):
-        super().__init__(name,level)
+    def __init__(self, name, level=logging.NOTSET):
+        super().__init__(name, level)
         self._indent = ''
         self._stack = []
         
@@ -124,7 +122,6 @@ class IndentingLogger(logging.Logger):
             self._indent = self._indent[0:length]
 
 
-# @static_vars(base_indent=8)
 def create_logger(path_to_log_file,filemode='a'):
     """Create a logger object for et_micc.
     

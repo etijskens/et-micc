@@ -203,7 +203,6 @@ class Project:
                 
     def info_cmd(self):
         """Output info on the project."""
-        
         if self.options.verbosity>=0:
             self.options.verbosity = 10
     
