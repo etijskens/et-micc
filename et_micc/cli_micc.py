@@ -284,6 +284,12 @@ def version( ctx, major, minor, patch, rule, tag, short, dry_run):
 @click.pass_context
 def tag(ctx):
     """Create a git tag for the current version and push it to the remote repo."""
+    options = ctx.obj
+    project = Project(options)
+    project.tag_cmd()
+
+    if project.exit_code:
+        ctx.exit(project.exit_code)
 
 
 @main.command()
