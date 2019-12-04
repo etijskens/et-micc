@@ -249,10 +249,10 @@ class Project:
                         fg = 'blue'
                     elif f.name.startswith('cpp_'):
                         kind = "C++ module  "
-                        extra = f"{os.sep}{f.name.split('_',1)[1]}.cpp"
+                        extra = f"{os.sep}{f.name.split('_', 1)[1]}.cpp"
                     elif f.name.startswith('f2py_'):
                         kind = "f2py module "
-                        extra = f"{os.sep}{f.name.split('_',1)[1]}.f90"
+                        extra = f"{os.sep}{f.name.split('_', 1)[1]}.f90"
                     elif f.name=='__init__.py':
                         kind = "package     "
                     else:
@@ -276,7 +276,7 @@ class Project:
                 print(self.version)
             else:
                 click.echo( "Project " + click.style(f"({self.project_name}) ", fg='cyan')
-                          + "version " + click.style(f"({self.version})"     , fg='cyan')
+                          + "version " + click.style(f"({self.version     }) ", fg='cyan')
                           )  
         else:
             r = f"--{self.options.rule}"
@@ -323,31 +323,30 @@ class Project:
         """Create and push a version tag ``v<Major>.<minor>.<patch>`` for the current version."""
         tag = f"v{self.version}"
     
-        micc_logger = et_micc.logger.get_micc_logger(self.options)
         with et_micc.utils.in_directory(self.project_path):
-            micc_logger.info(f"Creating git tag {tag} for project {self.project_name}")
+            self.logger.info(f"Creating git tag {tag} for project {self.project_name}")
             cmd = ['git', 'tag', '-a', tag, '-m', f'"tag version {self.version}"']
-            micc_logger.debug(f"Running '{' '.join(cmd)}'")
+            self.logger.debug(f"Running '{' '.join(cmd)}'")
             completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            micc_logger.debug(completed_process.stdout.decode('utf-8'))
+            self.logger.debug(completed_process.stdout.decode('utf-8'))
             if completed_process.stderr:
-                micc_logger.critical(completed_process.stderr.decode('utf-8'))
+                self.logger.critical(completed_process.stderr.decode('utf-8'))
     
-            micc_logger.debug(f"Pushing tag {tag} for project {self.project_name}")
+            self.logger.debug(f"Pushing tag {tag} for project {self.project_name}")
             cmd = ['git', 'push', 'origin', tag]
-            micc_logger.debug(f"Running '{' '.join(cmd)}'")
+            self.logger.debug(f"Running '{' '.join(cmd)}'")
             completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             if completed_process.returncode==0:
                 if completed_process.stdout:
-                    micc_logger.debug(completed_process.stdout.decode('utf-8'))
+                    self.logger.debug(completed_process.stdout.decode('utf-8'))
             else:
                 if completed_process.stdout:
-                    micc_logger.warning(completed_process.stdout.decode('utf-8'))
+                    self.logger.warning(completed_process.stdout.decode('utf-8'))
                 if completed_process.stderr:
-                    micc_logger.warning(completed_process.stderr.decode('utf-8'))
-                micc_logger.warning(f"Failed '{' '.join(cmd)}'\nRerun the command later (you must be online).")
+                    self.logger.warning(completed_process.stderr.decode('utf-8'))
+                self.logger.warning(f"Failed '{' '.join(cmd)}'\nRerun the command later (you must be online).")
                 
-        micc_logger.info('Done.')
+        self.logger.info('Done.')
 
 
     def add_cmd(self):
@@ -454,8 +453,7 @@ class Project:
         cli_app_name = 'cli_' + et_micc.utils.pep8_module_name(app_name)
         w = 'with' if self.options.group else 'without' 
         
-        micc_logger = et_micc.logger.get_micc_logger(self.options)
-        with et_micc.logger.log(micc_logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
+        with et_micc.logger.log(self.logger.info, f"Adding CLI {app_name} {w} sub-commands to project {project_path.name}."):
             self.options.template_parameters.update(
                 {'app_name': app_name, 'cli_app_name' : cli_app_name}
             )
@@ -470,8 +468,8 @@ class Project:
             package_name = self.options.template_parameters['package_name']
             src_file = os.path.join(project_path.name, package_name, f"cli_{app_name}.py")
             tst_file = os.path.join(project_path.name, 'tests', f"test_cli_{app_name}.py")
-            micc_logger.info(f"- Python source file {src_file}.")
-            micc_logger.info(f"- Python test code   {tst_file}.")
+            self.logger.info(f"- Python source file {src_file}.")
+            self.logger.info(f"- Python test code   {tst_file}.")
             
             with et_micc.utils.in_directory(project_path):            
                 # docs 

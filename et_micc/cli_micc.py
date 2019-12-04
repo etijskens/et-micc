@@ -4,7 +4,7 @@
 Application micc
 """
 
-import os,sys
+import os, sys
 from types import SimpleNamespace
 from pathlib import Path
 
@@ -13,7 +13,7 @@ import click
 from et_micc.project import Project, micc_version
 import et_micc.logger
 
-__template_help  =  "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
+__template_help = "Ordered list of Cookiecutter templates, or a single Cookiecutter template."
 
 
 @click.group()
@@ -149,9 +149,7 @@ def create( ctx
                                        ,'open_source_license'       : license_
                                        }
                                       ) 
-#     with et_micc.logger.logtime(ctx.obj):
     project = Project(options)
-    
     if project.exit_code:
         ctx.exit(project.exit_code)
     
@@ -343,7 +341,7 @@ def add( ctx
     """Add a module or CLI to the projcect.
     
     :param str name: name of the CLI or module added.
-    
+
     If ``app==True``: (add CLI application)
     
     * :py:obj:`app_name` is also the name of the executable when the package is installed.
