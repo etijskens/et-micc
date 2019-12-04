@@ -181,11 +181,11 @@ def convert_to_package(ctx, overwrite, backup):
     options = ctx.obj
     options.overwrite = overwrite
     options.backup    = backup
-    
+
+    project = Project(options)
     with et_micc.logger.logtime(options):
-        project = Project(options)
         project.module_to_package_cmd()
-        
+
         if project.exit_code==et_micc.expand.EXIT_OVERWRITE:
             et_micc.logger.get_micc_logger(ctx.obj).warning(
                 f"It is normally ok to overwrite 'index.rst' as you are not supposed\n"
@@ -212,10 +212,9 @@ def info(ctx):
     Use verbosity to produce more detailed info.
     """ 
     options = ctx.obj   
+    project = Project(options)
     with et_micc.logger.logtime(options):
-        project = Project(options)
-        if not project.exit_code:
-            project.info_cmd()
+        project.info_cmd()
 
     if project.exit_code:
         ctx.exit(project.exit_code)
@@ -270,8 +269,8 @@ def version( ctx, major, minor, patch, rule, tag, short, dry_run):
     options.short = short
     options.dry_run = dry_run
         
-    with et_micc.logger.logtime(ctx.obj):
-        project = Project(options)
+    project = Project(options)
+    with et_micc.logger.logtime(project):
         project.version_cmd()
         if project.exit_code==0 and tag:
             project.tag_cmd()
@@ -363,7 +362,7 @@ def add( ctx
     
     * C++ source     in :file:`cpp_<name>/<name>.cpp` for cpp binary extension modules.
     """
-    options = ctx.obj    
+    options = ctx.obj
     options.add_name = name
     options.app = app
     options.group = group
@@ -375,11 +374,11 @@ def add( ctx
     options.overwrite = overwrite
     options.backup = backup
 
+    project = Project(options)
     with et_micc.logger.logtime(options):
-        project = Project(options)            
         project.add_cmd()
-      
-    if project.exit_code: 
+
+    if project.exit_code:
         ctx.exit(project.exit_code)
 
     
@@ -407,11 +406,11 @@ def docs(ctx,html,pdf,open):
     options.pdf  = pdf
     options.open = open
 
+    project = Project(options)
     with et_micc.logger.logtime(options):
-        project = Project(options)            
         project.docs_cmd()
-      
-    if project.exit_code: 
+
+    if project.exit_code:
         ctx.exit(project.exit_code)
     
     

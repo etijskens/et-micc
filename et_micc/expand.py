@@ -134,7 +134,7 @@ def expand_templates(options):
     project_path = options.project_path
     project_path.mkdir(parents=True, exist_ok=True)
     output_dir = project_path.parent
-    micc_logger = et_micc.logger.get_micc_logger()
+    micc_logger = options.logger
 
     # list existing files that would be overwritten if options.overwrite==True
     existing_files = {}

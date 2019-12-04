@@ -38,6 +38,7 @@ class Project:
     """
     def __init__(self,options):
         self.exit_code = 0
+        self.logger = None
         self.options = options
         project_path = options.project_path
         
@@ -57,7 +58,7 @@ class Project:
         
         if et_micc.utils.is_project_directory(project_path,self):
             # existing project
-            self.micc_logger = et_micc.logger.get_micc_logger(self.options)
+            self.get_logger()
             self.version = self.pyproject_toml['tool']['poetry']['version']
         else:
             # not a project directory or not a directory at all
@@ -116,7 +117,7 @@ class Project:
             relative_project_path = self.project_path.relative_to(Path.cwd())
         except ValueError:
             # project_path was specified relative to cwd using ../
-            # use full path instead.
+            # use full path instead of relative path
             relative_project_path = self.project_path
             
         if self.options.structure=='module':
@@ -127,12 +128,12 @@ class Project:
             structure = ''
         
         self.options.verbosity = max(1,self.options.verbosity)
-        self.micc_logger = et_micc.logger.get_micc_logger(self.options)
-        with et_micc.logger.logtime():
-            with et_micc.logger.log( self.micc_logger.info
+        self.get_logger()
+        with et_micc.logger.logtime(self):
+            with et_micc.logger.log( self.logger.info
                           , f"Creating project ({self.project_name}):"
                           ):
-                self.micc_logger.info(f"Python {self.options.structure} ({self.package_name}): structure = {structure}")
+                self.logger.info(f"Python {self.options.structure} ({self.package_name}): structure = {structure}")
                 template_parameters = { 'project_name' : self.project_name
                                       , 'package_name' : self.package_name
                                       }
@@ -142,15 +143,15 @@ class Project:
              
                 self.exit_code = et_micc.expand.expand_templates(self.options)                
                 if self.exit_code:
-                    self.micc_logger.critical(f"Exiting ({self.exit_code}) ...")
+                    self.logger.critical(f"Exiting ({self.exit_code}) ...")
                     return
                 
                 my_micc_file = self.project_path / 'micc.json'
                 with my_micc_file.open('w') as f:
                     json.dump(template_parameters,f)
-                    self.micc_logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
+                    self.logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
             
-                with et_micc.logger.log(self.micc_logger.info,"Creating git repository"):
+                with et_micc.logger.log(self.logger.info,"Creating git repository"):
                     with et_micc.utils.in_directory(self.project_path):
                         cmds = [ ['git', 'init']
                                , ['git', 'add', '*']
@@ -163,8 +164,8 @@ class Project:
                                , ['git', 'push', '-u', 'origin', 'master']
                                ]
                             )
-                        et_micc.utils.execute(cmds, self.micc_logger.debug, stop_on_error=False)
-                self.micc_logger.warning(
+                        et_micc.utils.execute(cmds, self.logger.debug, stop_on_error=False)
+                self.logger.warning(
                     "Run 'poetry install' in the project directory to create a virtual "
                     "environment and install its dependencies."
                 )
@@ -176,7 +177,7 @@ class Project:
             self.warning(f"Project ({self.project_name}) is already a package ({self.package}).")
             return
         
-        self.micc_logger.info(
+        self.logger.info(
             f"Converting Python module project {self.project_name} to Python package project."
         )
 
@@ -187,7 +188,7 @@ class Project:
         )
         self.exit_code = et_micc.expand.expand_templates(self.options)
         if self.exit_code:
-            self.micc_logger.critical(
+            self.logger.critical(
                 f"Expand failed during Project.module_to_package_cmd for project ({self.project_name})."
             )
             return
@@ -275,7 +276,7 @@ class Project:
             if self.options.short:
                 print(self.version)
             else:
-                click.echo( "Project " + click.style(f"({self.project_name} ", fg='cyan')
+                click.echo( "Project " + click.style(f"({self.project_name}) ", fg='cyan')
                           + "version " + click.style(f"({self.version})"     , fg='cyan')
                           )  
         else:
@@ -310,7 +311,7 @@ class Project:
                         p = self.project_path / self.package
                         et_micc.utils.replace_in_file(p, look_for, replace_with)
                 
-                self.micc_logger.info(f"({self.project_name})> micc version ({current_semver}) -> ({new_semver})")
+                self.logger.info(f"({self.project_name})> micc version ({current_semver}) -> ({new_semver})")
             else:
                 click.echo(f"({self.project_name})> micc version {r} --dry-run : "
                           + click.style(f"({current_semver} ", fg='cyan') + "-> "
@@ -462,7 +463,7 @@ class Project:
          
             self.exit_code = et_micc.expand.expand_templates(self.options)
             if self.exit_code:
-                self.micc_logger.critical(
+                self.logger.critical(
                     f"Expand failed during Project.add_app for project ({self.project_name})."
                 )
                 return
@@ -527,14 +528,14 @@ class Project:
             
         source_file = f"{module_name}.py" if self.options.structure=='module' else f"{module_name}{os.sep}__init__.py"
         
-        with et_micc.logger.log(self.micc_logger.info,
+        with et_micc.logger.log(self.logger.info,
                 f"Adding python module {source_file} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
          
             self.exit_code = et_micc.expand.expand_templates(self.options)
             if self.exit_code:
-                self.micc_logger.critical(
+                self.logger.critical(
                     f"Expand failed during Project.add_python_module for project ({self.project_name})."
                 )
                 return
@@ -547,8 +548,8 @@ class Project:
             src_file = os.path.join( project_path.name, package_name, source_file )
             tst_file = os.path.join( project_path.name, 'tests', 'test_' + module_name + '.py' )
                 
-            self.micc_logger.info(f"- python source in    {src_file}.")
-            self.micc_logger.info(f"- Python test code in {tst_file}.")
+            self.logger.info(f"- python source in    {src_file}.")
+            self.logger.info(f"- Python test code in {tst_file}.")
             
             with et_micc.utils.in_directory(project_path):    
                 # docs
@@ -563,14 +564,14 @@ class Project:
         project_path = self.project_path
         module_name = self.options.add_name
         
-        with et_micc.logger.log(self.micc_logger.info, 
+        with et_micc.logger.log(self.logger.info, 
                 f"Adding f2py module {module_name} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
     
             self.exit_code = et_micc.expand.expand_templates(self.options)
             if self.exit_code:
-                self.micc_logger.critical(
+                self.logger.critical(
                     f"Expand failed during Project.add_f2py_module for project ({self.project_name})."
                 )
              
@@ -590,9 +591,9 @@ class Project:
                                    , 'f2py_' + module_name
                                    ,           module_name + '.rst'
                                    )
-            self.micc_logger.info(f"- Fortran source in       {src_file}.")
-            self.micc_logger.info(f"- Python test code in     {tst_file}.")
-            self.micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
+            self.logger.info(f"- Fortran source in       {src_file}.")
+            self.logger.info(f"- Python test code in     {tst_file}.")
+            self.logger.info(f"- module documentation in {rst_file} (restructuredText format).")
             
             with et_micc.utils.in_directory(project_path):
                 self.add_dependencies({'et-micc-build':f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
@@ -631,14 +632,14 @@ class Project:
         project_path = self.project_path
         module_name = self.options.add_name
         
-        with et_micc.logger.log(self.micc_logger.info,
+        with et_micc.logger.log(self.logger.info,
                 f"Adding cpp module cpp_{module_name} to project {project_path.name}."
             ):
             self.options.template_parameters.update({ 'module_name' : module_name })
     
             self.exit_code = et_micc.expand.expand_templates(self.options)
             if self.exit_code:
-                self.micc_logger.critical(
+                self.logger.critical(
                     f"Expand failed during Project.add_cpp_module for project ({self.project_name})."
                 )
                 return
@@ -659,9 +660,9 @@ class Project:
                                    , 'cpp_'  + module_name
                                    ,           module_name + '.rst'
                                    )
-            self.micc_logger.info(f"- C++ source in           {src_file}.")
-            self.micc_logger.info(f"- Python test code in     {tst_file}.")
-            self.micc_logger.info(f"- module documentation in {rst_file} (restructuredText format).")
+            self.logger.info(f"- C++ source in           {src_file}.")
+            self.logger.info(f"- Python test code in     {tst_file}.")
+            self.logger.info(f"- module documentation in {rst_file} (restructuredText format).")
             
             with et_micc.utils.in_directory(project_path):
                 self.add_dependencies({'et-micc-build':f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
@@ -764,7 +765,7 @@ class Project:
                 modified = True
         if modified:
             self.pyproject_toml.save()
-            self.micc_logger.warning("Dependencies added. Run `poetry update` to update the project's virtual environment.")
+            self.logger.warning("Dependencies added. Run `poetry update` to update the project's virtual environment.")
                 
     def module_to_package(self, module_py):
         """Move file :file:`module.py` to :file:`module/__init__.py`.
@@ -783,7 +784,7 @@ class Project:
         dst = str(package / '__init__.py')
         shutil.move(src, dst)
     
-        et_micc.logger.log(self.micc_logger.debug, 
+        et_micc.logger.log(self.logger.debug, 
             f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py."
         )
         
@@ -801,4 +802,37 @@ class Project:
             if self.options.open:
                 cmds.append(['open', str(docs / '_build' / 'latex' / (self.project_name + ".pdf"))])
         et_micc.utils.execute(cmds, logfun=print, cwd=str(docs))
+
+
+    def get_logger(self, log_file_path=None):
+        """"""
+        if self.logger:
+            return
+
+        if log_file_path:
+            log_file_name = log_file_path.name
+            log_file_dir  = log_file_path.parent
+        else:
+            log_file_name = f"{self.options.project_path.name}.micc.log"
+            log_file_dir = self.options.project_path
+            log_file_path = log_file_dir / log_file_name
+
+        if getattr(self.options, 'clear_log', False):
+            if log_file_path.exists():
+                log_file_path.unlink()
+
+        # create a new logger object that will write to the log file and to the console
+        self.logger = et_micc.logger.create_logger(log_file_path)
+
+        # set the log level from the verbosity
+        self.logger.console_handler.setLevel(et_micc.logger.verbosity_to_loglevel(self.options.verbosity))
+
+        if self.options.verbosity>2:
+            print(f"Current logfile = {log_file_path}")
+
+        if getattr(self.options, 'clear_log', False):
+            self.logger.info(f"The log file was cleared: {log_file_path}")
+            self.options.clear_log = False
+
+        self.options.logger = self.logger
 #eof
