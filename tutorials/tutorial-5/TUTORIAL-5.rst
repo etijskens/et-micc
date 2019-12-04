@@ -110,7 +110,60 @@ The auto-build above will normally use the default build options, corresponding 
 which optimizes for speed. As the :py:meth:`auto_build_binary_extension` method is called
 automatically, we have not many options to set build options. The
 :py:meth:`auto_build_binary_extension` method will look for the existence of a file
-:file:`Foo/foo/cpp_bar/build_options.json`. If it exists, it should contain a
+:file:`Foo/foo/cpp_bar/build_options.<platform>.json`, where ``<platform>`` is ``Darwin``,
+on MACOSX, ``Linux` on Linux and ``Windows`` on Windows. If it exists, it should contain a
 :py:class:`dict` with the build options to use.
 
-todo : specifications for :file:`Foo/foo/cpp_bar/build_options.json`
+.. note:: The build options files are OS specific:
+
+    * On MacOSX  : ``build_options.Darwin.json``
+    * On Linux   : ``build_options.Linux.json``
+    * On Windows : ``build_options.Windows.json``
+
+5.3.1 f2py module build option specifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+All `options available to the f2py command line application <https://docs.scipy.org/doc/numpy/f2py/usage.html#command-f2py>`_
+can be entered in the build file specification. Pure flags, like e.g. ``--noopt``, which are present
+or not, but have no value, are entered in the dictionary with value None. Below are some examples of
+much used f2py_ flags.
+
+.. code-block:: python
+
+    import json
+    from pathlib import Path
+    import platform
+
+    f2py = {
+        '--f90exec' : 'f90 compiler executable'
+        '--f90flags': 'f90 compiler flags'
+        '--opt'     : 'f90 compiler optimization flags'
+        '--arch'    : 'f90 compiler architecture specific compiler flags'
+        '--noopt'   : None # neglect '--opt' contents
+        '--noarch'  : None # neglect '--arch' contents
+        '--debug'   : None # compile with debugging information
+    }
+    module_srcdir_path = Path(project_path) / package_name / f"f2py_{module_name}"
+    with (module_srcdir_path / f"build_options.{platform.system()}.json").open('w) as f:
+        json.dump(f2py, f)
+
+.. note:: The Python dictionary ``f2py`` is written to file in ``.json``format, which is
+   human readable. You can also construct it with an editor.
+
+5.3.2 cpp module build option specifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For cpp binary extension modules the build tool is CMake_. Here, the entries of the build
+options dict consist of any CMake_ variable and its desired value.
+
+.. code-block:: python
+
+    import json
+    from pathlib import Path
+    import platform
+
+    cmake = {
+        'CMAKE_BUILD_TYPE' : 'RELEASE',
+        ...
+    }
+    module_srcdir_path = Path(project_path) / package_name / f"cpp_{module_name}"
+    with (module_srcdir_path / f"build_options.{platform.system()}.json").open('w) as f:
+        json.dump(cmake, f)
