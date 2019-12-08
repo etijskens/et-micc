@@ -1,9 +1,12 @@
 # Minimal makefile for Sphinx documentation
-#
+# This file is no longer in the micc templates.
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = python -msphinx
+# if et-micc is pipx installed:
+SPHINXBUILD   = $(HOME)/.local/pipx/venvs/et-micc/bin/python -msphinx
+# otherwise
+#SPHINXBUILD   = python -msphinx
 SPHINXPROJ    = micc
 SOURCEDIR     = .
 BUILDDIR      = _build
