@@ -16,6 +16,7 @@ from operator import xor
 
 import click
 import semantic_version
+from sphinx.cmd.build import main as sphinx_build
 
 from et_micc.tomlfile import TomlFile
 import et_micc.utils
@@ -773,7 +774,6 @@ class Project:
 
     def docs_cmd(self):
         """Build documentation."""
-        from sphinx.cmd.build import main as sphinx_build
         docs = self.project_path / 'docs'
         open_cmds = []
 
