@@ -798,7 +798,8 @@ class Project:
             cmds.append(['make', 'latexpdf'])
             if self.options.open:
                 cmds.append(['open', str(docs / '_build' / 'latex' / (self.project_name + ".pdf"))])
-        et_micc.utils.execute(cmds, logfun=print, cwd=str(docs))
+        my_env = os.environ.copy()
+        et_micc.utils.execute(cmds, logfun=print, cwd=str(docs), env=my_env)
 
 
     def get_logger(self, log_file_path=None):

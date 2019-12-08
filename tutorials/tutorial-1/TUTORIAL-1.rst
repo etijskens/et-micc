@@ -22,8 +22,13 @@ particular:
 
 * We are using `pyenv <https://github.com/pyenv/pyenv>`_ to manage different Python versions on 
   our system.
-* We use `pipx <https://github.com/pipxproject/pipx/>`_ to install applications like  Micc_ system-wide with their own 
-  virtual environment.
+* We use `pipx <https://github.com/pipxproject/pipx/>`_ to install applications like
+  Micc_ system-wide together with their own virtual environment.
+
+  .. note:: I would like to install Poetry_ also with pipx but this approach seems to make
+     ``poetry install`` ignore the Python version that is set by pyenv_. Instead, it uses the
+     Python version with which poetry was installed (that is the one of pipx).
+
 * `Poetry <https://poetry.eustace.io/docs/pyproject/>`_ is used to set up virtual environments for the projects we are working, for managing
   their dependencies and for publishing them to PyPI_. 
 * Micc_ is used to set up the project structure, as the basis of everything that will be described
@@ -34,33 +39,77 @@ particular:
   expected to change in the future at which point CMake_ will automatically be added as a dependency
   of Micc_ projects with binary extension modules compiled from C++ code.)  
 
-.. note:: 
+Pyenv workaround
+^^^^^^^^^^^^^^^^
    
-   Poetry_ is a recent tool that has not yet matured. One of the areas where it is still
-   quite rough around the edges is its treatment of pyenv_ python versions, and pyenv-virtualenv.
-   At the time of writing, poetry_ does not recognize these, but that will 
-   probably change in the future as poetry_ matures. 
+Poetry_ is a recent tool which is still undergoing a lot of changes. One of the areas where
+it is still a bit rough around the edges is its treatment of pyenv_ and pyenv-virtualenv.
+At the time of writing, poetry install does not seem to respect the settings of ``pyenv local``
+and ``pyenv global`` when poetry_ is ``pipx installed``. Fortunately, there is a workaround.
+probably change in the future as poetry_ matures.
    
-   We solve this problem by installing poetry in every pyenv Python version, e.g.
+The workaround requires installing poetry in every pyenv_ Python version. E.g. suppose we want to
+develop projects for Python 3.6.9, 3,7.5 and 3.8.0.
    
-   .. code-block:: bash
+.. code-block:: bash
+
+   > pyenv install 3.6.9
+   ...                    # all dependencies are installed
+   > pyenv local 3.6.9
+   > pip install poetry==1.0.0b8
+   >
+   > pyenv install 3.7.5
+   ...                    # all dependencies are installed
+   > pyenv local 3.7.5
+   > pip install poetry==1.0.0b8
+   >
+   > pyenv install 3.8.0
+   ...                    # all dependencies are installed
+   > pyenv local 3.8.0
+   > pip install poetry==1.0.0b8
+
+This installs poetry_ 1.0.0b8 (which is a development version) in all three Python versions.
+
+To use set up project *foo* for Python 3.8.0, we would go like this:
    
-      > pyenv install 3.8.0
-      ...
-      > pyenv global 3.8.0
-      > pip install poetry==1.0.0b5 
-      
-   This installs poetry_ in the pyenv Python version 3.8.0. This procedure must be repeated with
-   every Python version you want to use with Poetry_. E.g., if we want to use Python 3.8.0 for project
-   *foo*:
-   
-   .. code-block:: bash
-   
-      > cd path/to/foo
-      > pyenv local 3.8.0
-      
-   When you now call any poetry command in the :file:`foo` directory it will the the poetry installed
-   with Python 3.8.0. E.g., ``poetry install`` will create a virtual environment using Python 3.8.0 
-   and install the project's dependencies in that environment.
-  
+.. code-block:: bash
+
+   > micc -p path/to/foo create
+   > cd path/to/foo
+   > pyenv local 3.8.0    # make python 3.8.0 the default python for this project directory
+   > poetry install
+   ...                    # all dependencies are installed
+   > source .venv/bin/activate
+   (.venv) > python --version
+   Python 3.8.0
+
+The last command verifies that project *foo*'s virtual environment is indeed based on Python 3.8.0.
+
+If, for some reason or another, we decide later that we need 3.7.9, rather than 3.8.0, we must:
+
+* deactivate the virtual environment,
+* delete it,
+* delete poetry.lock,
+* repeat the above procedure, this time for python 3.7.9.
+
+Here is how it goes:
+
+.. code-block:: bash
+
+   (.venv) > dectivate
+   > rm -rf .venv
+   > rm poetry.lock
+   > pyenv local 3.7.9
+   > which python
+   /Users/etijskens/.pyenv/shims/python
+   > python --version
+   Python 3.7.9
+   > poetry install
+   ...                    # all dependencies are installed
+   > source .venv/bin/activate
+   (.venv) > python --version
+   Python 3.7.9
+   (.venv) > which python
+   /path/to/foo/.venv/bin/python
+
      
