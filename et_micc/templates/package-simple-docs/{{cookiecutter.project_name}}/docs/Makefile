@@ -23,13 +23,15 @@ help:
 venv:
 	@if [ "$$VIRTUAL_ENV" == "" ]; then echo "ERROR: .venv not activated: expecting '`realpath ../.venv`' to be activated."; exit 1; fi
 	@if [ "$$VIRTUAL_ENV" -ef "../.venv/" ]; then : ; else echo "ERROR: wrong .venv: expecting '`realpath ../.venv`'"; exit 1; fi
+	@echo "Virtual environment ok."
 
 # Install the necessary dependendies for documenting the project.
+# (see https://unix.stackexchange.com/questions/153763/dont-stop-makeing-if-a-command-fails-but-check-exit-status)
 deps:
-	@pip show click            >/dev/null && if [ $$? -eq 0 ]; then echo "Installed: click"           ; else pip install click           ; fi
-	@pip show sphinx-click     >/dev/null && if [ $$? -eq 0 ]; then echo "Installed: sphinx-click"    ; else pip install sphinx-click    ; fi
-	@pip show sphinx           >/dev/null && if [ $$? -eq 0 ]; then echo "Installed: sphinx"          ; else pip install sphinx          ; fi
-	@pip show sphinx-rtd-theme >/dev/null && if [ $$? -eq 0 ]; then echo "Installed: sphinx-rtd-theme"; else pip install sphinx-rtd-theme; fi
+	@pip show click            >/dev/null && echo "Already installed: click"            || pip install click
+	@pip show sphinx-click     >/dev/null && echo "Already installed: sphinx-click"     || pip install sphinx-click
+	@pip show sphinx           >/dev/null && echo "Already installed: sphinx"           || pip install sphinx
+	@pip show sphinx-rtd-theme >/dev/null && echo "Already installed: sphinx-rtd-theme" || pip install sphinx-rtd-theme
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
