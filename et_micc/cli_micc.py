@@ -383,44 +383,38 @@ def add(ctx
         ctx.exit(project.exit_code)
 
 
-@main.command()
-@click.argument(
-    'documentation_formats',
-    type=str, nargs=-1
-)
-# @click.option('-h', '--html'
-#              , default=False, is_flag=True
-#              , help="build html documentation."
-#              )
-# @click.option('-p', '--pdf'
-#              , default=False, is_flag=True
-#              , help="build pdf documentation."
-#              )
-@click.option('-o', '--open'
-    , default=False, is_flag=True
-    , help="Open documentation in your default browser or pdf viewer."
-              )
-@click.pass_context
-def docs(ctx, documentation_formats, open):
-    """Build documentation for this project.
-
-    Run ``micc docs help`` for an overview of the available documentation formats.
-
-    :param tuple_of_str documentation_formats: the documentation formats that you want to build.
-    """
-    if not documentation_formats:
-        documentation_formats = ('html',)
-
-    options = ctx.obj
-    options.documentation_formats = documentation_formats
-    options.open = open
-
-    project = Project(options)
-    with et_micc.logger.logtime(options):
-        project.docs_cmd()
-
-    if project.exit_code:
-        ctx.exit(project.exit_code)
+# removed in favor of docs/Makefile
+# see https://github.com/etijskens/et-micc/issues/24
+# @main.command()
+# @click.argument(
+#     'documentation_formats',
+#     type=str, nargs=-1
+# )
+# @click.option('-o', '--open'
+#     , default=False, is_flag=True
+#     , help="Open documentation in your default browser or pdf viewer."
+#               )
+# @click.pass_context
+# def docs(ctx, documentation_formats, open):
+#     """Build documentation for this project.
+#
+#     Run ``micc docs help`` for an overview of the available documentation formats.
+#
+#     :param tuple_of_str documentation_formats: the documentation formats that you want to build.
+#     """
+#     if not documentation_formats:
+#         documentation_formats = ('html',)
+#
+#     options = ctx.obj
+#     options.documentation_formats = documentation_formats
+#     options.open = open
+#
+#     project = Project(options)
+#     with et_micc.logger.logtime(options):
+#         project.docs_cmd()
+#
+#     if project.exit_code:
+#         ctx.exit(project.exit_code)
 
 
 if __name__ == "__main__":

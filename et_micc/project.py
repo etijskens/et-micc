@@ -772,23 +772,25 @@ class Project:
                            f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py."
                            )
 
-    def docs_cmd(self):
-        """Build documentation."""
-        docs = self.project_path / 'docs'
-        open_cmds = []
-
-        for format_ in self.options.documentation_formats:
-            args = ['-M', format_, str(docs), str(docs / '_build')]
-            self.exit_code = sphinx_build(args)
-            if self.options.open:
-                if format_ == 'html':
-                    open_cmds.append(['open', str(docs / '_build' / 'html' / 'index.html')])
-                elif format_ == 'latexpdf':
-                    open_cmds.append(['open', str(docs / '_build' / 'latex' / (self.project_name + ".pdf"))])
-
-        if open_cmds:
-            my_env = os.environ.copy()
-            et_micc.utils.execute(open_cmds, logfun=print, cwd=str(docs), env=my_env)
+    # removed in favor of docs/Makefile
+    # see https://github.com/etijskens/et-micc/issues/24
+    # def docs_cmd(self):
+    #     """Build documentation."""
+    #     docs = self.project_path / 'docs'
+    #     open_cmds = []
+    #
+    #     for format_ in self.options.documentation_formats:
+    #         args = ['-M', format_, str(docs), str(docs / '_build')]
+    #         self.exit_code = sphinx_build(args)
+    #         if self.options.open:
+    #             if format_ == 'html':
+    #                 open_cmds.append(['open', str(docs / '_build' / 'html' / 'index.html')])
+    #             elif format_ == 'latexpdf':
+    #                 open_cmds.append(['open', str(docs / '_build' / 'latex' / (self.project_name + ".pdf"))])
+    #
+    #     if open_cmds:
+    #         my_env = os.environ.copy()
+    #         et_micc.utils.execute(open_cmds, logfun=print, cwd=str(docs), env=my_env)
 
     def get_logger(self, log_file_path=None):
         """"""

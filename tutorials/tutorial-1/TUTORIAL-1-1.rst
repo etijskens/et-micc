@@ -481,49 +481,150 @@ expected. Thus, to debug a failing test, you assign its name to the
 
 1.1.7 Generating documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-You can generate (using `sphinx <http://www.sphinx-doc.org/en/master/>`_)
-the documentation for the project like this:
+Documentation is extracted from the source code using `Sphinx <http://www.sphinx-doc.org/en/master/>`_.
+It is almost completely generated automatically from the doc-strings in your code. Doc-strings are the
+text between triple double quote pairs in the examples above, e.g. ``"""This is a doc-string."""``.
+Important doc-strings are:
+
+* *module* doc-strings: at the beginning of the module. Provides an overview of what the
+  module is for.
+* *class* doc-strings: right after the ``class`` statement: explains what the class is for.
+  (Usually, the doc-string of the __init__ method is put here as well, as dunder methods
+  (starting and ending with a double underscore) are not automatically considered by sphinx_.
+
+* *method* doc-strings: right after a ``def`` statement.
+
+According to `pep-0287 <https://www.python.org/dev/peps/pep-0287/>`_ the recommended format for
+Python doc-strings is `restructuredText <http://docutils.sourceforge.net/rst.html>`_. E.g. a
+typical method doc-string looks like this:
+
+  .. code-block:: python
+
+     def hello_world(who='world'):
+         """Short (one line) description of the hello_world method.
+
+         A detailed and longer description of the hello_world method.
+         blablabla...
+
+         :param str who: an explanation of the who parameter. You should
+             mention its default value.
+         :returns: a description of what hello_world returns (if relevant).
+         :raises: which exceptions are raised under what conditions.
+         """
+
+Here, you can find some more `examples <http://queirozf.com/entries/python-docstrings-reference-examples>`_.
+
+Thus, if you take good care writing doc-strings, helpfule documentation follows automatically.
+
+Micc sets up al the necessary components for documentation generation in sub-directory
+:file:`et-dot/docs/`. There, you find a :file:`Makefile` that provides a simple interface
+to Sphinx_. Here is the workflow that is necessary to build the documentation:
 
 .. code-block:: bash
 
-   > cd path/to/project_directory
-   > micc docs --html --open
-   
-This will generate html documentation in :file:`docs/_build/html/index.html`
- and open it in your default browser (because of the ``--open`` option). It 
- will look like this:
+      > cd path/to/et-dot
+      > source .venv/bin/activate
+      (.venv) > cd docs
+      (.venv) > make <documentation_format>
 
-.. image:: ../tutorials/tutorial-1/im1.png
+Let's explain the steps
 
-If your expand the **API** tab on the left, you get to see the :py:mod:`et_dot`
-module documentation, as it generated from the doc-strings:
 
-.. image:: ../tutorials/tutorial-1/im2.png
+#. ``cd`` into the project directory::
 
-A pdf can be generated as:
+      > cd path/to/et-dot
+      >
 
-.. code-block:: bash
+#. Activate the project's virtual environment::
 
-   > micc docs --pdf -o
+      > source .venv/bin/activate
+      (.venv) >
 
-This will generate a pdf and open it in your default pdf viewer (because of the
-``-o`` option, which is short for ``--open``). You will find the result in 
-:file:`docs/_build/latex/ET-dot.pdf`. 
+#. ``cd`` into the docs subdirectory::
 
-Documentation is almost completely generated automatically from the doc-strings
-in your code using sphinx_. Doc-strings are the text between triple double quote 
-pairs in the examples above, e.g. ``"""This is a doc-string."""``. Important 
-doc-strings are
+      (.venv) > cd docs
+      (.venv) >
 
-* *module* doc-strings: at the beginning of the module
-* *class* doc-strings: right after the ``class`` statement
-* *method* doc-strings: right after a ``def`` statemen
+   Here, you will find the :file:`Makefile` that does the work::
 
-Thus, if you take good care writing doc-strings, the documentation follows. 
+      (.venv) > ls -l
+      total 80
+      -rw-r--r--  1 etijskens  staff  1871 Dec 10 11:24 Makefile
+      ...
 
-The boilerplate code for documentation is in the ``docs`` directory. Touching 
+To see a list of possible documentation formats, just run ``make`` without arguments::
+
+      (.venv) > make
+      Sphinx v2.2.2
+      Please use `make target' where target is one of
+        html        to make standalone HTML files
+        dirhtml     to make HTML files named index.html in directories
+        singlehtml  to make a single large HTML file
+        pickle      to make pickle files
+        json        to make JSON files
+        htmlhelp    to make HTML files and an HTML help project
+        qthelp      to make HTML files and a qthelp project
+        devhelp     to make HTML files and a Devhelp project
+        epub        to make an epub
+        latex       to make LaTeX files, you can set PAPER=a4 or PAPER=letter
+        latexpdf    to make LaTeX and PDF files (default pdflatex)
+        latexpdfja  to make LaTeX files and run them through platex/dvipdfmx
+        text        to make text files
+        man         to make manual pages
+        texinfo     to make Texinfo files
+        info        to make Texinfo files and run them through makeinfo
+        gettext     to make PO message catalogs
+        changes     to make an overview of all changed/added/deprecated items
+        xml         to make Docutils-native XML files
+        pseudoxml   to make pseudoxml-XML files for display purposes
+        linkcheck   to check all external links for integrity
+        doctest     to run all doctests embedded in the documentation (if enabled)
+        coverage    to run coverage check of the documentation (if enabled)
+      (.venv) >
+
+#. To build documentation in html format, enter::
+
+      (.venv) > make html
+      ...
+      (.venv) >
+
+   This will generation documentation in :file:`et-dot/docs/_build/html`. Note that
+   **it is essential that this command executes in the project's virtual environment**.
+   You can view the documentation in your favorit browser:
+
+        (.venv) > open _build/html/index.html
+
+   Here is a screenshot:
+
+   .. image:: ../tutorials/tutorial-1/im1.png
+
+   If your expand the **API** tab on the left, you get to see the :py:mod:`et_dot`
+   module documentation, as it generated from the doc-strings:
+
+   .. image:: ../tutorials/tutorial-1/im2.png
+
+#. To build documentation in .pdf format, enter::
+
+      (.venv) > make latexpdf
+
+   This will generation documentation in :file:et-dot/docs/_build/latex/et-dot.pdf`. Note that
+   **it is essential that this command executes in the project's virtual environment**.
+   You can view it in your favorite pdf viewer::
+
+        (.venv) > open _build/latex/et-dot.pdf
+        (.venv) >
+
+.. note:: When building documentation by running the :file:`docs/Makefile`, it is
+   verified that the correct virtual environment is activated, and that the needed
+   Python modules are installed in that environment. If not, they are first installed
+   using `pip install`. These components are not becoming dependencies of the project.
+   If needed you can add dependencies using the ``poetry add`` command.
+
+The boilerplate code for documentation generation is in the ``docs`` directory, just as
+if it were generated by hand using ``sphinx-quickstart``. (In fact, it was generated using
+``sphinx-quickstart``, but then turned into a Cookiecutter_ template.)
 those files is not recommended, and only rarely needed. Then there are a number 
-of :file:`.rst` files with **capitalized** names in the project directory,
+of :file:`.rst` files with **capitalized** names in the **project directory**:
 
 * :file:`README.rst` is assumed to contain an overview of the project,
 * :file:`API.rst` describes the classes and methods of the project in detail,
@@ -531,9 +632,8 @@ of :file:`.rst` files with **capitalized** names in the project directory,
 * :file:`AUTHORS.rst` list the contributors to the project
 * :file:`HISTORY.rst` which should describe the changes that were made to the code.
 
-The :file:`.rst` extenstion stands for the
-`reStructuredText <https://devguide.python.org/documenting/#restructuredtext-primer>`_ 
-format. It provide a simple and concise approach to formatting. 
+The :file:`.rst` extenstion stands for reStructuredText_. It iss a simple and concise
+approach to text formatting.
 
 If you add components to your project through micc_, care is taken that the 
 :file:`.rst` files in the project directory and the :file:`docs` directory are
@@ -598,3 +698,12 @@ project, the log file will only contain the log messages from the last subcomman
    > ll micc.log
    ls: micc.log: No such file or directory
 
+1.1.11 How micc_ works
+^^^^^^^^^^^^^^^^^^^^^^
+Micc_ is based on a series of additive Cookiecutter_ templates which generate the
+boilerplate code. If you like, you can tweak these templates in the
+:file:`site-packages/et_micc/templates` directory of your micc_ installation. When you
+``pipx`` installed micc_, that is typically something like
+:file:`~/.local/pipx/venvs/et-micc/lib/pythonX.Y/site-packages/et_micc`,
+:file`pythonX.Y` being the python version you installed micc_ with. When you
+installed micc_ in.
