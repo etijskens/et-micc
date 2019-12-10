@@ -17,7 +17,7 @@ BUILDDIR      = _build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help Makefile deps
+.PHONY: help Makefile deps venv
 
 # Verify that the right virtual environment is activated
 venv:
