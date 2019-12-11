@@ -184,6 +184,9 @@ def convert_to_package(ctx, overwrite, backup):
     options.backup = backup
 
     project = Project(options)
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
     with et_micc.logger.logtime(options):
         project.module_to_package_cmd()
 
@@ -213,7 +216,11 @@ def info(ctx):
     Use verbosity to produce more detailed info.
     """
     options = ctx.obj
+
     project = Project(options)
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
     with et_micc.logger.logtime(options):
         project.info_cmd()
 
@@ -271,6 +278,9 @@ def version(ctx, major, minor, patch, rule, tag, short, dry_run):
     options.dry_run = dry_run
 
     project = Project(options)
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
     with et_micc.logger.logtime(project):
         project.version_cmd()
         if project.exit_code == 0 and tag:
@@ -285,7 +295,14 @@ def version(ctx, major, minor, patch, rule, tag, short, dry_run):
 def tag(ctx):
     """Create a git tag for the current version and push it to the remote repo."""
     options = ctx.obj
+
     project = Project(options)
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
     project.tag_cmd()
 
     if project.exit_code:
@@ -376,6 +393,9 @@ def add(ctx
     options.backup = backup
 
     project = Project(options)
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
     with et_micc.logger.logtime(options):
         project.add_cmd()
 
