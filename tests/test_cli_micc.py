@@ -14,7 +14,7 @@ from types import SimpleNamespace
 #===============================================================================
 from click.testing import CliRunner
 
-import et_micc.logging_
+import et_micc.logger
 from tests.helpers import in_empty_tmp_dir, report, get_version
 from et_micc import cli_micc
 

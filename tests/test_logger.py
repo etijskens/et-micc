@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Tests for et_micc package."""
+"""Tests for et_micc.logger module."""
 
 from pathlib import Path
 import types
 
+import et_micc.project
 import et_micc.utils
-import et_micc.logging_
+import et_micc.logger
 
 def test_log():
-    with et_micc.logging_.log():
+    with et_micc.logger.log():
         print('test_log without logfun')
         
     logfile = et_micc.utils.get_project_path('.') / 'et_micc.log'
@@ -18,17 +19,17 @@ def test_log():
         logfile.unlink()
     assert not logfile.exists()
 
-    global_options = types.SimpleNamespace(verbosity=3
-                                          ,project_path=Path('.').resolve()
+    options = types.SimpleNamespace(verbosity=3
+                                          ,project_path=Path().resolve()
                                           ,clear_log=False
                                           )
-    micc_logger = et_micc.logging_.get_micc_logger(global_options)
+    project = et_micc.project.Project(options)
 
-    with et_micc.logging_.logtime():
-        with et_micc.logging_.log(micc_logger.info):
-            micc_logger.info('test_log with a logfun')
-            micc_logger.debug('debug message\nwith 2 lines')
-
+    with et_micc.logger.logtime(project):
+        with et_micc.logger.log(project.logger.info):
+            project.logger.info('test_log with a logfun')
+            project.logger.debug('debug message\nwith 2 lines')
+    logfile = project.log_file
     assert logfile.exists()
     logtext = logfile.read_text()
     print(logtext)

@@ -804,6 +804,7 @@ class Project:
             log_file_name = f"{self.options.project_path.name}.micc.log"
             log_file_dir = self.options.project_path
             log_file_path = log_file_dir / log_file_name
+        self.log_file = log_file_path
 
         if getattr(self.options, 'clear_log', False):
             if log_file_path.exists():
