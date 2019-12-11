@@ -35,11 +35,11 @@ practice by a large part of the Python community.
   * Micc_ adds typically files containing example code to show you how to add your
     own functionality.
     
-* Micc_ can automatically **extract documentation** from the doc-strings of your files, 
+* You can automatically **extract documentation** from the doc-strings of your files,
   and build html documentation that you can consult in your browser, or a .pdf 
   documentation file.
 * With a little extra effort the generated html **documentation is automatically published** 
-  to `readthedocs <https://readthedocs.org>`_.
+  to `readthedocs <https://readthedocs.org>`_. [documentation lacking]
 * Micc_ helps you with **version management and control**.
 * Micc_ helps you with **testing** your code.
 * Micc_ helps you with **publishing** your code to e.g. `PyPI <https://pypi.org>`_, so
