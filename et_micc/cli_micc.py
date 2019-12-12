@@ -312,11 +312,11 @@ def tag(ctx):
 @main.command()
 @click.option('--app'
     , default=False, is_flag=True
-    , help="Add a CLI."
+    , help="Add a CLI ."
               )
 @click.option('--group'
     , default=False, is_flag=True
-    , help="Add a CLI with a group of sub-commands."
+    , help="Add a CLI with a group of sub-commands rather than a single command CLI."
               )
 @click.option('--py'
     , default=False, is_flag=True
