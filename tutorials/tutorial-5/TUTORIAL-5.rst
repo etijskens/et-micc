@@ -38,8 +38,6 @@ Now everyone can install the package in his current Python environment as::
 
    > pip install et-foo
 
-
-
 5.2 Publishing packages with binary extension modules
 -----------------------------------------------------
 Packages with binary extension modules are published in exactly the same way, that is,
@@ -146,7 +144,7 @@ much used f2py_ flags.
     with (module_srcdir_path / f"build_options.{platform.system()}.json").open('w) as f:
         json.dump(f2py, f)
 
-.. note:: The Python dictionary ``f2py`` is written to file in ``.json``format, which is
+.. note:: The Python dictionary ``f2py`` is written to file in ``.json`` format, which is
    human readable. You can also construct it with an editor.
 
 5.3.2 cpp module build option specifications
@@ -167,3 +165,16 @@ options dict consist of any CMake_ variable and its desired value.
     module_srcdir_path = Path(project_path) / package_name / f"cpp_{module_name}"
     with (module_srcdir_path / f"build_options.{platform.system()}.json").open('w) as f:
         json.dump(cmake, f)
+
+5.4 Publishing your documentation to readthedocs.org
+----------------------------------------------------
+Publishing your documentation to `Readthedocs <https://readthedocs.org>`_ relieves the users of your code from having to build
+documentation themselves. Making it happen is very easy. First, make sure the git repository of your
+code is published on Github_.Second, create a Readthedocs_ account if you do not already have one.
+Then, go to your Readthedocs_ page, go to *your projects* and hit import project. Fill in the fields
+and every time you push commits to Github_ its documentation will be rebuild automatically.
+
+.. note:: Sphinx must be able to import your project in order to extract the documentation.
+    If your codes depends on Python modules other than the standard library, this will fail and
+    the documentation will not be built. You can add the necessary dependencies to
+    :file:`<your-project>/docs/requirements.txt`.

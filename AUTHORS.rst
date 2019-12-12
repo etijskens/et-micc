@@ -1,7 +1,7 @@
 Development
 ===========
 
-Sofar, Micc_ is a on-man effort:
+Sofar, `Micc <https://github.com/etijskens/et-micc>`_ is a one-man effort:
  
 * Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>
 

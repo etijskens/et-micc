@@ -2,18 +2,9 @@
 Tutorial 1: a simple project
 ============================
 
-Let's start with a simple problem: a Python module that computes the 
-`dot product of two arrays <https://en.wikipedia.org/wiki/Dot_product>`_. 
-This not a very rewarding goal, as there are already many Python packages, 
-e.g. Numpy_, that solve this problem in an elegant and efficient way. 
 
-However, because the dot product is such a simple concept in linear algebra, 
-it allows us to illustrate the usefulness of Python as a language for High 
-Performance Computing, as well as the capabilities of 
-`micc <https://et-micc.readthedocs.io/en/latest/>`_.
-
-Development environment
------------------------
+1.0 Setting up your Development environment
+-------------------------------------------
 
 For Python development, we highly recommend to set up your development environment as described in 
 `My Python Development Environment <https://jacobian.org/2019/nov/11/python-environment-2020/>`_
@@ -37,10 +28,19 @@ particular:
   In addition `CMake <https://cmake.org>`_ must installed, either system-wide, or in the virtual environmnet of your project. 
   (Currently, Poetry_ has some issues with installing CMake_ in a cross-platform setting. That is 
   expected to change in the future at which point CMake_ will automatically be added as a dependency
-  of Micc_ projects with binary extension modules compiled from C++ code.)  
+  of Micc_ projects with binary extension modules compiled from C++ code.)
+* As an IDE for Python/Fortran/C++ development we recommend:
 
-Pyenv workaround
-^^^^^^^^^^^^^^^^
+    * `Eclipse IDE for Scientific Computing <https://www.eclipse.org/downloads/packages/release/photon/rc2/eclipse-ide-scientific-computing>`_
+       with `PyDev plugin <https://pydev.org>`_. This is an old time favorite of mine. The learning curve is
+       a bit steep because documentation is suboptimal. Pydev_ is starting to lag behind for Python, but Eclipses
+       is still very good for Fortran and C++.
+    * `PyCharm Community Edition <https://www.jetbrains.com/pycharm/download>`_. I tried this one recently
+      and was very soon convinced for python development. (Didn't go back to Eclipse once since then). I
+      currently have insufficient experience for Fortran and C++ for making recommendations.
+
+1.0.1 Pyenv workaround
+^^^^^^^^^^^^^^^^^^^^^^
    
 Poetry_ is a recent tool which is still undergoing a lot of changes. One of the areas where
 it is still a bit rough around the edges is its treatment of pyenv_ and pyenv-virtualenv.
@@ -112,4 +112,15 @@ Here is how it goes:
    (.venv) > which python
    /path/to/foo/.venv/bin/python
 
-     
+1.0.2 Poetry configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+After installing Poetry_ for all your Python versions, you must configure it:
+
+.. code-block:: bash
+
+    > poetry config virtualenvs.in-project true
+    >
+
+This ensures that running ``poetry install`` in a project directory will create a
+virtual environment in the project directory:
+

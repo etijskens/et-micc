@@ -1,8 +1,59 @@
 1.2 Your first project
 ----------------------
    
-Let's continue with the goal of our project: create a Python module that provides a 
-function to compute the dot product of two arrays.
+Let's start with a simple problem: a Python module that computes the
+`dot product of two arrays <https://en.wikipedia.org/wiki/Dot_product>`_.
+Admittedly, this not a very rewarding goal, as there are already many Python
+packages, e.g. Numpy_, that solve this problem in an elegant and efficient way.
+However, because the dot product is such a simple concept in linear algebra,
+it allows us to illustrate the usefulness of Python as a language for High
+Performance Computing, as well as the capabilities of Micc_.
+
+If you haven't carried out the steps in `1.1 Getting started with micc`_, set up a new
+project (you are of course encouraged to change the project name as to make it unique) :
+
+.. code-block:: bash
+
+    > micc -p ET-dot create --package
+    [INFO]           [ Creating project (ET-dot):
+    [INFO]               Python package (et_dot): structure = (ET-dot/et_dot/__init__.py)
+    [INFO]               [ Creating git repository
+    [WARNING]                    > git push -u origin master
+    [WARNING]                    (stderr)
+                                 remote: Repository not found.
+                                 fatal: repository 'https://github.com/etijskens/ET-dot/' not found
+    [INFO]               ] done.
+    [WARNING]            Run 'poetry install' in the project directory to create a virtual environment and install its dependencies.
+    [INFO]           ] done.
+    > cd ET-dot
+
+Next, we create a virtual environment for the project and activate it:
+
+.. code-block:: bash
+
+    > poetry install
+    Creating virtualenv et-dot in /Users/etijskens/software/dev/workspace/tmp/ET-dot/.venv
+    Updating dependencies
+    Resolving dependencies... (0.8s)
+
+    Writing lock file
+
+
+    Package operations: 10 installs, 0 updates, 0 removals
+
+      - Installing pyparsing (2.4.5)
+      - Installing six (1.13.0)
+      - Installing atomicwrites (1.3.0)
+      - Installing attrs (19.3.0)
+      - Installing more-itertools (8.0.2)
+      - Installing packaging (19.2)
+      - Installing pluggy (0.13.1)
+      - Installing py (1.8.0)
+      - Installing wcwidth (0.1.7)
+      - Installing pytest (4.6.7)
+      - Installing ET-dot (0.0.0)
+    > source .venv/bin/activate
+    (.venv) >
 
 Open module file :file:`et_dot.py` in your favourite editor and change it as follows:
 
