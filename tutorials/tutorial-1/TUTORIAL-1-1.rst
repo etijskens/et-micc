@@ -698,12 +698,13 @@ project, the log file will only contain the log messages from the last subcomman
    > ll micc.log
    ls: micc.log: No such file or directory
 
-1.1.11 How micc_ works
-^^^^^^^^^^^^^^^^^^^^^^
+1.1.11 Adjusting micc to your needs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Micc_ is based on a series of additive Cookiecutter_ templates which generate the
 boilerplate code. If you like, you can tweak these templates in the
 :file:`site-packages/et_micc/templates` directory of your micc_ installation. When you
-``pipx`` installed micc_, that is typically something like
-:file:`~/.local/pipx/venvs/et-micc/lib/pythonX.Y/site-packages/et_micc`,
-:file`pythonX.Y` being the python version you installed micc_ with. When you
-installed micc_ in.
+``pipx`` installed micc_, that is typically something like:
+
+   :file:`~/.local/pipx/venvs/et-micc/lib/pythonX.Y/site-packages/et_micc`,
+
+where :file`pythonX.Y` is the python version you installed micc_ with.
