@@ -15,12 +15,9 @@ call this module :py:mod:`dotf`, where the ``f`` stands for Fortran:
    [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
    [INFO]           ] done.
  
-Please, do mind the WARNING::
-
-   [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
-
-Micc_ is telling you that it added some dependencies to your project in order to be able to build
-the binary extension.
+Please, do mind the WARNING above. Micc_ is telling you that it added some dependencies to your project.
+In order to be able to build the binary extension these dependencies must be installed in the virtual
+environment of our project.
 `micc-build <https://github.com/etijskens/et-micc-build>`_. Micc-build_ in turns depends on  Numpy_, and
 pybind11_, which provide the glue between Fortran or C++ source code and Python modules.
 out of Micc_ to keep the number of dependencies as low as possible.
