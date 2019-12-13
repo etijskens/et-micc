@@ -6,41 +6,45 @@ Tutorial 1: a simple project
 1.0 Setting up your Development environment
 -------------------------------------------
 
+.. warning:: `Micc <https://github.com/etijskens/et-micc>`_ was designed for supporting HPC developers,
+    and, consequentially, with Linux systems in mind. We provide support for Linux (Ubuntu 19.10,
+    CentOS 7.7), and macOS. Due to lack of human resources, Windows is currently not supported.
+
 For Python development, we highly recommend to set up your development environment as described in 
 `My Python Development Environment <https://jacobian.org/2019/nov/11/python-environment-2020/>`_
 by Jacob Kaplan-Moss. We will assume that this is indeed the case for all tutorials here. In 
 particular:
 
-* We are using `pyenv <https://github.com/pyenv/pyenv>`_ to manage different Python versions on 
-  our system.
-* We use `pipx <https://github.com/pipxproject/pipx/>`_ to install applications like
-  Micc_ system-wide together with their own virtual environment.
+*   We are using `pyenv <https://github.com/pyenv/pyenv>`_ to manage different Python versions on
+    our system.
+*   We use `pipx <https://github.com/pipxproject/pipx/>`_ to install applications like Micc_ and
+    `CMake <https://cmake.org>`_ system-wide together with their own virtual environment.
 
-  .. note:: I would like to install Poetry_ also with pipx but this approach seems to make
-     ``poetry install`` ignore the Python version that is set by pyenv_. Instead, it uses the
-     Python version with which poetry was installed (that is the one of pipx).
+  .. note:: Ideally, also Poetry_ would be pipx installed, but this approach seems to make the
+     command ``poetry install`` ignore the Python version that is set by pyenv_. Instead, it uses
+     the Python version with which poetry was installed (that is the one of pipx). A workaround is
+     given below `1.0.1 Pyenv workaround for Poetry`_
 
-* `Poetry <https://poetry.eustace.io/docs/pyproject/>`_ is used to set up virtual environments for the projects we are working, for managing
-  their dependencies and for publishing them to PyPI_. 
-* Micc_ is used to set up the project structure, as the basis of everything that will be described
-  in the tutorials below.
-* For Micc_ projects with binary extension the necessary compilers must be installed on the system.
-  In addition `CMake <https://cmake.org>`_ must installed, either system-wide, or in the virtual environmnet of your project. 
-  (Currently, Poetry_ has some issues with installing CMake_ in a cross-platform setting. That is 
-  expected to change in the future at which point CMake_ will automatically be added as a dependency
-  of Micc_ projects with binary extension modules compiled from C++ code.)
-* As an IDE for Python/Fortran/C++ development we recommend:
+*   `Poetry <https://poetry.eustace.io/docs/pyproject/>`_ is used to set up virtual environments for
+    the projects we are working, for managing their dependencies and for publishing them to PyPI_.
+*   Micc_ is used to set up the project structure, as the basis of everything that will be described
+    in the tutorials below.
 
-    * `Eclipse IDE for Scientific Computing <https://www.eclipse.org/downloads/packages/release/photon/rc2/eclipse-ide-scientific-computing>`_
-       with `PyDev plugin <https://pydev.org>`_. This is an old time favorite of mine. The learning curve is
-       a bit steep because documentation is suboptimal. Pydev_ is starting to lag behind for Python, but Eclipses
-       is still very good for Fortran and C++.
-    * `PyCharm Community Edition <https://www.jetbrains.com/pycharm/download>`_. I tried this one recently
-      and was very soon convinced for python development. (Didn't go back to Eclipse once since then). I
-      currently have insufficient experience for Fortran and C++ for making recommendations.
+*   For Micc_ projects with binary extension the necessary compilers must be installed on the system.
 
-1.0.1 Pyenv workaround
-^^^^^^^^^^^^^^^^^^^^^^
+*   As an IDE for Python/Fortran/C++ development we recommend:
+
+    *   `Eclipse IDE for Scientific Computing <https://www.eclipse.org/downloads/packages/release/photon/rc2/eclipse-ide-scientific-computing>`_
+        with the `PyDev <https://pydev.org>`_ plugin. This is an old time favorite of mine, although
+        The learning curve is a bit steep and documentation could be better. Today, PyDev_ is beginning
+        to lag behind for Python, but Eclipse is still very good for Fortran and C++.
+
+    *   `PyCharm Community Edition <https://www.jetbrains.com/pycharm/download>`_. I only tried this one
+        recently and was very soon convinced for python development. (Didn't go back to Eclipse once since
+        then). I currently have insufficient experience for Fortran and C++ for making recommendations.
+
+1.0.1 Pyenv workaround for Poetry
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    
 Poetry_ is a recent tool which is still undergoing a lot of changes. One of the areas where
 it is still a bit rough around the edges is its treatment of pyenv_ and pyenv-virtualenv.
@@ -112,15 +116,69 @@ Here is how it goes:
    (.venv) > which python
    /path/to/foo/.venv/bin/python
 
-1.0.2 Poetry configuration
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-After installing Poetry_ for all your Python versions, you must configure it:
+1.0.2 Setting up your Development environment - step by step
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: bash
+#.  Install pyenv: See
+    `Managing Multiple Python Versions With pyenv <https://realpython.com/intro-to-pyenv/>`_
+    for common install instructions on macos and Linux.
 
-    > poetry config virtualenvs.in-project true
-    >
+#.  Install your favourite Python versions. E.g.::
 
-This ensures that running ``poetry install`` in a project directory will create a
-virtual environment in the project directory:
+        > pyenv install 3.8.0
+
+#.  Install poetry in **all** your Python versions::
+
+        > pyenv local 3.8.0
+        > pip install poetry==1.0.0b8
+
+    (Use the most recent poetry_ version). When done, unset the local pyenv_ version::
+
+        > pyenv local --unset
+
+#. Configure poetry_ ::
+
+        > poetry config virtualenvs.in-project true
+
+    This ensures that running ``poetry install`` in a project directory will create a
+    project's virtual environment in its own root directory, rather than somewhere in
+    the Poetry_ configuration directories, where it is less accessible.
+
+#.  Install pipx::
+
+        > python -m pip install --user pipx
+        > python -m pipx ensurepath
+
+    .. note:: This will use the Python version returned by ``pyenv version``. Micc_ is
+        certainly comfortable with Python 3.7 and 3.8.
+
+#.  Install micc_ with pipx::
+
+        > pipx install et-micc
+          installed package et-micc 0.10.8, Python 3.8.0
+          These apps are now globally available
+            - micc
+        done!
+
+    .. note:: This will use the Python version with which.
+
+#.  If you want to develop binary extensions in  C++ with micc_, make sure CMake and make is installed
+    and accessible on your system. You can download it directly from `cmake.org <https://cmake.org/download/>`_.
+    Alternatively, CMake is also available as a Python Package which can be pipx installed::
+
+        > pipx install cmake
+        installed package cmake 3.15.3, Python 3.8.0
+          These apps are now globally available
+            - cmake
+            - cpack
+            - ctest
+        done!
+
+#.  To if you want to move on to a newer version of a tool that you installed with pipx_, use the ``upgrade``
+    command, e.g.::
+
+        > pipx upgrade et-micc
+        et-micc is already at latest version 0.10.8 (location: /Users/etijskens/.local/pipx/venvs/et-micc)
+
+You should be good to go now.
 

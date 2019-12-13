@@ -15,11 +15,31 @@ call this module :py:mod:`dotf`, where the ``f`` stands for Fortran:
    [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
    [INFO]           ] done.
  
+Please, do mind the WARNING::
+
+   [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
+
+Micc_ is telling you that it added some dependencies to your project in order to be able to build
+the binary extension.
+`micc-build <https://github.com/etijskens/et-micc-build>`_. Micc-build_ in turns depends on  Numpy_, and
+pybind11_, which provide the glue between Fortran or C++ source code and Python modules.
+out of Micc_ to keep the number of dependencies as low as possible.
+These tools are, however, dependencies of  `micc-build <https://github.com/etijskens/et-micc-build>`_, which on
+its turn depends on  and CMake_. To install them in your local virtual
+environment, run:
+
+.. code-block:: bash
+
+   > poetry update
+   ...
+   > source .venv/bin/activate
+   (.venv) >
+
 The output explains you where to put the Fortran source code, the test code and the documentation
 Enter this code in the Fortran source file :file:`ET-dot/et_dot/f2py_dotf/dotf.f90`
- 
+
 .. code-block:: fortran
- 
+
    function dotf(a,b,n)
      ! Compute the dot product of a and b
      !
@@ -37,23 +57,6 @@ Enter this code in the Fortran source file :file:`ET-dot/et_dot/f2py_dotf/dotf.f
            dotf = dotf + a(i) * b(i)
        end do
    end function dotf
- 
-Before you can build the module, take notes of the WARNING that was printed on adding the
-:py:mod:`dotf` module::
-
-   [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
-
-To build the binary extension, you need some tools which ar not yet in Micc_ itself. In
-particular you need `micc-build <https://github.com/etijskens/et-micc-build>`_, which on
-its turn depends on Numpy_, pybind11_ and CMake_. To install them in your local virtual
-environment, run:
-
-.. code-block:: bash
-
-   > poetry update
-   ...
-   > source .venv/bin/activate
-   (.venv) >
 
 Then build the module:
  
