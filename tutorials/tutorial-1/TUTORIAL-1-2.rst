@@ -71,7 +71,7 @@ Open module file :file:`et_dot.py` in your favourite editor and change it as fol
        """Compute the dot product of *a* and *b*.
        
        :param a: a 1D array.
-       :param b: a !D array of the same lenght as *a*.
+       :param b: a 1D array of the same length as *a*.
        :returns: the dot product of *a* and *b*.
        :raises: ArithmeticError if ``len(a)!=len(b)``.
        """
@@ -119,11 +119,13 @@ and add a new one:
 
 .. code-block:: python
 
-   def test_dot_aa():
-       a = [1,2,3]
-       expected = 14
-       result = dot(a,a)
-       assert result==expected
+    import et_dot
+
+    def test_dot_aa():
+        a = [1,2,3]
+        expected = 14
+        result = et_dot.dot(a,a)
+        assert result==expected
 
 Save the file, and run the test. Pytest_ will show a line for every test source file.
 On each such line a ``.`` will appear for every successfull test, and a ``F`` for a 
@@ -131,7 +133,7 @@ failing test.
 
 .. code-block:: bash
 
-   > pytest
+   (.venv) > pytest
    =============================== test session starts ===============================
    platform darwin -- Python 3.7.4, pytest-4.6.5, py-1.8.0, pluggy-0.13.0
    rootdir: /Users/etijskens/software/dev/workspace/ET-dot
@@ -140,28 +142,44 @@ failing test.
    tests/test_et_dot.py .                                                      [100%]
    
    ============================ 1 passed in 0.08 seconds =============================
-   >
+   (.venv) >
+
+.. note:: If the project's virtual environment is not activated, the command ``pytest``
+    will generally not be found.
+
+Great! our test succeeded. Let's increment the project's version (``-p`` is short for ``--patch``,
+and requests incrementing the patch component of the version string)::
+
+    (.venv) > micc version -p
+    [INFO]           (ET-dot)> micc version (0.0.0) -> (0.0.1)
 
 
-Great! our test succeeded. Obviously, our test tests only one particular case. 
+Obviously, our test tests only one particular case.
 A clever way of testing is to focus on properties. From mathematics we now that 
-the dot product is commutative. Let us add a test for that. 
+the dot product is commutative. Let's add a test for that.
 
 .. code-block:: python
 
-   def test_dot_commutative():
-       # create two arrays of length 10 with random float numbers: 
-       a = []
-       b = []
-       for _ in range(10):
-           a.append(random.random())
-           b.append(random.random())
-       # do the test
-       ab = dot(a,b)
-       ba = dot(b,a)
-       assert ab==ba
+    import random
 
-You can easily verify that this test works too. There is however a risk in using 
+    def test_dot_commutative():
+        # create two arrays of length 10 with random float numbers:
+        a = []
+        b = []
+        for _ in range(10):
+            a.append(random.random())
+            b.append(random.random())
+        # do the test
+        ab = et_dot.dot(a,b)
+        ba = et_dot.dot(b,a)
+        assert ab==ba
+
+You can easily verify that this test works too. We increment the version string again::
+
+    (.venv) > micc version -p
+    [INFO]           (ET-dot)> micc version (0.0.1) -> (0.0.2)
+
+There is however a risk in using
 arrays of random numbers. Maybe we were just lucky and got random numbers that satisfy
 the test by accident. Also the test is not reproducible anymore. The next time we run
 pytest_ we will get other random numbers, and may be the test will fail. That would 
@@ -187,8 +205,8 @@ reproducible. To increase coverage we put a loop around the test.
                a[i] = random.random()
                b[i] = random.random()
            # do the test
-           ab = dot(a,b)
-           ba = dot(b,a)
+           ab = et_dot.dot(a,b)
+           ba = et_dot.dot(b,a)
            assert ab==ba
            
 Again the test works. Another property of the dot product is that the dot product
@@ -210,7 +228,7 @@ with a zero vector is zero.
            for i in range(n):
                a[i] = random.random()
            # do the test
-           azero = dot(a,zero)
+           azero = et_dot.dot(a,zero)
            assert azero==0
 
 This test works too. Furthermore, the dot product with a vector of ones is the sum of
@@ -232,12 +250,11 @@ the elements of the other vector:
            for i in range(n):
                a[i] = random.random()
            # do the test
-           aone = dot(a,one)
+           aone = et_dot.dot(a,one)
            expected = sum(a)
            assert aone==expected
 
-
-Success again. We are getting quite confident in the correctness of our implementation. Here 
+Success again. We are getting quite confident in the correctness of our implementation. Here
 is another test: 
    
 .. code-block:: python
@@ -247,7 +264,7 @@ is another test:
        a   = [a1 ,1.0,-a1]
        one = [1.0,1.0,1.0]
        expected = 1.0
-       result = dot(a,one)
+       result = et_dot.dot(a,one)
        assert result==expected
 
 Clearly, it is a special case of the test above the expected result is the sum of the elements
@@ -272,7 +289,7 @@ report about the failure:
            a   = [a1 , 1.0, -a1]
            one = [1.0, 1.0, 1.0]
            expected = 1.0
-           result = dot(a,one)
+           result = et_dot.dot(a,one)
    >       assert result==expected
    E       assert 0.0 == 1.0
    
@@ -318,13 +335,15 @@ There are several lessons to be learned from this:
 So, how do we cope with the failing test? Here is a way using :py:meth:`math.isclose`:
 
 .. code-block:: python
-   
+
+   import math
+
    def test_dot_one_2():
        a1 = 1.0e16
        a   = [a1 , 1.0, -a1]
        one = [1.0, 1.0, 1.0]
        expected = 1.0
-       result = dot(a,one)
+       result = et_dot.dot(a,one)
        # assert result==expected
        assert math.isclose(result, expected, abs_tol=10.0)
 
@@ -336,12 +355,14 @@ Does it indeed raise :py:exc:`ArithmeticError` if the arguments are not of the s
 Here is a test:
 
 .. code-block:: python
-   
+
+   import pytest
+
    def test_dot_unequal_length():
        a = [1,2]
        b = [1,2,3]
        with pytest.raises(ArithmeticError):
-           dot(a,b)
+           et_dot.dot(a,b)
 
 Here, :py:meth:`pytest.raises` is a *context manager* that will verify that :py:exc:`ArithmeticError`
 is raise when its body is executed. 
@@ -354,7 +375,7 @@ exceptions, e.g. :exc:`TypeError` by passing in arrays of non-numeric types:
 
 .. code-block:: python
    
-   >>> dot([1,2],[1,'two'])
+   >>> et_dot.dot([1,2],[1,'two'])
    Traceback (most recent call last):
      File "<stdin>", line 1, in <module>
      File "/Users/etijskens/software/dev/workspace/ET-dot/et_dot.py", line 23, in dot
@@ -377,3 +398,11 @@ When constructing software for more complex problems, there will very soon be ma
 interacting components and running the tests after modifying one of the components
 will help you assure that all components still play well together, and spot problems
 as soon as possible.
+
+At this point we want to produce a git tag of the project::
+
+    (.venv) > micc tag
+    [INFO] Creating git tag v0.0.7 for project ET-dot
+    [INFO] Done.
+
+The tag is a label for the current code base of our project.

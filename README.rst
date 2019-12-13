@@ -39,44 +39,49 @@ practice by a large part of the Python community.
   and build html documentation that you can consult in your browser, or a .pdf 
   documentation file.
 * With a little extra effort the generated html **documentation is automatically published** 
-  to `readthedocs <https://readthedocs.org>`_. [documentation lacking]
+  to `readthedocs <https://readthedocs.org>`_.
 * Micc_ helps you with **version management and control**.
 * Micc_ helps you with **testing** your code.
 * Micc_ helps you with **publishing** your code to e.g. `PyPI <https://pypi.org>`_, so
-  that you colleagues can use your code by simply running `pip install your_nifty_package`.
-  
-For details see the API documentation and the tutorials.
+  that you colleagues can use your code by simply running::
 
+    > pip install your_nifty_package
+
+Credits
+-------
 Micc_ does not do all of this by itself. For many things it relies on other strong 
 open source tools and it is therefor open source as well (MIT Licence). Here is a list 
 of tools micc_ is using or cooperating with happily:
 
-* `poetry <https://github.com/sdispater/poetry>`_: dependency management, virtual 
+* `Poetry <https://github.com/sdispater/poetry>`_: dependency management, virtual
   environments.
-* `pyenv <https://github.com/pyenv/pyenv>`_: management of different Python versions
-* `pipx <https://github.com/pipxproject/pipx/>`_: installation of CLIs in a system-wide  
+* `Pyenv <https://github.com/pyenv/pyenv>`_: management of different Python versions
+* `Pipx <https://github.com/pipxproject/pipx/>`_: installation of CLIs in a system-wide
   way.
 * `Cookiecutter <https://github.com/audreyr/cookiecutter>`_ for creating templates for
   all the things that can be added to your project.
-* `git <https://www.git-scm.com/>`_ for version control.
-* `python-semanticversion <https://github.com/rbarrois/python-semanticversion/blob/master/docs/index.rst>`_
+* `Git <https://www.git-scm.com/>`_ for version control.
+* `Python-semanticversion <https://github.com/rbarrois/python-semanticversion/blob/master/docs/index.rst>`_
   for managing version strings and dependency version constraints according to the
   `Semver 2.0 <http://semver.org/>`_ specification.
-* `pytest <https://www.git-scm.com/>`_ for testing your code.
-* `click <https://click.palletsprojects.com/en/7.x/>`_ for a pythonic and intuitive definition
+* `Pytest <https://www.git-scm.com/>`_ for testing your code.
+* `Click <https://click.palletsprojects.com/en/7.x/>`_ for a pythonic and intuitive definition
   of command-line interfaces (CLI).
-* `sphinx <http://www.sphinx-doc.org/>`_ to extract documentation from your project's
+* `Sphinx <http://www.sphinx-doc.org/>`_ to extract documentation from your project's
   doc-strings.
-* `sphinx-click <https://sphinx-click.readthedocs.io/en/latest/>`_ for extracting documentation
+* `Sphinx-click <https://sphinx-click.readthedocs.io/en/latest/>`_ for extracting documentation
   from the click_ command descriptions
 * `F2py <https://docs.scipy.org/doc/numpy/f2py/>`_ to transform modern Fortran code into performant
   binary extension modules interfacing nicely with `Numpy <https://numpy.org/>`_.
 * `CMake <https://cmake.org>`_ and `pybind11 <https://pybind11.readthedocs.io/en/stable/>`_ as the 
-  glue between C++ code and performant binary extension modules interfacing nicely with Numpy_.
+  glue between C++ code and performant binary extension modules, also interfacing nicely with Numpy_.
 
 Roadmap
 =======
 These features are still on our wishlist:
 
+* Deployment on the `VSC <https://www.vscentrum.be>`_ clusters
 * Contininous integtration (CI)
+* Code style, e.g. `flake8 <http://flake8.pycqa.org/en/latest/>`_ or `black <https://github.com/psf/black>`_
+* profiling
 

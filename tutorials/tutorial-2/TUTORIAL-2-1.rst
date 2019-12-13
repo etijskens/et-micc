@@ -7,33 +7,17 @@ call this module :py:mod:`dotf`, where the ``f`` stands for Fortran:
 
 .. code-block:: bash
    
-   > micc add dotf --f2py
-   [INFO]           [ Adding f2py module dotf to project ET-dot.
-   [INFO]               - Fortran source in       ET-dot/et_dot/f2py_dotf/dotf.f90.
-   [INFO]               - Python test code in     ET-dot/tests/test_f2py_dotf.py.
-   [INFO]               - module documentation in ET-dot/et_dot/f2py_dotf/dotf.rst (in restructuredText format).
-   [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
-   [INFO]           ] done.
+    > micc add dotf --f2py
+    [INFO]           [ Adding f2py module dotf to project ET-dot.
+    [INFO]               - Fortran source in       ET-dot/et_dot/f2py_dotf/dotf.f90.
+    [INFO]               - Python test code in     ET-dot/tests/test_f2py_dotf.py.
+    [INFO]               - module documentation in ET-dot/et_dot/f2py_dotf/dotf.rst (in restructuredText format).
+    [WARNING]            Dependencies added. Run \'poetry update\' to update the project\'s virtual environment.
+    [INFO]           ] done.
  
-Please, do mind the WARNING above. Micc_ is telling you that it added some dependencies to your project.
-In order to be able to build the binary extension these dependencies must be installed in the virtual
-environment of our project.
-`micc-build <https://github.com/etijskens/et-micc-build>`_. Micc-build_ in turns depends on  Numpy_, and
-pybind11_, which provide the glue between Fortran or C++ source code and Python modules.
-out of Micc_ to keep the number of dependencies as low as possible.
-These tools are, however, dependencies of  `micc-build <https://github.com/etijskens/et-micc-build>`_, which on
-its turn depends on  and CMake_. To install them in your local virtual
-environment, run:
-
-.. code-block:: bash
-
-   > poetry update
-   ...
-   > source .venv/bin/activate
-   (.venv) >
-
-The output explains you where to put the Fortran source code, the test code and the documentation
-Enter this code in the Fortran source file :file:`ET-dot/et_dot/f2py_dotf/dotf.f90`
+The output tells us where to enter the Fortran source code, the test code and the documentation.
+Enter the Fortran implementation of the dot product below in the Fortran source file
+:file:`ET-dot/et_dot/f2py_dotf/dotf.f90` (using your favourite editor or an IDE):
 
 .. code-block:: fortran
 
@@ -55,33 +39,114 @@ Enter this code in the Fortran source file :file:`ET-dot/et_dot/f2py_dotf/dotf.f
        end do
    end function dotf
 
-Then build the module:
- 
+The output of the ``micc add dotf --f2py`` command above also shows a warning::
+
+    [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
+
+Micc_ is telling you that it added some dependencies to your project. In order to be able to build the binary
+extension *dotf* these dependencies must be installed in the virtual environment of our project by running
+``poetry update``.
+
 .. code-block:: bash
-   
-   (.venv) > micc-build
-   [INFO] [ Building f2py module dotf in directory '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/f2py_dotf/build_'
-   ...
-   [DEBUG]          >>> shutil.copyfile( 'dotf.cpython-37m-darwin.so', '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/dotf.cpython-37m-darwin.so' )
-   [INFO] ] done.
-   [INFO] Check /Users/etijskens/software/dev/workspace/ET-dot/micc-build-f2py_dotf.log for details.
-   [INFO] Binary extensions built successfully:
-   [INFO] - ET-dot/et_dot/dotf.cpython-37m-darwin.so
-   >
+
+    > poetry update
+    Updating dependencies
+    Resolving dependencies... (2.5s)
+
+    Writing lock file
+
+
+    Package operations: 40 installs, 0 updates, 0 removals
+
+      - Installing certifi (2019.11.28)
+      - Installing chardet (3.0.4)
+      - Installing idna (2.8)
+      - Installing markupsafe (1.1.1)
+      - Installing python-dateutil (2.8.1)
+      - Installing pytz (2019.3)
+      - Installing urllib3 (1.25.7)
+      - Installing alabaster (0.7.12)
+      - Installing arrow (0.15.4)
+      - Installing babel (2.7.0)
+      - Installing docutils (0.15.2)
+      - Installing imagesize (1.1.0)
+      - Installing jinja2 (2.10.3)
+      - Installing pygments (2.5.2)
+      - Installing requests (2.22.0)
+      - Installing snowballstemmer (2.0.0)
+      - Installing sphinxcontrib-applehelp (1.0.1)
+      - Installing sphinxcontrib-devhelp (1.0.1)
+      - Installing sphinxcontrib-htmlhelp (1.0.2)
+      - Installing sphinxcontrib-jsmath (1.0.1)
+      - Installing sphinxcontrib-qthelp (1.0.2)
+      - Installing sphinxcontrib-serializinghtml (1.1.3)
+      - Installing binaryornot (0.4.4)
+      - Installing click (7.0)
+      - Installing future (0.18.2)
+      - Installing jinja2-time (0.2.0)
+      - Installing pbr (5.4.4)
+      - Installing poyo (0.5.0)
+      - Installing sphinx (2.2.2)
+      - Installing whichcraft (0.6.1)
+      - Installing cookiecutter (1.6.0)
+      - Installing semantic-version (2.8.3)
+      - Installing sphinx-click (2.3.1)
+      - Installing sphinx-rtd-theme (0.4.3)
+      - Installing tomlkit (0.5.8)
+      - Installing walkdir (0.4.1)
+      - Installing et-micc (0.10.10)
+      - Installing numpy (1.17.4)
+      - Installing pybind11 (2.4.3)
+      - Installing et-micc-build (0.10.10)
+
+Note from the last lines in the output that `micc-build <https://github.com/etijskens/et-micc-build>`_,
+which is a companion of Micc_ that encapsulates the machinery that does the hard work of building the
+binary extensions, depends on pybind11_, Numpy_, and on micc_ itself. As a consaequence, micc_ is now
+also installed in the projects virtual environment. Therefore, when the project's virtual environment
+is activated, the active ``micc`` is the one in the project's virtual environment::
+
+    > source .venv/bin/activate
+    (.venv) > which micc
+    path/to/ET-dot/.venv/bin/micc
+    (.venv) >
+
+We might want to increment the minor component of the version string by now::
+
+    (.venv) > micc version -m
+    [INFO]           (ET-dot)> micc version (0.0.7) -> (0.1.0)
+
+The binary extension module can now be built::
+
+    (.venv) > micc-build
+    [INFO] [ Building f2py module dotf in directory '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/f2py_dotf/build_'
+    ...
+    [DEBUG]          >>> shutil.copyfile( 'dotf.cpython-37m-darwin.so', '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/dotf.cpython-37m-darwin.so' )
+    [INFO] ] done.
+    [INFO] Check /Users/etijskens/software/dev/workspace/ET-dot/micc-build-f2py_dotf.log for details.
+    [INFO] Binary extensions built successfully:
+    [INFO] - ET-dot/et_dot/dotf.cpython-37m-darwin.so
+    (.venv) >
    
 This command produces a lot of output, most of which is rather uninteresting - except in the
 case of errors. At the end is a summary of all binary extensions that have been built, or
 failed to build. If the source file does not have any syntax errors, you will see a file like
-:file:`dotf.cpython-37m-darwin.so` in directory :file:`ET-dot/et_dot`.
+:file:`dotf.cpython-37m-darwin.so` in directory :file:`ET-dot/et_dot`::
+
+    (.venv) > ls -l et_dot
+    total 8
+    -rw-r--r--  1 etijskens  staff  720 Dec 13 11:04 __init__.py
+    drwxr-xr-x  6 etijskens  staff  192 Dec 13 11:12 f2py_dotf/
+    lrwxr-xr-x  1 etijskens  staff   92 Dec 13 11:12 dotf.cpython-37m-darwin.so@ -> path/to/ET-dot/et_dot/f2py_foo/foo.cpython-37m-darwin.so
 
 .. note:: The extension of the module :file:`dotf.cpython-37m-darwin.so` 
    will depend on the Python version you are using, and on youe operating system.
 
-Here is the test code. Enter it in :file:`ET-dot/tests/test_f2py_dotf.py`:
+Since our binary extension is built, we can test it. Here is some test code. Enter it in file
+:file:`ET-dot/tests/test_f2py_dotf.py`:
 
 .. code-block:: python
  
-   # import our binary extension
+   # import the binary extension and rename the module locally as f90
    import et_dot.dotf as f90
    import numpy as np
    
@@ -130,6 +195,13 @@ All our tests passed. Of course we can extend the tests in the same way as we di
 naive Python implementation in the previous tutorial. We leave that as an exercise to the 
 reader.
 
+Increment the version string and produce tag::
+
+    (.venv) > micc version -p -t
+    [INFO]           (ET-dot)> micc version (0.1.0) -> (0.1.1)
+    [INFO]           Creating git tag v0.1.1 for project ET-dot
+    [INFO]           Done.
+
 .. Note:: If you put your subroutines and functions inside a Fortran module, as in:
 
    .. code-block:: fortran
@@ -156,7 +228,7 @@ reader.
       >>> et_dot.my_F90_module.dot(a,b)
       12.0
 
-   If having to type that much every time, annoys you, use this trick::
+   If you are bothered by having to type ``et_dot.my_F90_module.`` every time, use this trick::
 
       >>> import et_dot
       >>> f90 = et_dot.my_F90_module

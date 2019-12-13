@@ -6,7 +6,7 @@
 !     You might want to check the f2py output for the interfaces of the C-wrapper functions.
 !     It will be autmatically included in the {{ cookiecutter.package_name }} documentation.
 !   . Documument the Fortran routines in this file. This documentation will not be included
-!     in the {{ cookiecutter.package_name }} documentation (because there is no recent sphin
+!     in the {{ cookiecutter.package_name }} documentation (because there is no recent sphinx
 !     extension for modern fortran.
 
 subroutine add(x,y,z,n)

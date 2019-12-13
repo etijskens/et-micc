@@ -495,8 +495,8 @@ Important doc-strings are:
 * *method* doc-strings: right after a ``def`` statement.
 
 According to `pep-0287 <https://www.python.org/dev/peps/pep-0287/>`_ the recommended format for
-Python doc-strings is `restructuredText <http://docutils.sourceforge.net/rst.html>`_. E.g. a
-typical method doc-string looks like this:
+Python doc-strings is `restructuredText <http://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_.
+E.g. a typical method doc-string looks like this:
 
   .. code-block:: python
 

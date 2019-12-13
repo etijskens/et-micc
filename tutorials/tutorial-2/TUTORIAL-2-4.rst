@@ -94,7 +94,7 @@ overwritten by using the ``--cxx-flags-all`` option,
    account the chosen compiler. For tweeking, however, you will most probably have to 
    change the compiler options when you change the compiler.
 
-2.4.5 Save and Load build options to/from file
+2.4.5 Save and load build options to/from file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 With the ``--save`` option you can save the current build options to a file in .json 
 format. This acts on a per project basis. E.g.:
@@ -112,4 +112,4 @@ later build as:
   
    > micc build --load build[.json]
 
-2.4.6 Installing packages with and building installed
+

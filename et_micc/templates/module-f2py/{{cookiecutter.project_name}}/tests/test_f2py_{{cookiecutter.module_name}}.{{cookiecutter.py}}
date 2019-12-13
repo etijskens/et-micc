@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Tests for f2py module `{{ cookiecutter.project_name }}.{{ cookiecutter.module_name }}`."""
+"""Tests for f2py module `{{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}`."""
 
 import {{ cookiecutter.package_name }}
 # create an alias for the binary extension cpp module

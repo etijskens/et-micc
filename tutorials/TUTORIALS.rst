@@ -8,9 +8,13 @@
 .. include:: ../tutorials/tutorial-2/TUTORIAL-2-2.rst
 .. include:: ../tutorials/tutorial-2/TUTORIAL-2-3.rst
 .. include:: ../tutorials/tutorial-2/TUTORIAL-2-4.rst
+.. include:: ../tutorials/tutorial-2/TUTORIAL-2-5.rst
 
 .. include:: ../tutorials/tutorial-3/TUTORIAL-3.rst
 
 .. include:: ../tutorials/tutorial-4/TUTORIAL-4.rst
 
 .. include:: ../tutorials/tutorial-5/TUTORIAL-5.rst
+
+.. include:: ../tutorials/tutorial-6/TUTORIAL-6.rst
+
