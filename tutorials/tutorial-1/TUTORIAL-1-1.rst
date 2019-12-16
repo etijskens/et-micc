@@ -267,7 +267,6 @@ To use the just created virtual environment of our project, we must activate it:
 
 .. code-block:: bash
 
-   > chmod +x .venv/bin/activate 
    > source .venv/bin/activate
    (.venv) > 
    
@@ -286,6 +285,25 @@ modified command prompt. You can verify that the active Python command is correc
 
 .. note:: Whenever you see a command prompt like ``(.venv) >`` the local virtual environment
    of the project has been activated. If you want to try yourself, you must activate it too.
+
+To deactivate a script just run::
+
+(.venv) > which python
+/Users/etijskens/software/dev/workspace/tmp/ET-dot/.venv/bin/python
+(.venv) > deactivate
+> which python
+/Users/etijskens/.pyenv/shims/python
+
+The ``(.venv)`` notice disappears, and the active python is no longer that in the
+virtual environment.
+
+If something is wrong with a virtual environment, you can simply delete it::
+
+   > rm -rf .venv
+
+and create a new one. Sometimes it is necessary to delete the :file:`poetry.lock` as well::
+
+   > rm poetry.lock
 
 1.1.4 Modules and scripts
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -675,6 +693,36 @@ modern way to describe the build system requirements of the project:
 `PEP 518 <https://www.python.org/dev/peps/pep-0518/>`_. Although most of 
 this file's content is generated automatically by micc_ and poetry_ some
 understanding of it is useful, consult https://poetry.eustace.io/docs/pyproject/.
+
+The :file:`pyproject.toml` file is rather human-readable::
+
+   > cat pyproject.toml
+   [tool.poetry]
+   name = "ET-dot"
+   version = "1.0.0"
+   description = "<Enter a one-sentence description of this project here.>"
+   authors = ["Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>"]
+   license = "MIT"
+
+   readme = 'README.rst'
+
+   repository = "https://github.com/etijskens/ET-dot"
+   homepage = "https://github.com/etijskens/ET-dot"
+
+   keywords = ['packaging', 'poetry']
+
+   [tool.poetry.dependencies]
+   python = "^3.7"
+   et-micc-build = "^0.10.10"
+
+   [tool.poetry.dev-dependencies]
+   pytest = "^4.4.2"
+
+   [tool.poetry.scripts]
+
+   [build-system]
+   requires = ["poetry>=0.12"]
+   build-backend = "poetry.masonry.api"
   
 1.1.10 The log file Micc.log
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

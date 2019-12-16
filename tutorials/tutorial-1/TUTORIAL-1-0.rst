@@ -182,3 +182,10 @@ Here is how it goes:
 
 You should be good to go now.
 
+1.0.3 A Note about Conda Python distributions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Currently, working with Conda, Anaconda and Miniconda Python distributions
+(see `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_) is not supported by
+Poetry_. Whether this will remain to be the case is unclear. However, this is most probably
+only a problem for development of Python packages. Packages managed by micc_ can be ``pip``
+installed in a conda virtual environment.

@@ -53,35 +53,42 @@ Micc_ does not do all of this by itself. For many things it relies on other stro
 open source tools and it is therefor open source as well (MIT Licence). Here is a list 
 of tools micc_ is using or cooperating with happily:
 
-* `Poetry <https://github.com/sdispater/poetry>`_: dependency management, virtual
-  environments.
-* `Pyenv <https://github.com/pyenv/pyenv>`_: management of different Python versions
-* `Pipx <https://github.com/pipxproject/pipx/>`_: installation of CLIs in a system-wide
-  way.
-* `Cookiecutter <https://github.com/audreyr/cookiecutter>`_ for creating templates for
-  all the things that can be added to your project.
-* `Git <https://www.git-scm.com/>`_ for version control.
-* `Python-semanticversion <https://github.com/rbarrois/python-semanticversion/blob/master/docs/index.rst>`_
-  for managing version strings and dependency version constraints according to the
-  `Semver 2.0 <http://semver.org/>`_ specification.
-* `Pytest <https://www.git-scm.com/>`_ for testing your code.
-* `Click <https://click.palletsprojects.com/en/7.x/>`_ for a pythonic and intuitive definition
-  of command-line interfaces (CLI).
-* `Sphinx <http://www.sphinx-doc.org/>`_ to extract documentation from your project's
-  doc-strings.
-* `Sphinx-click <https://sphinx-click.readthedocs.io/en/latest/>`_ for extracting documentation
-  from the click_ command descriptions
-* `F2py <https://docs.scipy.org/doc/numpy/f2py/>`_ to transform modern Fortran code into performant
-  binary extension modules interfacing nicely with `Numpy <https://numpy.org/>`_.
-* `CMake <https://cmake.org>`_ and `pybind11 <https://pybind11.readthedocs.io/en/stable/>`_ as the 
-  glue between C++ code and performant binary extension modules, also interfacing nicely with Numpy_.
+*   `Pyenv <https://github.com/pyenv/pyenv>`_: management of different Python versions.
+*   `Pipx <https://github.com/pipxproject/pipx/>`_ for installation of CLIs in a system-wide
+    way.
+*   `Poetry <https://github.com/sdispater/poetry>`_ for dependency management, virtual
+    environment management, packaging and publishing.
+*   `Git <https://www.git-scm.com/>`_ for version control.
+*   `CMake <https://cmake.org>`_ is usde for building binary extension modules written
+    in C++.
+
+The above tools are not dependencies of Micc_ and must be installed separately. Then
+there are a number of python packages on which micc_ depends and which are automatically
+installed when poetry_ creates a virtual environment for a project.
+
+*   `Cookiecutter <https://github.com/audreyr/cookiecutter>`_ for creating boilerplate
+    code from templates for all the parts that can be added to your project.
+*   `Python-semanticversion <https://github.com/rbarrois/python-semanticversion/blob/master/docs/index.rst>`_
+    for managing version strings and dependency version constraints according to the
+    `Semver 2.0 <http://semver.org/>`_ specification.
+*   `Pytest <https://www.git-scm.com/>`_ for testing your code.
+*   `Click <https://click.palletsprojects.com/en/7.x/>`_ for a pythonic and intuitive definition
+    of command-line interfaces (CLIs).
+*   `Sphinx <http://www.sphinx-doc.org/>`_ to extract documentation from your project's
+    doc-strings.
+*   `Sphinx-click <https://sphinx-click.readthedocs.io/en/latest/>`_ for extracting documentation
+    from the click_ command descriptions.
+*   `F2py <https://docs.scipy.org/doc/numpy/f2py/>`_ for transforming modern Fortran code into performant
+    binary extension modules interfacing nicely with `Numpy <https://numpy.org/>`_.
+*   `Pybind11 <https://pybind11.readthedocs.io/en/stable/>`_ as the
+    glue between C++ source code and performant binary extension modules, also interfacing nicely with Numpy_.
 
 Roadmap
 =======
-These features are still on our wishlist:
+These features are still on our wish list:
 
 * Deployment on the `VSC <https://www.vscentrum.be>`_ clusters
 * Contininous integtration (CI)
 * Code style, e.g. `flake8 <http://flake8.pycqa.org/en/latest/>`_ or `black <https://github.com/psf/black>`_
-* profiling
+* Profiling
 
