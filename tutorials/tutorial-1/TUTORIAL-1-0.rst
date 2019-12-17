@@ -2,9 +2,8 @@
 Tutorial 1: a simple project
 ============================
 
-
-1.0 Setting up your Development environment
--------------------------------------------
+1.1 Development environment - principles
+----------------------------------------
 
 .. warning:: `Micc <https://github.com/etijskens/et-micc>`_ was designed for supporting HPC developers,
     and, consequentially, with Linux systems in mind. We provide support for Linux (Ubuntu 19.10,
@@ -19,19 +18,11 @@ particular:
     our system.
 *   We use `pipx <https://github.com/pipxproject/pipx/>`_ to install applications like Micc_ and
     `CMake <https://cmake.org>`_ system-wide together with their own virtual environment.
-
-  .. note:: Ideally, also Poetry_ would be pipx installed, but this approach seems to make the
-     command ``poetry install`` ignore the Python version that is set by pyenv_. Instead, it uses
-     the Python version with which poetry was installed (that is the one of pipx). A workaround is
-     given below `1.0.1 Pyenv workaround for Poetry`_
-
 *   `Poetry <https://poetry.eustace.io/docs/pyproject/>`_ is used to set up virtual environments for
     the projects we are working, for managing their dependencies and for publishing them to PyPI_.
 *   Micc_ is used to set up the project structure, as the basis of everything that will be described
     in the tutorials below.
-
 *   For Micc_ projects with binary extension the necessary compilers must be installed on the system.
-
 *   As an IDE for Python/Fortran/C++ development we recommend:
 
     *   `Eclipse IDE for Scientific Computing <https://www.eclipse.org/downloads/packages/release/photon/rc2/eclipse-ide-scientific-computing>`_
@@ -43,39 +34,90 @@ particular:
         recently and was very soon convinced for python development. (Didn't go back to Eclipse once since
         then). I currently have insufficient experience for Fortran and C++ for making recommendations.
 
-1.0.1 Pyenv workaround for Poetry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   
-Poetry_ is a recent tool which is still undergoing a lot of changes. One of the areas where
-it is still a bit rough around the edges is its treatment of pyenv_ and pyenv-virtualenv.
-At the time of writing, poetry install does not seem to respect the settings of ``pyenv local``
-and ``pyenv global`` when poetry_ is ``pipx installed``. Fortunately, there is a workaround.
-probably change in the future as poetry_ matures.
-   
-The workaround requires installing poetry in every pyenv_ Python version. E.g. suppose we want to
-develop projects for Python 3.6.9, 3,7.5 and 3.8.0.
-   
-.. code-block:: bash
+1.2 Setting up your Development environment - step by step
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#.  Install pyenv: See
+    `Managing Multiple Python Versions With pyenv <https://realpython.com/intro-to-pyenv/>`_
+    for common install instructions on macos and Linux.
 
-   > pyenv install 3.6.9
-   ...                    # all dependencies are installed
-   > pyenv local 3.6.9
-   > pip install poetry==1.0.0b8
-   >
-   > pyenv install 3.7.5
-   ...                    # all dependencies are installed
-   > pyenv local 3.7.5
-   > pip install poetry==1.0.0b8
-   >
-   > pyenv install 3.8.0
-   ...                    # all dependencies are installed
-   > pyenv local 3.8.0
-   > pip install poetry==1.0.0b8
+#.  Install your favourite Python versions. E.g.::
 
-This installs poetry_ 1.0.0b8 (which is a development version) in all three Python versions.
+        > pyenv install 3.8.0
 
+#.  Install poetry_. The `recommended way <???>`_ for this is::
+
+    > curl ??? | python
+
+    This approach will give you one single system-wide Poetry_ installations, which
+    will automatically pick up the current Python version as set by pyenv_. Note,
+    that as of Poetry_ 1.0.0, Poetry will alse detect conda_ virtual environments (see
+    `miniconda <https://???>`_)
+
+    Alternatively, you can install poetry using pip_::
+
+        > pyenv local 3.8.0
+        > pip install poetry
+
+    This approach will **not** pick up the current Python version, but instead will always
+    use the Python it was installed with, c.q. 3.8.0. This approach requires you to install
+    Poetry_ in every Python version you want to use it with.  When done, unset the local
+    pyenv_ version::
+
+        > pyenv local --unset
+
+#. Configure your poetry_ installation::
+
+        > poetry config virtualenvs.in-project true
+
+    This ensures that running ``poetry install`` in a project directory will create a
+    project's virtual environment in its own root directory, rather than somewhere in
+    the Poetry_ configuration directories, where it is less accessible. If you have
+    several Poetry_ installations, they all use the same configuration.
+
+#.  Install pipx::
+
+        > python -m pip install --user pipx
+        > python -m pipx ensurepath
+
+    .. note:: This will use the Python version returned by ``pyenv version``. Micc_ is
+        certainly comfortable with Python 3.7 and 3.8.
+
+#.  Install micc_ with pipx::
+
+        > pipx install et-micc
+          installed package et-micc 0.10.8, Python 3.8.0
+          These apps are now globally available
+            - micc
+        done!
+
+    .. note:: This will use the Python version with which pipx_ was installed.
+
+#.  If you want to develop binary extensions in  C++ with micc_, make sure CMake and make
+    are installed and on your system PATH. You can download CMake_ directly from
+    `cmake.org <https://cmake.org/download/>`_.
+    Alternatively, CMake is also available as a Python Package which can be installed
+    with pipx_::
+
+        > pipx install cmake
+        installed package cmake 3.15.3, Python 3.8.0
+          These apps are now globally available
+            - cmake
+            - cpack
+            - ctest
+        done!
+
+#.  To upgrade to a newer version of a tool that you installed with pipx_, use the ``upgrade``
+    command, e.g.::
+
+        > pipx upgrade et-micc
+        et-micc is already at latest version 0.10.8 (location: /Users/etijskens/.local/pipx/venvs/et-micc)
+
+You should be good to go now.
+
+
+???
 To use set up project *foo* for Python 3.8.0, we would go like this:
-   
+
 .. code-block:: bash
 
    > micc -p path/to/foo create
@@ -116,76 +158,3 @@ Here is how it goes:
    (.venv) > which python
    /path/to/foo/.venv/bin/python
 
-1.0.2 Setting up your Development environment - step by step
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-#.  Install pyenv: See
-    `Managing Multiple Python Versions With pyenv <https://realpython.com/intro-to-pyenv/>`_
-    for common install instructions on macos and Linux.
-
-#.  Install your favourite Python versions. E.g.::
-
-        > pyenv install 3.8.0
-
-#.  Install poetry in **all** your Python versions::
-
-        > pyenv local 3.8.0
-        > pip install poetry==1.0.0b8
-
-    (Use the most recent poetry_ version). When done, unset the local pyenv_ version::
-
-        > pyenv local --unset
-
-#. Configure poetry_ ::
-
-        > poetry config virtualenvs.in-project true
-
-    This ensures that running ``poetry install`` in a project directory will create a
-    project's virtual environment in its own root directory, rather than somewhere in
-    the Poetry_ configuration directories, where it is less accessible.
-
-#.  Install pipx::
-
-        > python -m pip install --user pipx
-        > python -m pipx ensurepath
-
-    .. note:: This will use the Python version returned by ``pyenv version``. Micc_ is
-        certainly comfortable with Python 3.7 and 3.8.
-
-#.  Install micc_ with pipx::
-
-        > pipx install et-micc
-          installed package et-micc 0.10.8, Python 3.8.0
-          These apps are now globally available
-            - micc
-        done!
-
-    .. note:: This will use the Python version with which.
-
-#.  If you want to develop binary extensions in  C++ with micc_, make sure CMake and make is installed
-    and accessible on your system. You can download it directly from `cmake.org <https://cmake.org/download/>`_.
-    Alternatively, CMake is also available as a Python Package which can be pipx installed::
-
-        > pipx install cmake
-        installed package cmake 3.15.3, Python 3.8.0
-          These apps are now globally available
-            - cmake
-            - cpack
-            - ctest
-        done!
-
-#.  To if you want to move on to a newer version of a tool that you installed with pipx_, use the ``upgrade``
-    command, e.g.::
-
-        > pipx upgrade et-micc
-        et-micc is already at latest version 0.10.8 (location: /Users/etijskens/.local/pipx/venvs/et-micc)
-
-You should be good to go now.
-
-1.0.3 A Note about Conda Python distributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Currently, working with Conda, Anaconda and Miniconda Python distributions
-(see `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_) is not supported by
-Poetry_. Whether this will remain to be the case is unclear. However, this is most probably
-only a problem for development of Python packages. Packages managed by micc_ can be ``pip``
-installed in a conda virtual environment.

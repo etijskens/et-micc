@@ -176,19 +176,18 @@ project like this:
 .. note:: In the rest of the tutorial we assume that the current working directory
    is the project directory.
       
-1.1.3 Virtual environments
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-When you are developing or using several Python projects it can become difficult 
-for a single Python environment to satisfy all the requirements of these projects.
-Python promotes and facilitates code reuse and as a consequence Python tools typically
-depend on tens to hundreds of other modules. If toolA and toolB both need moduleC, but
-each requires a different version of it, there is a conflict because it is impossible 
-to install two versions of the same module in a Python environment. The solution that 
-the Python community has come up with for this problem is the construction of virtual 
-environments. 
-In addition and for the same reason, you might need different Python versions. That 
-is taken care of by Pyenv_. On my laptop I have three different Python versions, along
-with the Python version that came with the OS:
+1.1.3 Managing the Python version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Your operating system typically comes with a Python version that is used OS tasks.
+It is, obviously good practice to isolate your system Python from your own developments:
+wrecking the system Python can indeed give you headaches. In addition, the system
+Python is often still 2.7.x, which is about to retire in 2020. Using a more recent
+Python version, or even several different Python versions may be very useful when
+you are working on many different projects. That is offered conveniently by Pyenv_,
+(at least on macOS and Linux, but unfortunately not on Windows), see
+see `1.2 Setting up your Development environment - step by step`_ for installation
+instructions. On my work laptop I usually keep the latest minor recent Python versions,
+along with the Pythonversion that came with the OS. At the time of writing that was:
 
 .. code-block:: bash
 
@@ -198,15 +197,13 @@ with the Python version that came with the OS:
      3.7.5
    * 3.8.0 (set by /Users/etijskens/.pyenv/version)   
 
-Thus, I have the latest patch of the of 3.6, 3.7 and 3.8 (at the time of writing, at
-least). I choose 3.8.0 as the default one (as marked by the '*' in front of it), 
-because I want to profit from new developments. I abandoned 2.7 many years ago. You 
-can set the default Python version as ``pyenv global <version>``. In this way i also keep 
-my system Python version clean. 
+The asterisk marks the default Python. You can set the default Python version as
+``pyenv global <version>``. It is good practice not to make the system Python
+default. In that way you cannot accidentally wreck your system Python.
 
-Since Python 3.8.0 is the default Python, without any special measures, if I launch 
-Python, it will be 3.8.0. If I want to carry out the development of the ET-dot 
-project in another version, e.g. 3.7.5, I must set a local python version in the 
+Since Python 3.8.0 is the default Python, without any special measures, if you launch
+Python, it will be 3.8.0. If you want to carry out the development of the ET-dot
+project in another version, e.g. 3.7.5, you must set a local python version in the
 project directory:
 
 .. code-block:: bash
@@ -221,19 +218,59 @@ project directory:
    * 3.7.5 (set by /Users/etijskens/software/dev/ET-dot/.python-version)
      3.8.0      
 
-Now, if I launch Python in the project-directory, it will be Python 3.7.5, in all other 
-directories where ``pyenv local`` was not run, it will still be the default Python
-3.8.0. Also if we run ``poetry`` in the project directory, it will be the ``poetry`` 
-installed in Python 3.7.5. 
-   
-To reduce the chances for dependency version conflicts, a *virtual environment* must 
-be created for our project that isolates its dependencies from other projects. Poetry_ 
-takes care of that for us. Run ``poetry install`` in the project directory and the 
-project's dependencies will be installed in a fresh virtual environment in 
-:file:`ET-dot/.venv`:
+Now, if you launch Python in the project-directory (or any of its subdirectories
+that does not have its own :file:`.python-version`), it will be Python 3.7.5. In all
+othern directories where ``pyenv local`` was not run, it will still be the default
+Python 3.8.0.
 
-.. code-block:: bash
-   
+1.1.3 Virtual environments
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+For a more detailed introduction to virtual environments see
+`Python Virtual Environments: A Primer <https://realpython.com/python-virtual-environments-a-primer/>`_.
+
+When you are developing or using several Python projects it can become difficult
+for a single Python environment to satisfy all the dependency requirements of these
+projects simultaneously. Dependencies conflict can easily arise.
+Python promotes and facilitates code reuse and as a consequence Python tools typically
+depend on tens to hundreds of other modules. If toolA and toolB both need moduleC, but
+each requires a different version of it, there is a conflict because it is impossible
+to install two versions of the same module in a Python environment. The solution that
+the Python community has come up with for this problem is the construction of *virtual
+environments*, which isolates the dependencies of a single project to a single
+environment.
+
+1.1.3.1 Creating virtual environments
+"""""""""""""""""""""""""""""""""""""
+Since Python 3.3 Python comes with a :py:mod:`venv` module for the creation of
+virtual environments::
+
+   > python -m venv my_virtual_environment
+
+This creates a directory :file:`my_virtual_environment` containing a complete and
+isolated Python environment. This virtual environment can be activated sa::
+
+   > source my_virtual_environment/bin/activate
+   (my_virtual_environment) >
+
+Activating a virtual environment modifies the command prompt to remind you constantly
+that you are working in a virtual environment. The virtual environment is based on the
+current Python - by preference set by pyenv_. If you install new packages, they will
+be installed in the virtual environment only. The virtual environment can be deactivated
+by running ::
+
+   (my_virtual_environment) > deactivate
+   >
+
+1.1.3.2 Creating virtual environments with Poetry
+"""""""""""""""""""""""""""""""""""""""""""""""""
+Poetry_ uses the above mechanism to manage virtual environment on a per project
+basis, and can install all the dependencies of that project, as specified in the
+:file:`pyproject.toml` file, using the ``install`` command. Since our project does
+not have a virtual environment yet, poetry_ creates one, named :file:`.venv`, and
+installs all dependencies in it. We first choose the Python version to use for the
+project::
+
+   > pyenv local 3.7.5
    > poetry install
    Creating virtualenv et-dot in /Users/etijskens/software/dev/ET-dot/.venv
    Updating dependencies
@@ -263,36 +300,29 @@ visible in the virtual environment. Adding/removing dependencies is easily achie
 by running ``poetry add some_module`` and ``poetry remove some_other_module``. 
 Consult the `poetry documentation <https://poetry.eustace.io/docs/>`_ for details   
 
-To use the just created virtual environment of our project, we must activate it:
+If the virtual environment already exists, or if some virtual environment is activated
+(not necessarily that of the project itself - be warned), that virtual environment is
+reused and all installations pertain to that virtual environment.
 
-.. code-block:: bash
+To use the just created virtual environment of our project, we must activate it::
 
    > source .venv/bin/activate
-   (.venv) > 
-   
-The first command is to make the ``activate`` command executable, which it is not when
-the environment is just created. This command must be executed only once. The second
-command activates the :file:`.venv` virtual environment, as is made visible in the 
-modified command prompt. You can verify that the active Python command is correct:
-
-.. code-block:: bash
-
    (.venv) > which python
    /Users/etijskens/software/dev/ET-dot/.venv/bin/python
    (.venv)> python --version
    > python --version
    Python 3.7.5
 
+The location of the virtual environment's Python and its version are as expected.
+
 .. note:: Whenever you see a command prompt like ``(.venv) >`` the local virtual environment
    of the project has been activated. If you want to try yourself, you must activate it too.
 
-To deactivate a script just run::
+To deactivate a script just run ``deactivate``::
 
-(.venv) > which python
-/Users/etijskens/software/dev/workspace/tmp/ET-dot/.venv/bin/python
-(.venv) > deactivate
-> which python
-/Users/etijskens/.pyenv/shims/python
+   (.venv) > deactivate
+   > which python
+   /Users/etijskens/.pyenv/shims/python
 
 The ``(.venv)`` notice disappears, and the active python is no longer that in the
 virtual environment.
