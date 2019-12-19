@@ -46,14 +46,14 @@ particular:
 
 #.  Install poetry_. The `recommended way <???>`_ for this is::
 
-    > curl ??? | python
+    > curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 
     This approach will give you one single system-wide Poetry_ installations, which
     will automatically pick up the current Python version as set by pyenv_. Note,
-    that as of Poetry_ 1.0.0, Poetry will alse detect conda_ virtual environments (see
-    `miniconda <https://???>`_)
+    that as of Poetry_ 1.0.0, Poetry will alse detect
+    `conda <https://conda.io/projects/conda/en/latest/index.html>`_ virtual environments.
 
-    Alternatively, you can install poetry using pip_::
+    Alternatively, you can install poetry using `pip <https://pip.pypa.io/en/stable/>`_::
 
         > pyenv local 3.8.0
         > pip install poetry
@@ -113,7 +113,6 @@ particular:
         et-micc is already at latest version 0.10.8 (location: /Users/etijskens/.local/pipx/venvs/et-micc)
 
 You should be good to go now.
-
 
 ???
 To use set up project *foo* for Python 3.8.0, we would go like this:

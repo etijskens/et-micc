@@ -107,10 +107,11 @@ main reason for this is that poetry masks any pre-installed Python packages that
 available by the cluster software stack. Every Python distribution on the cluster comes
 with a such set of pre-installed packages that are important for high performance computing,
 and are built (compiled) to squeeze out the last bit of performance out of the hardware on
-which they will run. Typical examples are Numpy_, Scipy_, Pandas_, ... ``Poetry install``
-will install equally functional packages which are built for running on many different
-hardwares, rather for optimal performance. By using ``poetry install`` performances will
-be sacrificed. In addition, re-installing these packages consume a lot of your file quota.
+which they will run. Typical examples are Numpy_, `Scipy <https://www.scipy.org>`_,
+`pandas <https://pandas.pydata.org>`_, ... ``Poetry install`` will install equally
+functional packages which are built for running on many different hardwares, rather than for
+optimal performance. By using ``poetry install`` performances will be sacrificed. In addition,
+re-installing these packages consumes a lot of your file quota.
 
 To avoid trouble, we thus recommend to **not** install poetry_ on the cluster. If you
 want to publish your package, ``commit`` the changes to the git repository, ``push`` them
@@ -264,7 +265,7 @@ Here is the result::
     -- Docs: https://docs.pytest.org/en/latest/warnings.html
     ================================= 9 passed, 4 warnings in 11.04 seconds =================================
 
-Except for some ``DeprecationWarning``s which are out of our reach, all tests succeed. Note,
+Except for some ``DeprecationWarning`` warnings which are out of our reach, all tests succeed. Note,
 however, that if we hadn't loaded the CMake module, building the :py:mod:`dotc` binary extension
 would fail with and error telling that CMake cannot be found.
 
@@ -347,9 +348,10 @@ indeed necessary for engaging the auto-build feature. So we ``pip install`` it::
 and run the tests again to see that they succeed, meaning that the binary modules were
 built, and that the auto-build feature was successfully engaged.
 
-If the project needs other packages, you would continue to have :py:exc:`ModuleNotFoundError`s.
+If the project needs other packages, you would continue to have :py:exc:`ModuleNotFoundError`
+exceptions.
 Each time you] ``pip install`` the missing package, and run the test until no more
-:py:exc:`ModuleNotFoundError`s arise and you are good to go.
+:py:exc:`ModuleNotFoundError` exceptions arise and you are good to go.
 
 A bash script for creating and activating the virtual environment may be practical,
 e.g. :file:`micc-setup`, stored in some directory which is on your system PATH::
@@ -404,14 +406,106 @@ activated when after the script terminates, nor will the modules be loaded::
 This :file:`micc-setup` script work for every project, but the modules loaded are
 hardcoded. You can of course elaborate on this very simple script.
 
+6.2 Using a micc_ project as a dependency
+-----------------------------------------
+To use a micc_ project such as ET-dot in an other project, say *foo*, is simple. Create a
+virtual environment in *foo* and use ``pip install``. Using the micc-setup script whe
+wrote before:
 
-Using conda Python distributions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-`Conda <https://conda.io/en/latest/>`_ Python distributions have there own way of creating and
-managing virtual environments (see
-`Conda tasks <https://conda.io/projects/conda/en/latest/user-guide/tasks/index.html>`_). Just as
-above you must create a conda virtual environment, activate it and install the Python packages you
-need in that virtual environment.
+
+    > cd path/to/foo
+    > source micc-setup
+
+    The following have been reloaded with a version change:
+      1) leibniz/supported => leibniz/2019b
+
+
+    Currently Loaded Modules:
+      1) leibniz/2019b
+      2) GCCcore/8.3.0
+      3) binutils/2.32-GCCcore-8.3.0
+      4) intel/2019b
+      5) baselibs/2019b-GCCcore-8.3.0
+      6) Tcl/8.6.9-intel-2019b
+      7) X11/2019b-GCCcore-8.3.0
+      8) Tk/8.6.9-intel-2019b
+      9) SQLite/3.29.0-intel-2019b
+     10) HDF5/1.8.21-intel-2019b-MPI
+     11) METIS/5.1.0-intel-2019b-i32-fp64
+     12) SuiteSparse/4.5.6-intel-2019b-METIS-5.1.0
+     13) Python/3.7.4-intel-2019b
+     14) git/2.13.3
+     15) CMake/3.11.1
+    Creating  new virtual environment '.venv'
+    Activating '.venv' ...
+    Installing micc ...
+    Collecting et-micc
+      ...
+    (.venv) > pip install git+https://github.com/etijskens/ET-dot
+    Collecting git+https://github.com/etijskens/ET-dot
+      Cloning https://github.com/etijskens/ET-dot to /tmp/pip-req-build-i1ta63e3
+      Installing build dependencies ... done
+      Getting requirements to build wheel ... done
+      Installing backend dependencies ... done
+        Preparing wheel metadata ... done
+    Collecting et-micc-build<0.11.0,>=0.10.10 (from et-dot==1.0.0)
+      ...
+
+Note that we installed *ET-dot* directly from github_. If we had published it to
+PyPi_, ``pip install ET-dot`` would have been sufficient.
+
+6.2.1 Using virtual environments in batch jobs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using project *foo* in a batch job is exactly the same as on the command line. You
+must load the cluster modules you need, and activate the environment. Here is an example
+(PBS) job script, assuming that foo.py is a python script that imports :py:mod:`et_dot` ::
+
+    #!/usr/bin/env bash
+    #PBS -l nodes=1:ppn=1
+    #PBS -l walltime=00:05:00
+    #PBS -l pmem=1gb
+
+    cd $VSC_DATA/path/to/foo
+    # load necessary cluster modules and activate virtual environment
+    source micc-setup
+    # run python script
+    python foo.py
+
+6.3 Using conda Python distributions
+------------------------------------
+
+Conda_ Python distributions have there own way of creating and managing virtual environments
+but the principle is the same
+(see`Conda tasks <https://conda.io/projects/conda/en/latest/user-guide/tasks/index.html>`_).
+Just as above you must load the necessary cluster modules, create a conda virtual environment,
+activate it and install the Python packages you need in that virtual environment. First, we
+select the toolchain::
+
+    > module load leibniz/2019b
+    The following have been reloaded with a version change:
+      1) leibniz/supported => leibniz/2019b
+
+Then we load an IntelPython version (which is a conda distribution optimized by Intel)::
+
+    > module load IntelPython3/2019b.05
+
+Cd to our project::
+
+    > cd $VSC_DATA/path/to/ET-dot
+
+Create a virtual conda environment. We choose a different name :file:`cenv`, so the two
+can live next to each other::
+
+    > conda create -p ./cenv
+
+There is no need for a ``--system-site-packages`` flag, as that is the deault policy.
+Then acitvate the virtual environment::
+
+    > source activate /data/antwerpen/201/vsc20170/workspace/ET-dot/cenv
+    (./cenv.) >
+
+
+
 
 ...
 

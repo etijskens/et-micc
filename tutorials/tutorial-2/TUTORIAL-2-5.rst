@@ -89,7 +89,7 @@ Build the documentation::
     The HTML pages are in _build/html.
 
 The documentation is built using ``make``. The :file:`Makefile` checks that the necessary components
-sphinx_, click_, sphinx-click_and sphinx-rtd-theme_ are installed.
+sphinx_, click_, sphinx-click_and `sphinx-rtd-theme <https://sphinx-rtd-theme.readthedocs.io/en/stable/>`_ are installed.
 
 You can view the result in your favorite browser::
 
