@@ -258,7 +258,13 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None,cwd=None):
         
     for cmd in cmds:
         with et_micc.logger.log(logfun, f"> {' '.join(cmd)}"):
-            completed_process = subprocess.run(cmd, capture_output=True,env=env,cwd=cwd)
+            try:
+                completed_process = subprocess.run(cmd, capture_output=True,env=env,cwd=cwd)
+            except:
+                completed_process = subprocess.run(cmd, env=env, cwd=cwd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
             if not logfun is None:
                 if completed_process.returncode:
                     logfun0 = logfun

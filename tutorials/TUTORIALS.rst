@@ -18,3 +18,5 @@
 
 .. include:: ../tutorials/tutorial-6/TUTORIAL-6.rst
 
+.. include:: ../tutorials/tutorial-7/TUTORIAL-7.rst
+
