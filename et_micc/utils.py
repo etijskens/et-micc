@@ -259,8 +259,11 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None,cwd=None):
     for cmd in cmds:
         with et_micc.logger.log(logfun, f"> {' '.join(cmd)}"):
             try:
+                # python >=3.7
                 completed_process = subprocess.run(cmd, capture_output=True,env=env,cwd=cwd)
             except:
+                # python <3.7, e.g 3.6.9:
+                #   capture_output parameter does not exist.
                 completed_process = subprocess.run(cmd, env=env, cwd=cwd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,

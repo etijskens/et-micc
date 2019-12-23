@@ -52,6 +52,7 @@ Design patterns
 * `Python patters <https://python-patterns.guide>`_
 * `Refactoring and Design patterns <https://refactoring.guru>`_
 * `Pyton anti-patterns <https://docs.quantifiedcode.com/python-anti-patterns/index.html>`_
+* `Coding problems <https://github.com/MTrajK/coding-problems>`_
 
 Machine learning and datascience
 --------------------------------

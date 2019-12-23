@@ -4,19 +4,19 @@ Tutorial 7 - Using micc projects on the VSC-clusters
 We distinguish to cases:
 
 * installing a micc_-project for further development, and
-* installing a micc_project (in a virtual environment) for use in production runs.
+* installing a micc_-project (in a virtual environment) for use in production runs.
 
 .. note:: This tutorial uses the Leibniz cluster of the University of Antwerp as an
     example. The principles pertain, however, to all VSC clusters, and most probably
     also to other clusters using a module system for exposing its software stack.
 
 7.1 Micc use on the cluster for developing code
-----------------------------------------------------
+-----------------------------------------------
 
 Most differences between using  your local machine and using the cluster stem from
 the fact that the cluster uses a *module* system for making software available to the
-user, and less importantly, that the cluster uses scheduler to run your compute jobs
-in batch mode.
+user, and less importantly, that the cluster uses a scheduler to run your compute jobs
+in batch mode when the hardware you requested is available.
 
 Most tools that are commonly used on the cluster are built for optimal performance and
 pre-installed on the cluster. You need to make them available for execution by
@@ -32,7 +32,7 @@ the operating system::
     > git --version
     git version 1.8.3.1
 
-When you load the git module you get version 2.13.2::
+When you load the git module you get version 2.13.3::
 
     > module load git
     > which git
@@ -43,7 +43,7 @@ Moreover, both versions differ in the major component of the version, which indi
 they are not backward compatible.
 
 As git is now available, we can clone the git repository of our ET-dot project in some
-workspace directory (preferably somewhere on $VSC_DATA) and ``cd`` into the project
+workspace directory (preferably somewhere on ``$VSC_DATA``) and ``cd`` into the project
 directory::
 
     > cd $VSC_DATA/path/to/my/workspace
@@ -57,10 +57,13 @@ directory::
     Resolving deltas: 100% (45/45), done.
     > cd ET-dot
 
-.. note:: It is good practice to **clone git repositories in $VSC_DATA** . Doing this in
-    $VSC_HOME can easily consume all your file quota, and $VSC_SCRATCH is not backed up.
+.. note::
+    It is good practice to **clone git repositories in** ``$VSC_DATA``. Doing this in
+    ``$VSC_HOME`` can easily consume all your file quota, and ``$VSC_SCRATCH`` is
+    not backed up.
 
-You might also load CMake if you want to build binary extension modules from C++ source code:
+You will need also to load CMake if you want to build binary extension modules from C++
+source code as the :py:mod:`dotc` module::
 
     > module load CMake
 
@@ -74,7 +77,7 @@ dependencies. The pyenv_ part is again replaced by a ``module load`` command, e.
 The first command selects all modules built with the Intel 2019b toolchain, and
 the second makes Python 3.7.4 available together with a whole bunch of pre-installed
 Python packages which are useful for high performance computing, such as numpy_, as
-well as all the dependencies of these HPC modules. To see them execute::
+well as all their dependencies. To see them execute::
 
     > pip list
     Package            Version
@@ -85,6 +88,11 @@ well as all the dependencies of these HPC modules. To see them execute::
     ...
     numpy              1.17.0
     ...
+
+or::
+
+    > conda list
+    ???
 
 The poetry_ part, requires - at least at the time of writing - some special attention.
 
@@ -120,18 +128,19 @@ to publish.
 
 7.1.2 Virtual environments and dependencies on the cluster
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If we can't use Poetry_, we need some alternative way of creating virtual environments,
-and installing dependencies.
+If we can't use Poetry_ for creating virtual environments and installing dependencies,
+we need some alternative way to achieve this. Fortunately, just doing this by hand is not
+too difficult.
 
 Creating a virtual environment in the project root directory is simple::
 
     > python -m venv .venv --system-site-packages
 
-This command uses the :py:mod:`venv` package to create a virtual environment named `.venv`.
-The --system-site-packages ensures that the virtual environment also sees all the pre-installed
-Python packages. The environment name is in fact arbitrary, but we choose to use the same
-name as Poetry_ would use. The environment name is also the name of the directory containing
-the virtual environment::
+This command uses the :py:mod:`venv` package to create a virtual environment named ``.venv``.
+The ``--system-site-packages`` flag ensures that the virtual environment also sees all the
+pre-installed Python packages. The environment name is in fact arbitrary, but we choose to
+use the same name as Poetry_ would use. The environment name is also the name of the directory
+containing the virtual environment::
 
     > tree .venv
     .venv
@@ -160,28 +169,20 @@ This virtual environment can be activated by executing::
     > source .venv/bin/activate
     (.venv) >
 
-As on our local machine the command prompt is modified to notify you which virtual
-environment is activated.
+As on our local machine the command prompt contains a small notice as to the activated
+virtual environment. If in doubt you can always inspect the full path of the python
+executable::
+
+    (.venv) > which python
+    /data/antwerpen/201/vsc2017/workspace/ET-dot/.venv/bin/python
 
 To install the dependencies needed by the ET-dot project, we have two options,
-a quick and dirty approach and a systematic approach. The systematic approach consists
-of checking the project's :file:`pyproject.toml` file::
+a quick and dirty approach and a systematic approach. Let's be systematic first,
+and checking the ``[tool.poetry.dependencies]`` section of the project's
+:file:`pyproject.toml` file, ::
 
     (.venv) > cat pyproject.toml
-    [tool.poetry]
-    name = "ET-dot"
-    version = "1.0.0"
-    description = "<Enter a one-sentence description of this project here.>"
-    authors = ["Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>"]
-    license = "MIT"
-
-    readme = 'README.rst'
-
-    repository = "https://github.com/etijskens/ET-dot"
-    homepage = "https://github.com/etijskens/ET-dot"
-
-    keywords = ['packaging', 'poetry']
-
+    ...
     [tool.poetry.dependencies]
     python = "^3.7"
     et-micc-build = "^0.10.10"
@@ -189,13 +190,9 @@ of checking the project's :file:`pyproject.toml` file::
     [tool.poetry.dev-dependencies]
     pytest = "^4.4.2"
 
-    [tool.poetry.scripts]
+    ...
 
-    [build-system]
-    requires = ["poetry>=0.12"]
-    build-backend = "poetry.masonry.api"
-
-The section ``[tool.poetry.dependencies]`` tells us that the our project depends on
+The ``[tool.poetry.dependencies]`` section tells us that the our project depends on
 micc-build_, so we install it with pip_, which is the standard Python install tool::
 
     (.venv) > pip install et-micc-build
@@ -410,8 +407,7 @@ hardcoded. You can of course elaborate on this very simple script.
 -----------------------------------------
 To use a micc_ project such as ET-dot in an other project, say *foo*, is simple. Create a
 virtual environment in *foo* and use ``pip install``. Using the micc-setup script whe
-wrote before:
-
+wrote before::
 
     > cd path/to/foo
     > source micc-setup
@@ -481,6 +477,11 @@ If you, nevertheless, use this approach, make sure you set this up in the ``$VSC
 space, because if you do it in the ``$VSC_HOME`` file space, you will probably run out of file
 quota before the virtual environment is ready.
 
+.. note:: interesting links when investigating the above statement:
+
+    * `University of Utah: Why are we moving away from a central Python installation? <https://www.chpc.utah.edu/documentation/software/python-anaconda.php>`_
+    * https://www.epcc.ed.ac.uk/blog/2018/03/08/installing-python-packages-virtual-environments
+
 There is, however, an alternative method which uses the PYTHONPATH environment variable to
 extend the IntelPython3 cluster modules. It is a bit of a low-level hack, but it is not
 overly complicated, and works well.
@@ -522,4 +523,165 @@ The name chosens is arbitrary of course, but it resembles the .venv we had above
 the :py:mod:`venv` Python package. In fact, also the location is arbitrary, but the project
 root directory is a familiar place for this.
 
+Next, we use pip_ to install et-micc-build into :file:`.cenv`::
+
+    > pip install -t .cenv et-micc-build
+    Collecting et-micc-build==0.10.13
+      Using cached https://files.pythonhosted.org/packages/1f/41/a3c2ca300f735742f7183127afaf302e3c9875ff14dedf1cf14b1850774e/et_micc_build-0.10.13-py3-none-any.whl
+    ...
+    Successfully installed MarkupSafe-1.1.1 Pygments-2.5.2 alabaster-0.7.12 arrow-0.15.4
+    babel-2.7.0 binaryornot-0.4.4 certifi-2019.11.28 chardet-3.0.4 click-7.0 cookiecutter-1.6.0
+    docutils-0.15.2 et-micc-0.10.13 et-micc-build-0.10.13 future-0.18.2 idna-2.8 imagesize-1.1.0
+    jinja2-2.10.3 jinja2-time-0.2.0 numpy-1.17.4 packaging-19.2 pbr-5.4.4 poyo-0.5.0 pybind11-2.4.3
+    pyparsing-2.4.5 python-dateutil-2.8.1 pytz-2019.3 requests-2.22.0 semantic-version-2.8.3
+    setuptools-42.0.2 six-1.13.0 snowballstemmer-2.0.0 sphinx-2.3.0 sphinx-click-2.3.1
+    sphinx-rtd-theme-0.4.3 sphinxcontrib-applehelp-1.0.1 sphinxcontrib-devhelp-1.0.1
+    sphinxcontrib-htmlhelp-1.0.2 sphinxcontrib-jsmath-1.0.1 sphinxcontrib-qthelp-1.0.2
+    sphinxcontrib-serializinghtml-1.1.3 tomlkit-0.5.8 urllib3-1.25.7 walkdir-0.4.1
+    whichcraft-0.6.1
+
+Note, that Numpy_ 1.17.4 is installed too, which we wanted to avoid because it is not optimised
+for the cluster. Because we are not installing into the environment's :file:`site-packages`
+directory, pip does not cross-check if the packages are already available there and there
+is no flag to make it do that. Hence, we must **manually remove numpy**::
+
+    > rm -rf .cenv/numpy*\
+
+We must also install pytest_ as it is not in the Intel Python distribution, nor is it a
+dependency of micc-build_.
+
+    > pip install -t .cenv pytest
+
+Now set the ``PYTHONPATH`` environment variable ot the :file:`.cenv` directory and export it::
+
+    > export PYTHONPATH=$PWD/.cenv
+
+.. note:: The ``PYTHONPATH`` environment variable is retained for the duration of the terminal
+    session.
+
+Run pytest to see if everything is working::
+
+    > python -m pytest
+    ========================================================== test session starts ==========================================================
+    platform linux -- Python 3.6.9, pytest-5.3.2, py-1.8.0, pluggy-0.13.1
+    rootdir: /data/antwerpen/201/vsc20170/workspace/ET-dot
+    collected 8 items / 1 error / 7 selected
+
+    ================================================================ ERRORS =================================================================
+    ________________________________________________ ERROR collecting tests/test_cpp_dotc.py ________________________________________________
+    tests/test_cpp_dotc.py:10: in <module>
+        cpp = et_dot.dotc
+    E   AttributeError: module 'et_dot' has no attribute 'dotc'
+    ------------------------------------------------------------ Captured stdout ------------------------------------------------------------
+    [ERROR]
+        Binary extension module 'bar{get_extension_suffix}' could not be build.
+        Any attempt to use it will raise exceptions.
+
+    ...
+    ------------------------------------------------------------ Captured stderr ------------------------------------------------------------
+    [INFO] [ Building cpp module 'dotc':
+    [INFO]           Building using default build options.
+    [DEBUG]          [ > cmake -D PYTHON_EXECUTABLE=/apps/antwerpen/x86_64/centos7/intel-psxe/2019_update5/intelpython3/bin/python -D pybind11_DIR=/data/antwerpen/201/vsc20170/workspace/ET-dot/.cenv/et_micc_build/cmake_tools ..
+    [DEBUG]              (stdout)
+                           -- The CXX compiler identification is GNU 4.8.5
+                           -- Check for working CXX compiler: /usr/bin/c++
+                           -- Check for working CXX compiler: /usr/bin/c++ -- works
+                           -- Detecting CXX compiler ABI info
+                           -- Detecting CXX compiler ABI info - done
+                           -- Detecting CXX compile features
+                           -- Detecting CXX compile features - done
+                           -- Found PythonInterp: /apps/antwerpen/x86_64/centos7/intel-psxe/2019_update5/intelpython3/bin/python (found version "3.6.9")
+                           -- Found PythonLibs: /apps/antwerpen/x86_64/centos7/intel-psxe/2019_update5/intelpython3/lib/libpython3.6m.so
+                           -- Performing Test HAS_CPP14_FLAG
+                           -- Performing Test HAS_CPP14_FLAG - Failed
+                           -- Performing Test HAS_CPP11_FLAG
+                           -- Performing Test HAS_CPP11_FLAG - Success
+                           -- Performing Test HAS_FLTO
+                           -- Performing Test HAS_FLTO - Success
+                           -- LTO enabled
+                           -- Configuring done
+                           -- Generating done
+                           -- Build files have been written to: /data/antwerpen/201/vsc20170/workspace/ET-dot/et_dot/cpp_dotc/_cmake_build
+    [DEBUG]          ] done.
+    [DEBUG]          [ > make
+    [WARNING]            > make
+    [WARNING]            (stdout)
+                         Scanning dependencies of target dotc
+                         [ 50%] Building CXX object CMakeFiles/dotc.dir/dotc.cpp.o
+    [WARNING]            (stderr)
+                         /data/antwerpen/201/vsc20170/workspace/ET-dot/et_dot/cpp_dotc/dotc.cpp:8:31: fatal error: pybind11/pybind11.h: No such file or directory
+                          #include <pybind11/pybind11.h>
+                                                        ^
+                         compilation terminated.
+                         make[2]: *** [CMakeFiles/dotc.dir/dotc.cpp.o] Error 1
+                         make[1]: *** [CMakeFiles/dotc.dir/all] Error 2
+                         make: *** [all] Error 2
+    [DEBUG]          ] done.
+    [INFO] ] done.
+    [INFO] [ Building f2py module 'dotf':
+    [INFO]           Building using default build options.
+    _f2py_build/src.linux-x86_64-3.6/dotfmodule.c:144:12: warning: ‘f2py_size’ defined but not used [-Wunused-function]
+     static int f2py_size(PyArrayObject* var, ...)
+                ^
+    [DEBUG]          [ > ln -sf /data/antwerpen/201/vsc20170/workspace/ET-dot/et_dot/f2py_dotf/dotf.cpython-36m-x86_64-linux-gnu.so /data/antwerpen/201/vsc20170/workspace/ET-dot/et_dot/dotf.cpython-36m-x86_64-linux-gnu.so
+    [DEBUG]          ] done.
+    [INFO] ] done.
+    =========================================================== warnings summary ============================================================
+    /user/antwerpen/201/vsc20170/data/workspace/ET-dot/.cenv/past/builtins/misc.py:45
+      /user/antwerpen/201/vsc20170/data/workspace/ET-dot/.cenv/past/builtins/misc.py:45: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+        from imp import reload
+
+    /user/antwerpen/201/vsc20170/data/workspace/ET-dot/.cenv/cookiecutter/repository.py:19
+      /user/antwerpen/201/vsc20170/data/workspace/ET-dot/.cenv/cookiecutter/repository.py:19: DeprecationWarning: Flags not at the start of the expression '\n(?x)\n((((git|hg)\\+)' (truncated)
+        """)
+
+    -- Docs: https://docs.pytest.org/en/latest/warnings.html
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ===================================================== 2 warnings, 1 error in 6.40s ======================================================
+
+Inspecting the output shows us that we are half way: the f2py module :py:mod:`dotf` was built,
+but the cpp module :py:mod:`dotc` failed to build because the pybind11 include files could not
+be found. Although ``pybind11-2.4.3`` appears in the output of ``pip install -t .cenv et-micc-build``
+above, it only installs the python components (which we don't need) and not the include files
+(which we do need). This is not to difficult to solve. First clone the pybind11 git repo
+somewhere in ``$VSC_DATA``. We choose to do that in the parent directory of ET-dot::
+
+    > git clone https://github.com/pybind/pybind11.git
+    Cloning into 'pybind11'...
+    remote: Enumerating objects: 38, done.
+    remote: Counting objects: 100% (38/38), done.
+    remote: Compressing objects: 100% (30/30), done.
+    remote: Total 11291 (delta 14), reused 12 (delta 3), pack-reused 11253
+    Receiving objects: 100% (11291/11291), 4.22 MiB | 2.32 MiB/s, done.
+    Resolving deltas: 100% (7612/7612), done.
+
+
+Next, we must tell our ET-dot project where it can find the pybind11_ include files. Cd into the
+:file:`_cmake_build` directory and edit the :file:`CMakeCache.txt` file::
+
+    > cd ET-dot/et_dot/cpp_dotc/_cmake_build
+    > vim CMakeCache.txt                        # or whatever editor you like...
+    ...
+
+There should be a ``CMAKE_CXX_FLAGS:STRING`` entry which must be set to ``-I``, followed
+by the exact path of the :file:`pybind11/include/` directory::
+
+    //Flags used by the CXX compiler during all build types.
+    CMAKE_CXX_FLAGS:STRING=-I/data/antwerpen/201/vsc20170/workspace/pybind11/include/
+
+.. note::This must be
+
+Finally, running pytest_ again, we see that all our problems are solved::
+
+    > python -m pytest
+    ================================================ test session starts =================================================
+    platform linux -- Python 3.6.9, pytest-5.3.2, py-1.8.0, pluggy-0.13.1
+    rootdir: /data/antwerpen/201/vsc20170/workspace/ET-dot
+    collected 9 items
+
+    tests/test_cpp_dotc.py .                                                                                       [ 11%]
+    tests/test_et_dot.py .......                                                                                   [ 88%]
+    tests/test_f2py_dotf.py .                                                                                      [100%]
+
+    ================================================= 9 passed in 0.25s ==================================================
 
