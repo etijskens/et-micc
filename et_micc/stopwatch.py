@@ -4,7 +4,7 @@ Module Stopwatch
 A context manager class for timing a piece of code.
 """
 
-from timeit import default_timer as timer
+import time
 
 class Stopwatch:
     """Context manager class for timing a code fragment.
@@ -23,12 +23,21 @@ class Stopwatch:
 
     :param str comment: text in front of the total time. If None nothing is printed. Default is empty str,
     :param int ndigits: number of digits after the decimal sign.
+    :param timer: a function that returns the number of seconds at the current time since some arbitrary time point
     """
-    def __init__(self,message='',ndigits=6):
+    def __init__(
+        self,
+        message='',
+        ndigits=6,
+        logger=print,
+        timer=time.perf_counter,
+    ):
+        self.timer = timer
         self.started = -1.0
         self.stopped = -1.0
         self.message = message
         self.ndigits = ndigits
+        self.logger = logger
 
     
     def __enter__(self):
@@ -38,8 +47,8 @@ class Stopwatch:
 
     def __exit__(self, exception_type, exception_value, tb):
         self.stop()
-        if not self.message is None:
-            print(self)
+        if not self.message is None and not self.logger is None:
+            self.logger(self)
 
     
     #@property
@@ -48,7 +57,7 @@ class Stopwatch:
         """Return number of seconds (float) since last call to timelapse (or to start if 
         called for the first time).
         """
-        now = timer()
+        now = self.timer()
         seconds = round(now - self.stopped,self.ndigits)
         self.stopped = now
         return seconds
@@ -62,13 +71,13 @@ class Stopwatch:
 
     def start(self):
         """Start or restart this :py:class:`Stopwatch` object."""
-        self.started = timer()
+        self.started = self.timer()
         self.stopped = self.started
     
 
     def stop(self):
         """Stop the :py:class:`Stopwatch` object and return the number of seconds since it was started."""
-        self.stopped = timer()
+        self.stopped = self.timer()
         return self.time
     
     

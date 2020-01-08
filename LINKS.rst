@@ -78,8 +78,11 @@ CLIs
 Packaging
 ---------
 * `Inside the Cheeseshop: How Python Packaging Works - PyCon 2018 <https://youtu.be/AQsZsgJ30AE>`_ historical overview with thorough explanation
-* `hare Your Code! Python Packaging Without Complication - PyCon 2017 <https://youtu.be/qOH-h-EKKac>`_
-* `A Python alternative to Docker <https://www.mattlayman.com/blog/2019/python-alternative-docker/<`_
+* `Share Your Code! Python Packaging Without Complication - PyCon 2017 <https://youtu.be/qOH-h-EKKac>`_
+* `A Python alternative to Docker <https://www.mattlayman.com/blog/2019/python-alternative-docker/>`_
+* `The Python Packaging Ecosystem <http://www.curiousefficiency.org/posts/2016/09/python-packaging-ecosystem.html>`_
+* `Python Packaging Is Good Now <https://glyph.twistedmatrix.com/2016/08/python-packaging.html>`_
+* `Conda: Myths and Misconceptions <https://jakevdp.github.io/blog/2016/08/25/conda-myths-and-misconceptions/>`_
 
 Tools
 -----
