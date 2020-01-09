@@ -1,8 +1,8 @@
 Tutorial 4: Version control and version management
 ==================================================
 
-Git support
------------
+4.1 Git support
+---------------
 When you create a new project, Micc_ immediately provides a local git_ repository for 
 you and commits the initial files Micc_ set up for you. If you have a github_ account you
 can register it in the preferences file :file:`~/.micc/micc.json`, using the 
@@ -25,8 +25,8 @@ the remote origin. Otherwise, you get a warning that the remote repository does 
 yet exist. You can create the remote repository whenever you like and push your work
 onto the remote repository using the git_ CLI. 
 
-Version management
-------------------
+4.2 Version management
+----------------------
 Version numbers are practical, even for a small software project used only by 
 yourself. For larger projects, certainly when other users start using them, 
 they become indispensable. When giving version numbers to a project, we highly

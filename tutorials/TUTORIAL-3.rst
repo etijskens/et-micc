@@ -23,13 +23,13 @@ As with ``micc create`` the default structure is that of a simple module, i.e.
 :file:`ET-doc/et_doc/foo.py`. If you want a package you can add the ``--package``
 flag.
 
-3.1.1 Testing the module
-^^^^^^^^^^^^^^^^^^^^^^^^
+Testing the module
+^^^^^^^^^^^^^^^^^^
 When adding a module :py:mod:`foo`, Micc_ automacally adds a test script for the new module:
 :file:`tests/test_foo,py`. In this file you add tests for module :py:mod:`foo`.
 
-3.1.2 Documenting the module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Documenting the module
+^^^^^^^^^^^^^^^^^^^^^^
 When adding a module :py:mod:`foo`, Micc_ automatically adds documentation entries
 in :file:`API.rst`. Calling ``micc docs`` will automatically extract documentation from
 the doc-strings in your new module.
@@ -114,8 +114,8 @@ Here's how to use it from the command line (without installing):
    (.venv) > python et_dot/cli_dot_files.py file1.txt file2.txt -vv
    dot-files(file1.txt,file2.txt) = 30.0
 
-3.2.1 Testing the application
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Testing the application
+^^^^^^^^^^^^^^^^^^^^^^^
 When you add an a application like ``dot-files`` Micc_ automatically adds a test script
 :file:`tests/test_cli_dot_files.py` where you can add your tests.
 Testing CLIs is a bit more complex than testing modules, but Click_ provides some tools
@@ -155,8 +155,8 @@ Finally, we run pytest_:
    
    ================================== 10 passed in 0.33 seconds ==========================   
 
-3.2.2 Documenting an application
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Documenting an application
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 When adding a CLI, Micc_ automatically adds documentation entries for it. in :file:`APPS.rst`.
 Calling ``micc docs`` will automatically extract documentation from the doc-strings of the command
 and  the ``:param ...:`` of the :py:obj:`click.argument` decorators in these doc-strings, and

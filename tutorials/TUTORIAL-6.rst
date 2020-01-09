@@ -297,7 +297,7 @@ there are no errors implies that the auto-build feature was succesfully engaged 
 the binary extensions :file:`et_dot/dotf` and :file:`et_dot/dotc`.
 
 .. note::
-    Poetry_ **always** uses pip_ for its installs, even in a conda environment.
+    Poetry_ **always** uses `pip <https://pip.pypa.io/en/stable/>`_ for its installs, even in a conda environment.
     This may perhaps change in the future, as Poetry_ evolves, but for the time being
     it is the user's responsibility to ``conda install`` the modules he needs from the
     conda ecosystem.

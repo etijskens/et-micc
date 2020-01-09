@@ -118,8 +118,8 @@ on MACOSX, ``Linux` on Linux and ``Windows`` on Windows. If it exists, it should
     * On Linux   : ``build_options.Linux.json``
     * On Windows : ``build_options.Windows.json``
 
-5.3.1 f2py module build option specifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+F2py module build option specifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 All `options available to the f2py command line application <https://docs.scipy.org/doc/numpy/f2py/usage.html#command-f2py>`_
 can be entered in the build file specification. Pure flags, like e.g. ``--noopt``, which are present
 or not, but have no value, are entered in the dictionary with value None. Below are some examples of
@@ -147,8 +147,8 @@ much used f2py_ flags.
 .. note:: The Python dictionary ``f2py`` is written to file in ``.json`` format, which is
    human readable. You can also construct it with an editor.
 
-5.3.2 cpp module build option specifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Cpp module build option specifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For cpp binary extension modules the build tool is CMake_. Here, the entries of the build
 options dict consist of any CMake_ variable and its desired value.
 

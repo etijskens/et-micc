@@ -129,3 +129,7 @@ Development environment
 * `pyenv+poetry+pipx <https://jacobian.org/2019/nov/11/python-environment-2020/>`
 * https://sourcery.ai/blog/python-best-practices/
 * https://pypi.org/project/create-python-package/ a micc 'light'
+
+Django
+------
+* `Understanding django <https://www.mattlayman.com/understand-django/browser-to-django/>`_

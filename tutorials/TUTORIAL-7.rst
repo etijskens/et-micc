@@ -96,8 +96,8 @@ or::
 
 The poetry_ part, requires - at least at the time of writing - some special attention.
 
-7.1.1 Note about using Poetry on the cluster
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Note about using Poetry on the cluster
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 On our local machine we used poetry_ for
 
 * virtual environment creation and management,
@@ -126,8 +126,8 @@ want to publish your package, ``commit`` the changes to the git repository, ``pu
 to github_, fetch the latest version on your local machine and use ``poetry publish --build``
 to publish.
 
-7.1.2 Virtual environments and dependencies on the cluster
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Virtual environments and dependencies on the cluster
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If we can't use Poetry_ for creating virtual environments and installing dependencies,
 we need some alternative way to achieve this. Fortunately, just doing this by hand is not
 too difficult.
@@ -450,8 +450,8 @@ wrote before::
 Note that we installed *ET-dot* directly from github_. If we had published it to
 PyPi_, ``pip install ET-dot`` would have been sufficient.
 
-7.2.1 Using virtual environments in batch jobs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using virtual environments in batch jobs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Using project *foo* in a batch job is exactly the same as on the command line. You
 must load the cluster modules you need, and activate the environment. Here is an example
 (PBS) job script, assuming that foo.py is a python script that imports :py:mod:`et_dot` ::
