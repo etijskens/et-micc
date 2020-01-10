@@ -806,9 +806,9 @@ project (you are of course encouraged to change the project name as to make it u
 
 .. code-block:: bash
 
-    > micc -p ET-dot create --package
+    > micc -p ET-dot create
     [INFO]           [ Creating project (ET-dot):
-    [INFO]               Python package (et_dot): structure = (ET-dot/et_dot/__init__.py)
+    [INFO]               Python module (et_dot): structure = (ET-dot/et_dot.py
     [INFO]               [ Creating git repository
     [WARNING]                    > git push -u origin master
     [WARNING]                    (stderr)

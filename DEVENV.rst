@@ -14,8 +14,8 @@ particular:
 *   We are using `pyenv <https://github.com/pyenv/pyenv>`_ to manage different Python versions on
     our system (except for Anaconda or Miniconda Python distributions, where the Python version is
     naturally embedded in conda_ virtual environmnent).
-*   We use `pipx <https://github.com/pipxproject/pipx/>`_ to install applications like Micc_ and
-    `CMake <https://cmake.org>`_ system-wide together with their own virtual environment.
+*   We use `pipx <https://github.com/pipxproject/pipx/>`_ to install applications which must be
+    available system-wide, e.g. micc_, and `CMake <https://cmake.org>`_ system-wide together with their own virtual environment.
 *   `Poetry <https://poetry.eustace.io/docs/pyproject/>`_ is used to set up virtual environments for
     the projects we are working, for managing their dependencies and for publishing them.
 *   Micc_ is used to set up the project structure, as the basis of everything that will be described
