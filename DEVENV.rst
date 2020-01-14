@@ -106,7 +106,7 @@ Setting up your Development environment - step by step
             - ctest
         done!
 
-    If you are on one of the VSC clusters, check `Tutorial 7 - Using micc projects on the VSC-clusters`_.
+    If you are on one of the VSC clusters, check Tutorial 7 - Using micc projects on the VSC clusters.
 
 #.  Install an IDE. For many years I have been using `Eclipse IDE for Scientific Computing`_
     with the `PyDev <https://pydev.org>`_ plugin,  but recently I became addicted to

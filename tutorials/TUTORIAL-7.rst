@@ -1,4 +1,4 @@
-Tutorial 7 - Using micc projects on the VSC-clusters
+Tutorial 7 - Using micc projects on the VSC clusters
 ====================================================
 
 We distinguish to cases:

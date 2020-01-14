@@ -16,20 +16,34 @@ interesting links covering them:
 
 Most of these approaches do not require special support from Micc_ to get you going, and
 we encourage you to go try out the *High Performance Python* series 1-3 for the ET-dot
-project. Two of the approacheq discussed involve rewriting your code in Modern Fortran or
+project. Two of the approaches discussed involve rewriting your code in Modern Fortran or
 C++ and generate a shared library that can be imported in Python just as any Python module.
-Such shared libraries are called *binary extension modules*. This approach is by far the most
-scalable and flexible of all current acceleration strategies, as these languages are designed
-to squeeze the maximum of performance out of a CPU. However, figuring out how to make this work
-is a bit of a challenge, especially in the case of C++.
+Such shared libraries are called *binary extension modules*. Constructing binary extension
+modules is by far the most scalable and flexible of all current acceleration strategies, as
+these languages are designed to squeeze the maximum of performance out of a CPU. However,
+figuring out how to make this work is a bit of a challenge, especially in the case of C++.
 
-Micc_ automates the task of generating the binary extensions from source code in Fortran and
-C++. It is as simple as this:
+This is in fact one of the main reasons why Micc_ was designed: facilitating the construction
+of binary extension modules and enabling the developer to create high performance tools with
+ease.
+
+2.1 Binary extensions in Micc_ projects
+---------------------------------------
+Micc_ provides boilerplate code for binary extensions as well as some practical wrappers
+around top-notch tools for building binary extensions from Fortran and C++. Fortran code
+is compiled into a Python module using `f2py <https://docs.scipy.org/doc/numpy/f2py/>`_
+(which comes with Numpy_). For C++ we use Pybind11_ and `CMake <https://cmake.org>`_.
+
+Adding a binary extension is as simple as:
 
 .. code-block:: bash
 
-   > micc add foo --f2py   # add a binary extension written in Fortran
-   > micc add bar --cpp    # add a binary extension written in C++
+   > micc add foo --f2py   # add a binary extension 'foo' written in Fortran
+   > micc add bar --cpp    # add a binary extension 'bar' written in C++
+
+.. note::
+    For the ``micc add`` command to be valid, your project must have a package
+    structure (see `Modules and packages`_).
 
 Enter your own code in the generated source code files and execute :
 
@@ -41,23 +55,29 @@ Enter your own code in the generated source code files and execute :
     The virtual environment must be activated to execute the ``micc-build``
     command (see `Virtual environments`_).
 
-Now you can import modules :py:mod:`foo` and :py:mod:`bar` in your project and use
-their subroutines and functions.
+If there are no syntax errors your binary extensions will be built, and you
+will be able to import the  modules :py:mod:`foo` and :py:mod:`bar` in your
+project and use their subroutines and functions. Because :py:mod:`foo` and
+:py:mod:`bar` are submodules of your micc_ project, you must import them as::
 
-2.1 Binary extensions in Micc_ projects
----------------------------------------
-Micc_ provides boilerplate code for binary extensions as well as some practical wrappers
-around top-notch tools for building binary extensions from Fortran and C++. Fortran code
-is compiled into a Python module using `f2py <https://docs.scipy.org/doc/numpy/f2py/>`_
-(which comes with Numpy_). For C++ we use Pybind11_ and `CMake <https://cmake.org>`_.
+    import my_package.foo
+    import my_package.bar
+
+    # call foofun in my_package.foo
+    my_package.foo.foofun(...)
+
+    # call barfun in my_package.bar
+    my_package.bar.barfun(...)
+
+where :py:mod:`my_package` is the name of the top package of your micc_ project.
 
 Choosing between Fortran and C++ for binary extension modules
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Here are a number of arguments that you may wish to take into account for choosing the
 programming language for your binary extension modules:
 
-* Fortran is a simpler languages than C++
-* It is easier to write efficient code in Fortran than C++
+* Fortran is a simpler language than C++
+* It is easier to write efficient code in Fortran than C++.
 * C++ is a much more expressive language
 * C++ comes with a huge standard library, providing lots of data structures and algorithms
   that are hard to match in Fortran. If the standard library is not enough, there is also
@@ -74,60 +94,41 @@ programming language for your binary extension modules:
   * https://en.cppreference.com/w/
 
 In short, C++ provides much more possibilities, but it is not for the novice.
-
-Converting a module structure to a package structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Module structure projects are meant for small projects consisting of a single
-module file, here :file:`et_dot.py` in the project directory. For more involved
-projects a package structure is more appropriate. Package structure projects can
-contain additional python modules, binary extension modules written in Fortran
-or C++, as well as command line interfaces (CLIs). In a package structure,
-the project directory has a subdirectory with the package name, c.q. :file:`et_dot`,
-that contains an :file:`__init__.py` file, which has the same content as the
-:file:`et_dot.py` file in the module structure.
-
-Since we started out with a module project ET-dot, its module structure
-(:file:`ET-dot/et_dot.py`) must be converted to a package structure
-(:file:`ET-dot/et_dot/__init__.py`) before we can add a f2py (Fortran) binary
-extension module to it.
-
-.. code-block:: bash
-
-   > micc convert-to-package
-   Converting simple Python project ET-dot to general Python project.
-   [WARNING]        Pre-existing files in /Users/etijskens/software/dev/workspace that would be overwritten:
-   [WARNING]          /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
-      Aborting because 'overwrite==False'.
-        Rerun the command with the '--backup' flag to first backup these files (*.bak).
-        Rerun the command with the '--overwrite' flag to overwrite these files without backup.
-      Aborting.
-   [CRITICAL]       Exiting (-3) ...
-   [WARNING]        It is normally ok to overwrite 'index.rst' as you are not supposed
-                    to edit the '.rst' files in '/Users/etijskens/software/dev/workspace/ET-dot/docs.'
-                    If in doubt: rerun the command with the '--backup' flag,
-                      otherwise: rerun the command with the '--overwrite' flag,
-
-Without extra options the command fails because it wants to replace the file
-:file:`ET-dot/docs/index.rst`, which we do not allow, because the user may have
-modified that file (although the files :file:`ET-dot/docs` directory are in fact not
-meant for being edited by the user). If he has not edited :file:`ET-dot/docs/index.rst` the user
-can safely rerun the command with the ``--overwrite`` flag. Otherwise he must use the
-``--backup`` flag to keep a backup of the original :file:`ET-dot/docs/index.rst`. That
-way he can inspect the original file and transfer his changes to the new file.
-
-.. code-block:: bash
-
-   > micc convert-to-package --overwrite
-   Converting simple Python project ET-dot to general Python project.
-   [WARNING]        '--overwrite' specified: pre-existing files in /Users/etijskens/software/dev/workspace will be overwritten WITHOUT backup:
-   [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
+As to my own experience, I discovered that working on projects of moderate complexity
+I progressed significantly faster using Fortran rather than C++, despite the fact that
+my knowledge of Fortran is quite limited compared to C++. However, your mileage may vary.
 
 2.2 Building binary extensions from Fortran
 -------------------------------------------
-Binary extension modules based on Fortran are called *f2py modules* because these
-modules are build with the f2py tool, which is part of Numpy. Since our project
-ET-dot now has a package structure, we are now ready to add a f2py module. Let us
-call this module :py:mod:`dotf`, where the ``f`` stands for Fortran:
+Binary extension modules based on Fortran are called *f2py modules* because micc_ uses
+the f2py_ tool to build these binary extension modules from Fortran. F2py_ is part of
+Numpy_.
+
+.. note::
+    To be able to add a binary extension module (as well as any other component supported
+    by micc_, such as Python modules or CLI applications) to a micc_ project, your project
+    must have a package structure. This is easily checked by running the ``micc info`` command::
+
+        > micc info
+        Project ET-dot located at /home/bert/software/workspace/ET-dot
+          package: et_dot
+          version: 0.0.0
+          structure: et_dot/__init__.py (Python package)
+        >
+
+    If it does, the *structure* line of the output will read as above. If, however, the
+    *structure* line reads::
+
+        structure: et_dot.py (Python module)
+
+    you should convert it by running::
+
+        > micc convert-to-package --overwrite
+
+    See `Modules and packages`_ for details.
+
+We are now ready to create a f2py module for a Fortran implementation fof the
+dot product, say :py:mod:`dotf`, where the ``f``, obviously, stands for Fortran:
 
 .. code-block:: bash
 
@@ -262,8 +263,9 @@ failed to build. If the source file does not have any syntax errors, you will se
     drwxr-xr-x  6 etijskens  staff  192 Dec 13 11:12 f2py_dotf/
     lrwxr-xr-x  1 etijskens  staff   92 Dec 13 11:12 dotf.cpython-37m-darwin.so@ -> path/to/ET-dot/et_dot/f2py_foo/foo.cpython-37m-darwin.so
 
-.. note:: The extension of the module :file:`dotf.cpython-37m-darwin.so`
-   will depend on the Python version you are using, and on youe operating system.
+.. note::
+    The extension of the module :file:`dotf.cpython-37m-darwin.so` will depend on the Python
+    version (c.q. 3.7) you are using, and on your operating system (c.q. MacOS).
 
 Since our binary extension is built, we can test it. Here is some test code. Enter it in file
 :file:`ET-dot/tests/test_f2py_dotf.py`:
@@ -315,7 +317,7 @@ Here is the outcome of ``pytest``:
    ============================== 8 passed in 0.16 seconds ==============================
    >
 
-All our tests passed. Of course we can extend the tests in the same way as we dit for the
+All our tests passed. Of course we can extend the tests in the same way as we did for the
 naive Python implementation in the previous tutorial. We leave that as an exercise to the
 reader.
 
@@ -364,21 +366,18 @@ Increment the version string and produce tag::
 
 2.3 Building binary extensions from C++
 ---------------------------------------
-.. note:: To add binary extension modules to a project, it must have a package structure.
-   To check, you may run the ``micc info`` command:
+To illustrate building binary extension modules from C++ code, let us also create a
+C++ implementation for the dot product. Such modules are called *cpp modules*.
+Analogously to our :py:mod:`dotf` module we will call the cpp module :py:mod:`dotc`,
+the ``c`` referring to C++.
 
-   .. code-block:: bash
+.. note::
+    To add binary extension modules to a project, it must have a package structure.
+    To check, you may run the ``micc info`` command and verify the structure line.
+    If it mentions ``Python module``, you must convert the structure by running
+    ``micc convert-to-package --overwrite``. See `Modules and packages`_ for details.
 
-      > micc info
-      Project ET-dot located at /Users/etijskens/software/dev/workspace/ET-dot
-        package: et_dot
-        version: 0.0.0
-        structure: et_dot/__init__.py (Python package)
-        contents:
-          f2py module f2py_dotf/dotf.f90
-
-Binary extionsion modules based on C++ are called cpp modules. This time we will call
-the module :py:mod:`dotc` where the ``c`` stands for C++.
+Use the ``micc add`` command to add a cpp module:
 
 .. code-block:: bash
 
@@ -396,14 +395,23 @@ documentation.  First take care of the warning::
     (.venv) > poetry update
     Updating dependencies
     Resolving dependencies... (1.7s)
-
     No dependencies to install or update
 
-There is nothing to install, because micc-build_ was already installed when we added the Fortran
-module :py:mod:`dotf` (see `2.2 Building binary extensions from Fortran`_).
+Typically, there will be nothing to install, because micc-build_ was already installed when
+we added the Fortran module :py:mod:`dotf` (see `2.2 Building binary extensions from Fortran`_).
+Sometimes one of the packages you depend on may just have seen a new release and poetry_ will
+perform an upgrade::
 
-We will be using pybind11_ to create Python wrappers for C++
-functions. Pybind11_ is by far the most practical choice for this (see
+    (.venv) > poetry update
+    Updating dependencies
+    Resolving dependencies... (1.6s)
+    Writing lock file
+    Package operations: 0 installs, 1 update, 0 removals
+      - Updating zipp (0.6.0 -> 1.0.0)
+    (.venv) >
+
+Micc_ uses pybind11_ to create Python wrappers for C++ functions. This
+is by far the most practical choice for this (see
 https://channel9.msdn.com/Events/CPP/CppCon-2016/CppCon-2016-Introduction-to-C-python-extensions-and-embedding-Python-in-C-Apps
 for a good overview of this topic). It has a lot of 'automagical' features, and
 it has a header-only C++ library - so, thus effectively preventing installation problems.
@@ -412,7 +420,7 @@ offers very similar features, but is not header-only and its library depends on
 the python version you want to use - so you need a different library for every
 Python version you want to use.
 
-Increment the minor component of the version string::
+This is a good point to increment the minor component of the version string::
 
     (.venv) > micc version -m
     [INFO]           (ET-dot)> micc version (0.1.1) -> (0.2.0)
@@ -468,9 +476,9 @@ As such it is not capable of introspection and the user is obliged to use
 `pybind11 <https://pybind11.readthedocs.io/>`_ for accessing the arguments passed in
 by Python.
 
-Build the module. Because we do not want to rebuild the :py:mod:`dotf` module we add
-``-m dotc`` to the command line, to indicate that only module :py:mod:`dotc` must be
-built::
+We can now build the module. Because we do not want to rebuild the :py:mod:`dotf` module
+we add ``-m dotc`` to the command line, to indicate that only module :py:mod:`dotc` must
+be built::
 
    (.venv)> micc build -m dotc
     [INFO] [ Building cpp module 'dotc':
@@ -510,8 +518,9 @@ built::
     [INFO]           - /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/dotc.cpython-37m-darwin.so
     (.venv)   >
 
-The output shows that first ``CMake`` is called, then ``make``, and finally the binary extension is
-installed with a soft link.
+The output shows that first ``CMake`` is called, followed by ``make`` and the installation
+of the binary extension with a soft link. Finally, lists of modules that have been built
+successfully, and modules that failed to build are output.
 
 As usual the ``micc-build`` command produces a lot of output, most of which is rather uninteresting
 - except in the case of errors. If the source file does not have any syntax errors, and the build
@@ -531,7 +540,8 @@ directory :file:`ET-dot/et_dot`::
 .. note:: The extension of the module :file:`dotc.cpython-37m-darwin.so`
    will depend on the Python version you are using, and on the operating system.
 
-Increment the version string::
+Although we haven't tested :py:mod:`dotc`, this is a good point to increment the version
+string::
 
     (.venv) > micc version -p
     [INFO]           (ET-dot)> micc version (0.2.0) -> (0.2.1)
@@ -541,8 +551,7 @@ except for the module name. Enter the test code in :file:`ET-dot/tests/test_cpp_
 
 .. code-block:: python
 
-   # import our binary extension
-   import et_dot.dotc as cpp
+   import et_dot.dotc as cpp    # import the binary extension
    import numpy as np
 
    def test_dotc_aa():
@@ -572,9 +581,8 @@ Finally, run pytest:
 
    ============================== 9 passed in 0.28 seconds ==============================
 
-All our tests passed.
-
-Increment the version string and tag::
+All our tests passed, which is a good reason to increment the version string and
+create a tag::
 
     (.venv) > micc version -m -t
     [INFO] Creating git tag v0.3.0 for project ET-dot
@@ -583,7 +591,7 @@ Increment the version string and tag::
 2.4 Data type issues
 --------------------
 
-An importand point of attention when writing binary extension modules - and a
+An important point of attention when writing binary extension modules - and a
 common source of problems - is that the data types of the variables passed in from
 Python must match the data types of the Fortran or C++ routines.
 
@@ -737,6 +745,9 @@ CMake_. Obviously, in both cases there is a compiler under the hood doing the
 hard work. By default these tools use the compiler they find on the path, but
 you may as well specify your favorite compiler.
 
+.. note::
+    Compiler options are distinct for f2py modules and cpp modules.
+
 Building a single module only
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If you want to build a single binary extension module rather than all binary
@@ -744,9 +755,13 @@ extension modules in the project, add the ``-m|--module`` option:
 
 .. code-block::
 
-   > micc build --module my_module <build options>
+   > micc-build --module my_module <build options>
 
 This will only build module *my_module*.
+
+.. note::
+    If you do not use ``--module my_module``, the f2py options apply to all f2py
+    modules in the project, and the cpp options to all cpp modules in the project.
 
 Performing a clean build
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -754,7 +769,7 @@ To perform a clean build, add the ``--clean`` flag to the ``micc build`` command
 
 .. code-block::
 
-   > micc build --clean <other options>
+   > micc-build --clean <other options>
 
 This will remove the previous build directory and as well as the binary extension
 module.
@@ -765,7 +780,7 @@ To specify the Fortran compiler, e.g. the GNU fortran compiler:
 
 .. code-block::
 
-   > micc build --f90exec path/to/gfortran
+   > micc-build --f90exec path/to/gfortran
 
 Note, that this exactly how you would have specified it using f2py_ directly.
 You can specify the Fortran compiler options you want using the ``--f90flags``
@@ -773,9 +788,9 @@ option:
 
 .. code-block::
 
-   > micc build --f90flags "string with all my favourit options"
+   > micc-build --f90flags "string with all my favourit options"
 
-In addition f2py_ (and ``micc build`` for that matter) provides two extra options
+In addition f2py_ (and ``micc-build`` for that matter) provides two extra options
 ``--opt`` for specifying optimization flags, and ``--arch`` for specifying architecture
 dependent optimization flags. These flags can be turned off by adding ``--noopt`` and
 ``--noarch``, respectively. This can be convenient when exploring compile options.
@@ -798,7 +813,7 @@ The C++ compiler, e.g. the Intel C++ compiler, is specified as:
 
 .. code-block::
 
-   > micc build --cxx-compiler path/to/icpc
+   > micc-build --cxx-compiler path/to/icpc
 
 Here, the ``--cxx-compiler``'s value is tranferred to the CMake_ variable
 ``CMAKE_CXX_COMPILER``.
@@ -829,7 +844,7 @@ format. This acts on a per project basis. E.g.:
 
 .. code-block::
 
-   > micc build <my build options> --save build[.json]
+   > micc-build <my build options> --save build[.json]
 
 will save the *<my build options>* to the file :file:`build.json` in every binary module
 directory (the .json extension is added if omitted). You can restrict this to a single
@@ -838,7 +853,7 @@ later build as:
 
 .. code-block::
 
-   > micc build --load build[.json]
+   > micc-build --load build[.json]
 
 2.6 Documenting binary extension modules
 ----------------------------------------

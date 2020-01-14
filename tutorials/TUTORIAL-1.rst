@@ -131,6 +131,33 @@ project at any time:
 .. code-block:: bash
 
    > micc -p ET-dot convert-to-package
+   Converting simple Python project ET-dot to general Python project.
+   [WARNING]        Pre-existing files in /Users/etijskens/software/dev/workspace that would be overwritten:
+   [WARNING]          /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
+      Aborting because 'overwrite==False'.
+        Rerun the command with the '--backup' flag to first backup these files (*.bak).
+        Rerun the command with the '--overwrite' flag to overwrite these files without backup.
+      Aborting.
+   [CRITICAL]       Exiting (-3) ...
+   [WARNING]        It is normally ok to overwrite 'index.rst' as you are not supposed
+                    to edit the '.rst' files in '/Users/etijskens/software/dev/workspace/ET-dot/docs.'
+                    If in doubt: rerun the command with the '--backup' flag,
+                      otherwise: rerun the command with the '--overwrite' flag,
+
+Because we do not want to replace existing files inadvertently, this command will
+always fail, unless you add either the ``--backup`` flag, in which case micc_ makes
+a backup of all files it wants to replace, or the ``--overwrite``, in which case
+those files will be overwritten. Micc_ will always produce a list of files it wants
+to replace. Unless you deliberately modified one of the files in the list, you can
+safely use ``--overwrite``. If you did, use the ``--backup`` flag and manually copy
+the the changes from the :file:`.bak` file to the new file.
+
+.. code-block:: bash
+
+   > micc convert-to-package --overwrite
+   Converting simple Python project ET-dot to general Python project.
+   [WARNING]        '--overwrite' specified: pre-existing files in /Users/etijskens/software/dev/workspace will be overwritten WITHOUT backup:
+   [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
 
 The project path in in micc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1202,10 +1229,11 @@ The tag is a label for the current code base of our project.
 1.3 Improving efficiency
 ------------------------
 There are times when a correct solution - i.e. a code that solves the problem correctly -
-is sufficient. Most of the time, however, the solution also needs use resources efficiently,
-runtime, memory, ... Especially in High Performance Computing, where compute tasks may run
-for several days and use hundreds of compute nodes, and resources are to be sharede wiht
-may researchers, using the resources efficiently is of utmost importance.
+is sufficient. Very often, however, there are constraints on the time to solution, and
+the computing resources (number of cores and nodes, memory, ..) are requested to be used
+efficiently. Especially in scientific computing and high performance computing, where
+compute tasks may run for many days using hundreds of compute nodes and resources are
+to be shared with many researchers, using the resources efficiently is of utmost importance.
 
 However important efficiency may be, it is nevertheless a good strategy for developing a
 new piece of code, to start out with a simple, even naive implementation in Python, neglecting
@@ -1254,8 +1282,24 @@ working directory:
 
 .. note:: As our script does not fix the random number seed, every run has a different outcome.
 
-We are now ready to time our script. Micc_ provides a practical context manager class
-:py:class:`et_micc.Stopwatch` to time pieces of code.
+We are now ready to time our script. There are many ways to achieve this. Here is a
+`particularly good introduction <https://realpython.com/python-timer/>`_. The
+`et-stopwatch project <https://pypi.org/project/et-stopwatch/>`_ takes this a little
+further. We add it as a development dependency of our project::
+
+    (.venv) > poetry add et_stopwatch -D
+    Using version ^0.3.0 for et_stopwatch
+    Updating dependencies
+    Resolving dependencies... (0.2s)
+    Writing lock file
+    Package operations: 1 install, 0 updates, 0 removals
+      - Installing et-stopwatch (0.3.0)
+    (.venv) >
+
+.. note:: A development dependency is a package that is not needed for using the package
+    at hand, bit only needed for developing it.
+
+Using the :py:class:`Stopwatch` class to time pieces of code is simple:
 
 .. code-block:: python
 
@@ -1265,12 +1309,11 @@ We are now ready to time our script. Micc_ provides a practical context manager 
    ...
 
    if __name__=='__main__':
-       with Stopwatch() as timer:
+       with Stopwatch(name="init"):
            a = random_array()
            b = random_array()
-           print("init:",timer.timelapse(),'s')
+       with Stopwatch(name="dot "):
            dot(a,b)
-           print("dot :",timer.timelapse(),'s')
        print('-*# done #*-')
 
 When the script is exectuted the two print statements will print the duration of the
@@ -1282,30 +1325,11 @@ Finally, upon exit the :py:obj:`Stopwatch` will print the total time.
    (.venv) > python ./prof/run1.py
    init: 0.000281 s
    dot : 0.000174 s
-   0.000465 s
    -*# done #*-
    >
 
 Note that the initialization phase took longer than the computation. Random number
-generation is rather expensive. The last number is the total time spent inside the
-stopwatch body, and is printed automatically. If you like you can customise this
-message by setting the ``message`` parameter in the constructor of the stopwatch:
-
-.. code-block:: python
-
-   with Stopwatch(message="total") as timer:
-      ...
-
-which would have output:
-
-.. code-block:: bash
-
-   (.venv) > python ./prof/run1.py
-   init: 0.000281 s
-   dot : 0.000174 s
-   total 0.000465 s
-   -*# done #*-
-   >
+generation is rather expensive.
 
 Comparing to Numpy
 ^^^^^^^^^^^^^^^^^^
@@ -1324,59 +1348,31 @@ our code.
    ...
 
    if __name__=='__main__':
-       with Stopwatch() as timer:
+       with Stopwatch(name="et init"):
            a = random_array()
            b = random_array()
-           print("et init:",timer.timelapse(),'s')
+       with Stopwatch(name="et dot "):
            dot(a,b)
-           print("et dot :",timer.timelapse(),'s')
 
-       with Stopwatch() as timer:
+       with Stopwatch(name="np init"):
            a = np.random.rand(1000)
            b = np.random.rand(1000)
-           print("np init:",timer.timelapse(),'s')
+       with Stopwatch(name="np dot "):
            np.dot(a,b)
-           print("np dot :",timer.timelapse(),'s')
 
        print('-*# done #*-')
 
-When you run this code, you will get a :py:exc:`ModuleNotFoundError` for Numpy_, as it
-it not yet a dependency of our ET-dot project and Numpy_ is not yet installed in our
-virtual environment. If you do not want Numpy_ to become a dependency of ET-dot, just
-install it in the virtual environment ::
+Obviously, to run this script, we must first install Numpy_ (again as a development
+dependency)::
 
-.. code-block:: bash
-
-   (.venv) > pip install numpy
-   Collecting numpy
-
-     Using cached https://files.pythonhosted.org/packages/60/9a/a6b3168f2194fb468dcc4cf54c8344d1f514935006c3347ede198e968cb0/numpy-1.17.4-cp37-cp37m-macosx_10_9_x86_64.whl
-
-   Installing collected packages: numpy
-   Successfully installed numpy-1.17.4
-   Here are the results. Note that the Numpy_ version is significantly faster, both for
-   initialization (x3.2) and for the dot product (x6.8).
-   (.venv) >
-
-If, on the other hand, you want Numpy_ to become a dependency of ET-dot, and have
-it always automatically installed together with ET-dot, you must run:"
-
-.. code-block:: bash
-
-   (.venv) > poetry add numpy
-   Using version ^1.17.4 for numpy
-
-   Updating dependencies
-   Resolving dependencies... (0.2s)
-
-   Writing lock file
-
-
-   Package operations: 1 install, 0 updates, 0 removals
-
-     - Installing numpy (1.17.4)
-
-   (.venv) >
+    (.venv) > poetry add numpy -D
+    Using version ^1.18.1 for numpy
+    Updating dependencies
+    Resolving dependencies... (1.5s)
+    Writing lock file
+    Package operations: 1 install, 0 updates, 0 removals
+      - Installing numpy (1.18.1)
+    (.venv) >
 
 Here are the results of the modified script:
 
@@ -1385,18 +1381,34 @@ Here are the results of the modified script:
    (.venv) > python ./prof/run1.py
    et init: 0.000252 s
    et dot : 0.000219 s
-   0.000489 s
    np init: 7.8e-05 s
    np dot : 3.2e-05 s
-   0.00012 s
    -*# done #*-
    >
 
 Obviously, Numpy_ does significantly better than our naive dot product implementation.
 The reasons for this improvement are:
 
-* Numpy_ arrays are contiguous data structures of floating point numbers, unlike Python's
-  :py:class:`list`. Contiguous memory access is far more efficient.
-* The loop over Numpy_ arrays is implemented in a low-level programming languange.
-  This allows to make full use of the processors hardware features, such as vectorization and
-  fused multiply-add (FMA).
+*   Numpy_ arrays are contiguous data structures of floating point numbers, unlike Python's
+    :py:class:`list`. Contiguous memory access is far more efficient.
+*   The loop over Numpy_ arrays is implemented in a low-level programming languange.
+    This allows to make full use of the processors hardware features, such as *vectorization*
+    and *fused multiply-add* (FMA).
+
+Conclusion
+^^^^^^^^^^
+There are three important generic lessons to be learned from this tutorial:
+
+#.  Always start your projects with a simple and straightforward implementation which
+    can be easily be proven to be correct. Write test code for proving correctness.
+
+#.  Time your code to understand which parts are time consuming and which not. Optimize
+    bottlenecks first and do not waste time optimizing code that does not contribute
+    significantly to the total runtime. Optimized code is typically harder to read and
+    may become a maintenance issue.
+
+#.  Before you write code, in this case our dot product implementation, spent some time
+    searching the internet to see what is already available. Especially in the field of
+    scientific and high performance computing there are many excellent libraries available
+    which are hard to beat. Use your precious time for new stuff.
+
