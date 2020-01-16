@@ -1,7 +1,8 @@
-Interesting links on Python programming.
-
+Python as a language
+--------------------
 * `What makes Python a great language? <https://stevedower.id.au/blog/python-a-great-language/>`_
 * `The most underrated python packages <https://towardsdatascience.com/the-most-underrated-python-packages-e22bf6049b5e>`_
+* `Writing your first Python program <https://able.bio/SamDev14/writing-your-first-python-program--31a3607>`_
 
 Python internals
 ----------------
@@ -11,11 +12,13 @@ Python internals
 
 Python for HPC
 --------------
+* `Performance Python: Seven Strategies for Optimizing Your Numerical Code <https://www.youtube.com/watch?v=zQeYx87mfyw>`_
 * `High performance Python 1 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-1>`_
 * `High performance Python 2 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-2>`_
 * `High performance Python 3 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-3>`_
 * `High performance Python 4 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-4>`_
-* `Performance Python: Seven Strategies for Optimizing Your Numerical Code <https://www.youtube.com/watch?v=zQeYx87mfyw>`_
+
+
 
 Profiling
 ---------
@@ -39,12 +42,14 @@ Python idioms and readability
 * `Python module of the week <https://pymotw.com/2/contents.html>`_
 * `Type hints for busy programmers <https://inventwithpython.com/blog/2019/11/24/type-hints-for-busy-python-programmers/>`_
 * `Exceptions <https://orbifold.xyz/raising-exceptions.html>`_
-* `Python Tips and Trick, You Haven't Already Seen - part 1 <https://martinheinz.dev/blog/1>`_
-* `Python Tips and Trick, You Haven't Already Seen - part 2 <https://martinheinz.dev/blog/4>`_
+* `Python Tips and Tricks, You Haven't Already Seen - part 1 <https://martinheinz.dev/blog/1>`_
+* `Python Tips and Tricks, You Haven't Already Seen - part 2 <https://martinheinz.dev/blog/4>`_
+* `30 Python Best Practices, Tips, And Tricks <https://towardsdatascience.com/30-python-best-practices-tips-and-tricks-caefb9f8c5f5>`_
 
-Blogs
------
+Programming blogs
+-----------------
 * `julien danjou <https://julien.danjou.info>`_
+* `Patrick's software blog <http://www.patricksoftwareblog.com/>`_
 
 Design patterns
 ---------------
@@ -63,8 +68,11 @@ Machine learning and datascience
 * `Plotnine: Grammar of Graphics for Python <https://www.datascienceworkshops.com/blog/plotnine-grammar-of-graphics-for-python/>`_
 * `Top 10 Python libraries of 2019 <https://tryolabs.com/blog/2019/12/10/top-10-python-libraries-of-2019/>`_
 
-Writing your own debugger
--------------------------
+Debugging and logging
+---------------------
+* `pdb - The Python debugger <https://docs.python.org/3/library/pdb.html>`_
+* `Python debugging with pdb <https://realpython.com/python-debugging-pdb/>`_
+* `Python logging tutorial <http://www.patricksoftwareblog.com/python-logging-tutorial/>`_
 * `tutorial on sys.settrace <https://pymotw.com/2/sys/tracing.html>`_
 * `Liran Haimovitch - Understanding Python’s Debugging Internals - PyCon 2019 <https://www.youtube.com/watch?v=QU158nGABxI&t=765s&pbjreload=10>`_
 * `bdb - debugger framework <https://docs.python.org/3.8/library/bdb.html>`_
@@ -86,6 +94,7 @@ Packaging
 
 Tools
 -----
+* `Software Development Checklist for Python Applications <http://www.patricksoftwareblog.com/software-development-checklist-for-python-applications/>`_
 * `IPython and Jupyter in Depth: High productivity, interactive Python <https://www.youtube.com/watch?v=hgiNlxUN2V0>`_ Matthias Bussonier
 * `Faster Python Programs - Measure, don't Guess - PyCon 2019 <https://youtu.be/EcGWDNlGTNg>`_
 * `Python Tooling Makes a Project Tick <https://medium.com/georgian-impact-blog/python-tooling-makes-a-project-tick-181d567eea44>`_
@@ -117,6 +126,8 @@ Testing
 * `Python Testing 201 with pytest <https://www.mattlayman.com/blog/2019/python-testing-201-with-pytest/>`_
 * `8 great pytest plugins <https://opensource.com/article/18/6/pytest-plugins>`_
 * `Pytest Features, That You Need in Your (Testing) Life <https://martinheinz.dev/blog/7>`_
+* `An Introduction To Test Driven Development <https://able.bio/SamDev14/an-introduction-to-test-driven-development--69muplk>`_
+* `How To Write Tests For Python <https://able.bio/SamDev14/how-to-write-tests-for-python--22m3q1n>`_
 
 Fortran/C/C++
 -------------

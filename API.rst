@@ -17,9 +17,6 @@
 .. automodule:: et_micc.tomlfile
    :members:
    
-.. automodule:: et_micc.stopwatch
-   :members:
-
 .. automodule:: et_micc.static_vars
    :members:
    

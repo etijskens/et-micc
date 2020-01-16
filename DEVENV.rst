@@ -14,13 +14,15 @@ particular:
 *   We are using `pyenv <https://github.com/pyenv/pyenv>`_ to manage different Python versions on
     our system (except for Anaconda or Miniconda Python distributions, where the Python version is
     naturally embedded in conda_ virtual environmnent).
-*   We use `pipx <https://github.com/pipxproject/pipx/>`_ to install applications which must be
-    available system-wide, e.g. micc_, and `CMake <https://cmake.org>`_ system-wide together with their own virtual environment.
+*   `Pipx <https://github.com/pipxproject/pipx/>`_ can be used to install Python applications
+    system-wide. If your projects depend on different Python versions it is a good idea to
+    ``pipx install`` Micc_, which we use for project management and and building binary extension
+    modules.
 *   `Poetry <https://poetry.eustace.io/docs/pyproject/>`_ is used to set up virtual environments for
     the projects we are working, for managing their dependencies and for publishing them.
-*   Micc_ is used to set up the project structure, as the basis of everything that will be described
-    in the tutorials below.
-*   For Micc_ projects with binary extension the necessary compilers must be installed on the system.
+*   For building binary extension modules from C++ `CMake <https://cmake.org>`_ must be available.
+*   For Micc_ projects with binary extension the necessary compilers (C++, Fortran) must be installed
+    on the system.
 *   As an IDE for Python/Fortran/C++ development we recommend:
 
     *   `Eclipse IDE for Scientific Computing <https://www.eclipse.org/downloads/packages/release/photon/rc2/eclipse-ide-scientific-computing>`_
@@ -52,7 +54,7 @@ Setting up your Development environment - step by step
 
     This approach will give you one single system-wide Poetry_ installations, which
     will automatically pick up the current Python version as set by pyenv_. Note,
-    that as of Poetry_ 1.0.0, Poetry will alse detect
+    that as of Poetry_ 1.0.0, Poetry will also detect
     `conda <https://conda.io/projects/conda/en/latest/index.html>`_ virtual environments.
 
 #. Configure your poetry_ installation::
