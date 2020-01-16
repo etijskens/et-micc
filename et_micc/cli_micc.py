@@ -148,10 +148,12 @@ def create(ctx
             break
     else:
         license_ = licenses[0]
-    options.template_parameters.update({'project_short_description': description
-                                           , 'open_source_license': license_
-                                        }
-                                       )
+        
+    options.template_parameters.update(
+        {'project_short_description': description,
+         'open_source_license': license_,
+        }
+    )
     project = Project(options)
     if project.exit_code:
         ctx.exit(project.exit_code)
