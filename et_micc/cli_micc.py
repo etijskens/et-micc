@@ -20,17 +20,17 @@ __template_help = "Ordered list of Cookiecutter templates, or a single Cookiecut
 @click.option('-v', '--verbosity', count=True
     , help="The verbosity of the program output."
     , default=1
-              )
+)
 @click.option('-p', '--project-path'
     , help="The path to the project directory. "
            "The default is the current working directory."
     , default='.'
     , type=Path
-              )
+)
 @click.option('--clear-log'
     , help="If specified clears the project's ``et_micc.log`` file."
     , default=False, is_flag=True
-              )
+)
 @click.version_option(version=micc_version())
 @click.pass_context
 def main(ctx, verbosity, project_path, clear_log):
@@ -52,39 +52,45 @@ def main(ctx, verbosity, project_path, clear_log):
     if clear_log:
         os.remove(project_path / 'micc.log')
 
-    ctx.obj = SimpleNamespace(verbosity=verbosity
-                              , project_path=project_path.resolve()
-                              , clear_log=clear_log
-                              , template_parameters={}
-                              , create=False
-                              )
+    ctx.obj = SimpleNamespace(
+        verbosity=verbosity,
+        project_path=project_path.resolve(),
+        clear_log=clear_log,
+        template_parameters={},
+        create=False,
+    )
 
 
 @main.command()
+@click.option('--publish'
+    , help="If specified, verifies that the package name is available on PyPI.\n"
+           "If the result is False or inconclusive the project is not created."
+    , default=False, is_flag=True
+)
 @click.option('-p', '--package'
     , help="Create a Python project with a package structure rather than a module structure:\n\n"
            "* package structure = ``<module_name>/__init__.py``\n"
            "* module  structure = ``<module_name>.py`` \n"
     , default=False, is_flag=True
-              )
+)
 @click.option('--micc-file'
     , help="The file containing the descriptions of the template parameters used"
            "in the *Cookiecutter* templates. "
     , default='', type=Path
-              )
+)
 @click.option('-d', '--description'
     , help="Short description of your project."
     , default='<Enter a one-sentence description of this project here.>'
-              )
+)
 @click.option('-l', '--lic'
     , help="License identifier."
     , default='MIT'
-              )
+)
 @click.option('-T', '--template', help=__template_help, default=[])
 @click.option('-n', '--allow-nesting'
     , help="If specified allows to nest a project inside another project."
     , default=False, is_flag=True
-              )
+)
 @click.pass_context
 def create(ctx
            , package
@@ -93,6 +99,7 @@ def create(ctx
            , lic
            , template
            , allow_nesting
+           , publish
            ):
     """Create a new project skeleton.
 
@@ -115,6 +122,7 @@ def create(ctx
     options.create = True
     options.micc_file = micc_file
     options.structure = 'package' if package else 'module'
+    options.publish = publish
 
     if not template:  # default, empty list
         if options.structure == 'module':
@@ -163,11 +171,11 @@ def create(ctx
 @click.option('--overwrite', is_flag=True
     , help="Overwrite pre-existing files (without backup)."
     , default=False
-              )
+)
 @click.option('--backup', is_flag=True
     , help="Make backup files (.bak) before overwriting any pre-existing files."
     , default=False
-              )
+)
 @click.pass_context
 def convert_to_package(ctx, overwrite, backup):
     """Convert a Python module project to a package.
@@ -234,31 +242,31 @@ def info(ctx):
 @click.option('-M', '--major'
     , help='Increment the major version number component and set minor and patch components to 0.'
     , default=False, is_flag=True
-              )
+)
 @click.option('-m', '--minor'
     , help='Increment the minor version number component and set minor and patch component to 0.'
     , default=False, is_flag=True
-              )
+)
 @click.option('-p', '--patch'
     , help='Increment the patch version number component.'
     , default=False, is_flag=True
-              )
+)
 @click.option('-r', '--rule'
     , help='Any semver 2.0 version string.'
     , default=''
-              )
+)
 @click.option('-t', '--tag'
     , help='Create a git tag for the new version, and push it to the remote repo.'
     , default=False, is_flag=True
-              )
+)
 @click.option('-s', '--short'
     , help='Print the version on stdout.'
     , default=False, is_flag=True
-              )
+)
 @click.option('-d', '--dry-run'
     , help='bumpversion --dry-run.'
     , default=False, is_flag=True
-              )
+)
 @click.pass_context
 def version(ctx, major, minor, patch, rule, tag, short, dry_run):
     """Modify or show the project's version number."""
@@ -315,39 +323,39 @@ def tag(ctx):
 @click.option('--app'
     , default=False, is_flag=True
     , help="Add a CLI ."
-              )
+)
 @click.option('--group'
     , default=False, is_flag=True
     , help="Add a CLI with a group of sub-commands rather than a single command CLI."
-              )
+)
 @click.option('--py'
     , default=False, is_flag=True
     , help="Add a Python module."
-              )
+)
 @click.option('--package'
     , help="Add a Python module with a package structure rather than a module structure:\n\n"
            "* module  structure = ``<module_name>.py`` \n"
            "* package structure = ``<module_name>/__init__.py``\n\n"
            "Default = module structure."
     , default=False, is_flag=True
-              )
+)
 @click.option('--f2py'
     , default=False, is_flag=True
     , help="Add a f2py binary extionsion module (Fortran)."
-              )
+)
 @click.option('--cpp'
     , default=False, is_flag=True
     , help="Add a cpp binary extionsion module (C++)."
-              )
+)
 @click.option('-T', '--templates', default='', help=__template_help)
 @click.option('--overwrite', is_flag=True
     , help="Overwrite pre-existing files (without backup)."
     , default=False
-              )
+)
 @click.option('--backup', is_flag=True
     , help="Make backup files (.bak) before overwriting any pre-existing files."
     , default=False
-              )
+)
 @click.argument('name', type=str)
 @click.pass_context
 def add(ctx
@@ -403,40 +411,6 @@ def add(ctx
 
     if project.exit_code:
         ctx.exit(project.exit_code)
-
-
-# removed in favor of docs/Makefile
-# see https://github.com/etijskens/et-micc/issues/24
-# @main.command()
-# @click.argument(
-#     'documentation_formats',
-#     type=str, nargs=-1
-# )
-# @click.option('-o', '--open'
-#     , default=False, is_flag=True
-#     , help="Open documentation in your default browser or pdf viewer."
-#               )
-# @click.pass_context
-# def docs(ctx, documentation_formats, open):
-#     """Build documentation for this project.
-#
-#     Run ``micc docs help`` for an overview of the available documentation formats.
-#
-#     :param tuple_of_str documentation_formats: the documentation formats that you want to build.
-#     """
-#     if not documentation_formats:
-#         documentation_formats = ('html',)
-#
-#     options = ctx.obj
-#     options.documentation_formats = documentation_formats
-#     options.open = open
-#
-#     project = Project(options)
-#     with et_micc.logger.logtime(options):
-#         project.docs_cmd()
-#
-#     if project.exit_code:
-#         ctx.exit(project.exit_code)
 
 
 if __name__ == "__main__":

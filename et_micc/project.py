@@ -119,6 +119,21 @@ class Project:
             # use full path instead of relative path
             relative_project_path = self.project_path
 
+        if self.options.publish:
+            is_publishable = et_micc.utils.is_publishable(self.package_name,verbose=self.options.verbosity>1)
+            if is_publishable is None:
+                self.error(f"    Could not verify availability of name '{self.package_name}' on PyPI.\n"
+                           f"    Are you online?\n"
+                           f"    The project is not created."
+                )
+                return
+            elif not is_publishable:
+                self.error(
+                    f"    The name '{self.package_name}' is already in use on PyPI.\n"
+                    f"    The project is not created. You must choose another name if you want to publish."
+                )
+                return
+
         if self.options.structure == 'module':
             structure = f"({relative_project_path}{os.sep}{self.package_name}.py)"
         elif self.options.structure == 'package':
@@ -156,19 +171,25 @@ class Project:
                             , ['git', 'add', '*']
                             , ['git', 'add', '.gitignore']
                             , ['git', 'commit', '-m', '"first commit"']
-                                ]
+                        ]
                         if template_parameters['github_username']:
                             cmds.extend(
-                                [['git', 'remote', 'add', 'origin',
+                                [ ['git', 'remote', 'add', 'origin',
                                   f"https://github.com/{template_parameters['github_username']}/{self.project_name}"]
-                                    , ['git', 'push', '-u', 'origin', 'master']
-                                 ]
+                                , ['git', 'push', '-u', 'origin', 'master']
+                                ]
                             )
                         et_micc.utils.execute(cmds, self.logger.debug, stop_on_error=False)
+
                 self.logger.warning(
                     "Run 'poetry install' in the project directory to create a virtual "
                     "environment and install its dependencies."
                 )
+        if self.options.publish:
+            self.logger.info(f"The name '{self.package_name}' is still available on PyPI.")
+            self.logger.warning("To claim the name, it is best to publish your project now\n"
+                                "by running 'poetry publish'."
+            )
 
     def module_to_package_cmd(self):
         """Convert a module project (:file:`module.py`) to a package project (:file:`package/__init__.py`)."""
