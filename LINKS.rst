@@ -1,6 +1,9 @@
 Python as a language
 --------------------
 * `What makes Python a great language? <https://stevedower.id.au/blog/python-a-great-language/>`_
+* Python is known for being a language that’s easy to read, quick to develop in, and applicable to
+  `a wide range of scenarios <https://realpython.com/what-can-i-do-with-python/>`_.
+
 * `The most underrated python packages <https://towardsdatascience.com/the-most-underrated-python-packages-e22bf6049b5e>`_
 * `Writing your first Python program <https://able.bio/SamDev14/writing-your-first-python-program--31a3607>`_
 
@@ -17,8 +20,7 @@ Python for HPC
 * `High performance Python 2 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-2>`_
 * `High performance Python 3 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-3>`_
 * `High performance Python 4 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-4>`_
-
-
+* `Sequential Exeuction, Multiprocessing, and Multithreading IO-Bound Tasks in Python <https://zacs.site/blog/linear-python.html>`_
 
 Profiling
 ---------
@@ -45,6 +47,8 @@ Python idioms and readability
 * `Python Tips and Tricks, You Haven't Already Seen - part 1 <https://martinheinz.dev/blog/1>`_
 * `Python Tips and Tricks, You Haven't Already Seen - part 2 <https://martinheinz.dev/blog/4>`_
 * `30 Python Best Practices, Tips, And Tricks <https://towardsdatascience.com/30-python-best-practices-tips-and-tricks-caefb9f8c5f5>`_
+* `pythonic things <https://access.redhat.com/blogs/766093/posts/2802001>`_
+* `71 Python Code Snippets for Everyday Problems <https://therenegadecoder.com/code/python-code-snippets-for-everyday-problems/>`_
 
 Programming blogs
 -----------------
@@ -92,6 +96,14 @@ Packaging
 * `Python Packaging Is Good Now <https://glyph.twistedmatrix.com/2016/08/python-packaging.html>`_
 * `Conda: Myths and Misconceptions <https://jakevdp.github.io/blog/2016/08/25/conda-myths-and-misconceptions/>`_
 
+Installing packages
+-------------------
+* `A quick-and-dirty guide on how to install packages for Python <https://snarky.ca/a-quick-and-dirty-guide-on-how-to-install-packages-for-python/>`_
+
+Containers
+----------
+* `Building Python Data Science Container using Docker <https://faizanbashir.me/building-python-data-science-container-using-docker-c8e346295669>`_
+
 Tools
 -----
 * `Software Development Checklist for Python Applications <http://www.patricksoftwareblog.com/software-development-checklist-for-python-applications/>`_
@@ -112,6 +124,10 @@ Documentation
 * `How documentation works, and how to make it work for your project - PyCon 2017 <https://youtu.be/azf6yzuJt54>`_
 * `How to document Python code with Sphinx <https://opensource.com/article/19/11/document-python-sphinx>`_
     interesting section about tox
+
+Notebooks
+---------
+* `Jupyter Notebooks in the IDE <https://towardsdatascience.com/jupyter-notebooks-in-the-ide-visual-studio-code-versus-pycharm-5e72218eb3e8>`_
 
 Testing
 -------
@@ -140,6 +156,7 @@ Development environment
 * `pyenv+poetry+pipx <https://jacobian.org/2019/nov/11/python-environment-2020/>`
 * https://sourcery.ai/blog/python-best-practices/
 * https://pypi.org/project/create-python-package/ a micc 'light'
+* `Managing Python Environments <https://www.pluralsight.com/tech-blog/managing-python-environments/>`_
 
 Django
 ------
