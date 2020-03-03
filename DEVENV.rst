@@ -114,5 +114,24 @@ Setting up your Development environment - step by step
     with the `PyDev <https://pydev.org>`_ plugin,  but recently I became addicted to
     `PyCharm Community Edition`_. Both are available for MacOS, Linux and Windows.
 
+#.  Get a git account at `github <https://github.com>`_, install git if is is not pre-installed
+    on your system, and configure it::
+
+        > git config --global user.email "you@example.com"
+        > git config --global user.name "Your Name"
+
+#.  Create your first micc_ project. The very first time, y ou will be asked to set some default
+    values that identify you as a micc_ user. Replace the preset values by your own preferences::
+
+        > micc -p my-first-micc-project create
+        your full name [Engelbert Tijskens]: carl morck
+        your e-mail address [engelbert.tijskens@uantwerpen.be]: carl.mork@q-series.dk
+        your github username (leave empty if you do not have) [etijskens]: cmorck
+        the initial version number of a new project [0.0.0]:
+        default git branch [master]:
+
+    The last two entries are generally ok. If you later want to change the entries, you can simply
+    edit the file :file:`~/.et_micc/micc.json`.
+
 You should be good to go now.
 
