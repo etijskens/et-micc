@@ -94,21 +94,11 @@ Setting up your Development environment - step by step
         > pipx upgrade et-micc
         et-micc is already at latest version 0.10.8 (location: /Users/etijskens/.local/pipx/venvs/et-micc)
 
-#.  If you want to develop binary extensions in  C++ with micc_, make sure CMake and make
-    are installed and on your system PATH. You can download CMake_ directly from
-    `cmake.org <https://cmake.org/download/>`_.
-    Alternatively, CMake is also available as a Python Package which can be installed
-    with pipx_::
+#.  If you want to develop binary extensions in Fortran or C++, you will need a Fortran compiler or a C++
+    compiler, respectively. For C++ binary extensions, also CMake and make must be on your system PATH.
+    You can download CMake_ directly from `cmake.org <https://cmake.org/download/>`_.
 
-        > pipx install cmake
-        installed package cmake 3.15.3, Python 3.8.0
-          These apps are now globally available
-            - cmake
-            - cpack
-            - ctest
-        done!
-
-    If you are on one of the VSC clusters, check Tutorial 7 - Using micc projects on the VSC clusters.
+    If you are on one of the VSC clusters, check "Tutorial 7 - Using micc projects on the VSC clusters".
 
 #.  Install an IDE. For many years I have been using `Eclipse IDE for Scientific Computing`_
     with the `PyDev <https://pydev.org>`_ plugin,  but recently I became addicted to
