@@ -27,6 +27,7 @@ Python for HPC
 * `Sequential Exeuction, Multiprocessing, and Multithreading IO-Bound Tasks in Python <https://zacs.site/blog/linear-python.html>`_
 * `Common Issues Using Celery (And Other Task Queues) <https://adamj.eu/tech/2020/02/03/common-celery-issues-on-django-projects/>`_
 * `The Parallelism Blues: when faster code is slower <https://pythonspeed.com/articles/parallelism-slower/>`_
+* `Python Bindings: Calling C or C++ From Python <https://realpython.com/python-bindings-overview/#strengths-and-weaknesses_2>`_
 
 Profiling
 ---------
