@@ -76,6 +76,7 @@ Programming blogs
 -----------------
 * `julien danjou <https://julien.danjou.info>`_
 * `Patrick's software blog <http://www.patricksoftwareblog.com/>`_
+* `Ruslan Spivak <https://ruslanspivak.com/>`_
 
 Design patterns
 ---------------
