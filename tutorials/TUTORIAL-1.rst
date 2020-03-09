@@ -667,9 +667,15 @@ To see a list of possible documentation formats, just run ``make`` without argum
 
    This will generation documentation in :file:`et-dot/docs/_build/html`. Note that
    **it is essential that this command executes in the project's virtual environment**.
-   You can view the documentation in your favorit browser:
+   You can view the documentation in your favorite browser::
 
-        (.venv) > open _build/html/index.html
+        (.venv) > open _build/html/index.html       # on macosx
+
+   or::
+        (.venv) > xdg-open _build/html/index.html   # on ubuntu
+
+   (On the cluster the command will fail because it does not have a graphical environment
+   and it cannot run a html-browser.)
 
    Here is a screenshot:
 
