@@ -602,7 +602,9 @@ to Sphinx_. Here is the workflow that is necessary to build the documentation:
       > cd path/to/et-dot
       > source .venv/bin/activate
       (.venv) > cd docs
-      (.venv) > make <documentation_format>
+      (.venv) > make html
+
+The last line produces documentation in html format.
 
 Let's explain the steps
 
@@ -672,6 +674,7 @@ To see a list of possible documentation formats, just run ``make`` without argum
         (.venv) > open _build/html/index.html       # on macosx
 
    or::
+
         (.venv) > xdg-open _build/html/index.html   # on ubuntu
 
    (On the cluster the command will fail because it does not have a graphical environment
@@ -694,8 +697,11 @@ To see a list of possible documentation formats, just run ``make`` without argum
    **it is essential that this command executes in the project's virtual environment**.
    You can view it in your favorite pdf viewer::
 
-        (.venv) > open _build/latex/et-dot.pdf
-        (.venv) >
+        (.venv) > open _build/latex/et-dot.pdf      # on macosx
+
+or::
+
+        (.venv) > xdg-open _build/latex/et-dot.pdf      # on ubuntu
 
 .. note:: When building documentation by running the :file:`docs/Makefile`, it is
    verified that the correct virtual environment is activated, and that the needed
