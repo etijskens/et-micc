@@ -34,6 +34,7 @@ Profiling
 * `Profiling python <http://www.admin-magazine.com/HPC/Articles/Profiling-Python-Code>`_
 * `Python profiling with blackfire <https://hello.blackfire.io/python?utm_source=pycoder_weekly&utm_medium=newsletter&utm_campaign=q4_2019>`_
 * `Python 3.9 StatsProfile <https://medium.com/@olshansky/python-3-9-statsprofile-my-first-oss-contribution-to-cpython-9dd6847eb802>`_
+* `Profiling Python Code <https://www.admin-magazine.com/HPC/Articles/Profiling-Python-Code?utm_source=ADMIN+Newsletter&utm_campaign=HPC_Update_134_2020-03-19_MPI_Apps_with_Singularity&utm_medium=email>`_
 
 Python idioms and readability
 -----------------------------
@@ -64,6 +65,11 @@ Python idioms and readability
 * `10 Python Tips and Tricks For Writing Better Code <https://www.youtube.com/watch?v=C-gEQdGVXbk>`_
 * `Tour of Python Itertools <https://towardsdatascience.com/tour-of-python-itertools-2af84db18a5e>`_
 * `Getting the most out of Python collections <https://sourcery.ai/blog/effective-collection-handling/>`_
+
+Exceptions
+----------
+
+* `Write Unbreakable Python <https://jessewarden.com/2020/03/write-unbreakable-python.html>`_
 
 Type checking in Python
 -----------------------
