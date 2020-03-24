@@ -17,6 +17,9 @@
 , "default_branch"  : {"default":"master"
 					  ,"text"   :"default git branch"
 					  }
+, "python_version"  : {"default":"3.7"
+					  ,"text"   :"default minimal Python version"
+					  }
 , "sphinx_html_theme"
 	 				: {"default":"sphinx_rtd_theme"
   					  ,"text"   :"Htlm theme for sphinx documentation"

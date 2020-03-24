@@ -78,6 +78,10 @@ def main(ctx, verbosity, project_path, clear_log):
            "in the *Cookiecutter* templates. "
     , default='', type=Path
 )
+@click.option('--python'
+    , help="minimal python version for your project."
+    , default='3.7'
+)
 @click.option('-d', '--description'
     , help="Short description of your project."
     , default='<Enter a one-sentence description of this project here.>'
@@ -96,6 +100,7 @@ def create(ctx
            , package
            , micc_file
            , description
+           , python
            , lic
            , template
            , allow_nesting
@@ -127,15 +132,15 @@ def create(ctx
     if not template:  # default, empty list
         if options.structure == 'module':
             template = ['package-base'
-                , 'package-simple'
-                , 'package-simple-docs'
-                        ]
+                       , 'package-simple'
+                       , 'package-simple-docs'
+                       ]
         else:
             template = ['package-base'
-                , 'package-general'
-                , 'package-simple-docs'
-                , 'package-general-docs'
-                        ]
+                       , 'package-general'
+                       , 'package-simple-docs'
+                       , 'package-general-docs'
+                       ]
         options.templates = template
     else:
         # ignore structure
@@ -160,6 +165,7 @@ def create(ctx
     options.template_parameters.update(
         {'project_short_description': description,
          'open_source_license': license_,
+         'python_version': python,
         }
     )
     project = Project(options)

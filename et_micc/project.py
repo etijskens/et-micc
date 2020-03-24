@@ -46,17 +46,24 @@ class Project:
 
         if hasattr(options, 'template_parameters'):
             # only needed for expanding templates.
+            # Pick up the default parameters
+            default_parameters = {}
             template_parameters_json = project_path / 'micc.json'
             if template_parameters_json.exists():
-                options.template_parameters.update(
+                default_parameters.update(
                     et_micc.expand.get_template_parameters(template_parameters_json)
                 )
             else:
-                options.template_parameters.update(
+                default_parameters.update(
                     et_micc.expand.get_template_parameters(
                         et_micc.expand.get_preferences(Path('.'))
                     )
                 )
+            # Add options.template_parameters to the default parameters
+            # (options.template_parameters takes precedence, so they must be added last)
+            default_parameters.update(options.template_parameters)
+            # Store all the parameters in options.template_parameters.
+            options.template_parameters = default_parameters
 
         if et_micc.utils.is_project_directory(project_path, self):
             # existing project
