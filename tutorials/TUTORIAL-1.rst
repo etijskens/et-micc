@@ -1316,15 +1316,15 @@ Using the :py:class:`Stopwatch` class to time pieces of code is simple:
 .. code-block:: python
 
    """file ET_dot/prof/run1.py"""
-   from et_micc.stopwatch import Stopwatch
+   from et_stopwatch import Stopwatch
 
    ...
 
    if __name__=='__main__':
-       with Stopwatch(name="init"):
+       with Stopwatch(message="init"):
            a = random_array()
            b = random_array()
-       with Stopwatch(name="dot "):
+       with Stopwatch(message="dot "):
            dot(a,b)
        print('-*# done #*-')
 

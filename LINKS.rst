@@ -114,6 +114,7 @@ Debugging and logging
 * `Liran Haimovitch - Understanding Python’s Debugging Internals - PyCon 2019 <https://www.youtube.com/watch?v=QU158nGABxI&t=765s&pbjreload=10>`_
 * `bdb - debugger framework <https://docs.python.org/3.8/library/bdb.html>`_
 * `Writing custom profilers for Python <https://pythonspeed.com/articles/custom-python-profiler/>`_
+* `Do not log <https://sobolevn.me/2020/03/do-not-log>`_
 
 CLIs
 ----
