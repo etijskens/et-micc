@@ -105,7 +105,7 @@ class Project:
             p = self.project_path.parent.resolve()
             while not p.samefile('/'):
                 if et_micc.utils.is_project_directory(p):
-                    self.error(f"Cannot create project in ({project_path}):\n"
+                    self.error(f"Cannot create project in ({self.project_path}):\n"
                                f"  Specify '--allow-nesting' to create a et_micc project inside another et_micc project ({p})."
                                )
                     return

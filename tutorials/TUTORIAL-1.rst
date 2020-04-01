@@ -499,12 +499,21 @@ driven development. Here, we use `Pytest <https://pytest.org/en/latest/>`_:
 
    ============================ 2 passed in 0.05 seconds =============================
 
+
 The output shows some info about the environment in which we are running the tests,
 the current working directory (c.q. the project directory, and the number of tests
-it collected (2). *Pytest* looks for test methods in all :file:`test_*.py` or
+it collected (2). Pytest_ looks for test methods in all :file:`test_*.py` or
 :file:`*_test.py` files in the current directory and accepts ``test`` prefixed methods
 outside classes and ``test`` prefixed methods inside ``Test`` prefixed classes as test
 methods to be executed.
+
+.. note::
+   Sometimes pytest_ discovers unintended test files or functions in other directories
+   than the :file:`tests` directory, leading to puzzling errors. It is therefore safe
+   to instruct pytest_ to look only in the :file:`tests` directory::
+
+        > pytest tests
+        ...
 
 If a test would fail you get a detailed report to help you find the cause of the
 error and fix it.

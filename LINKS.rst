@@ -6,10 +6,12 @@ Python as a language
 --------------------
 * `What makes Python a great language? <https://stevedower.id.au/blog/python-a-great-language/>`_
 * Python is known for being a language that’s easy to read, quick to develop in, and applicable to
-  `a wide range of scenarios <https://realpython.com/what-can-i-do-with-python/>`_.
-
-* `The most underrated python packages <https://towardsdatascience.com/the-most-underrated-python-packages-e22bf6049b5e>`_
+  `a wide range of scenarios <https://realpython.com/what-can-i-do-with-python/>`_
 * `Writing your first Python program <https://able.bio/SamDev14/writing-your-first-python-program--31a3607>`_
+
+Software engineering
+--------------------
+* `Cognitive Biases In Software Development <http://smyachenkov.com/posts/cognitive-biases-software-development/>`_
 
 Python internals
 ----------------
@@ -65,6 +67,8 @@ Python idioms and readability
 * `10 Python Tips and Tricks For Writing Better Code <https://www.youtube.com/watch?v=C-gEQdGVXbk>`_
 * `Tour of Python Itertools <https://towardsdatascience.com/tour-of-python-itertools-2af84db18a5e>`_
 * `Getting the most out of Python collections <https://sourcery.ai/blog/effective-collection-handling/>`_
+* `Five Amazing Python Libraries you should be using! <https://youtu.be/eILeIEE3C8c>`_
+* `The most underrated python packages <https://towardsdatascience.com/the-most-underrated-python-packages-e22bf6049b5e>`_
 
 Exceptions
 ----------
@@ -78,12 +82,6 @@ Type checking in Python
 * `Applying mypy to real world projects <http://calpaterson.com/mypy-hints.html>`_
 * `Types at the Edges in Python <https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/>`_
 
-Programming blogs
------------------
-* `julien danjou <https://julien.danjou.info>`_
-* `Patrick's software blog <http://www.patricksoftwareblog.com/>`_
-* `Ruslan Spivak <https://ruslanspivak.com/>`_
-
 Design patterns
 ---------------
 * `Design Patterns in Python for the Untrained Eye - PyCon 2019 <http://34.212.143.74/s201911/pycon2019/docs/design_patterns.html>`_
@@ -91,6 +89,17 @@ Design patterns
 * `Refactoring and Design patterns <https://refactoring.guru>`_
 * `Pyton anti-patterns <https://docs.quantifiedcode.com/python-anti-patterns/index.html>`_
 * `Coding problems <https://github.com/MTrajK/coding-problems>`_
+
+Debugging and logging
+---------------------
+* `pdb - The Python debugger <https://docs.python.org/3/library/pdb.html>`_
+* `Python debugging with pdb <https://realpython.com/python-debugging-pdb/>`_
+* `Python logging tutorial <http://www.patricksoftwareblog.com/python-logging-tutorial/>`_
+* `tutorial on sys.settrace <https://pymotw.com/2/sys/tracing.html>`_
+* `Liran Haimovitch - Understanding Python’s Debugging Internals - PyCon 2019 <https://www.youtube.com/watch?v=QU158nGABxI&t=765s&pbjreload=10>`_
+* `bdb - debugger framework <https://docs.python.org/3.8/library/bdb.html>`_
+* `Writing custom profilers for Python <https://pythonspeed.com/articles/custom-python-profiler/>`_
+* `Do not log <https://sobolevn.me/2020/03/do-not-log>`_
 
 Scientific Python
 -----------------
@@ -104,17 +113,7 @@ Machine learning and datascience
 * `Thinking like a Panda: Everything you need to know to use pandas the right way <https://www.youtube.com/watch?v=ObUcgEO4N8w>`_
 * `Plotnine: Grammar of Graphics for Python <https://www.datascienceworkshops.com/blog/plotnine-grammar-of-graphics-for-python/>`_
 * `Top 10 Python libraries of 2019 <https://tryolabs.com/blog/2019/12/10/top-10-python-libraries-of-2019/>`_
-
-Debugging and logging
----------------------
-* `pdb - The Python debugger <https://docs.python.org/3/library/pdb.html>`_
-* `Python debugging with pdb <https://realpython.com/python-debugging-pdb/>`_
-* `Python logging tutorial <http://www.patricksoftwareblog.com/python-logging-tutorial/>`_
-* `tutorial on sys.settrace <https://pymotw.com/2/sys/tracing.html>`_
-* `Liran Haimovitch - Understanding Python’s Debugging Internals - PyCon 2019 <https://www.youtube.com/watch?v=QU158nGABxI&t=765s&pbjreload=10>`_
-* `bdb - debugger framework <https://docs.python.org/3.8/library/bdb.html>`_
-* `Writing custom profilers for Python <https://pythonspeed.com/articles/custom-python-profiler/>`_
-* `Do not log <https://sobolevn.me/2020/03/do-not-log>`_
+* `Top 10 Python Packages for Machine Learning <https://www.activestate.com/blog/top-10-python-machine-learning-packages/?utm_source=pycoders-weekly&utm_medium=email&utm_content=newsletter-2020-03-17-top-10-ML-packages&utm_campaign=as-blog>`_
 
 CLIs
 ----
@@ -134,10 +133,6 @@ Packaging
 Installing packages
 -------------------
 * `A quick-and-dirty guide on how to install packages for Python <https://snarky.ca/a-quick-and-dirty-guide-on-how-to-install-packages-for-python/>`_
-
-Containers
-----------
-* `Building Python Data Science Container using Docker <https://faizanbashir.me/building-python-data-science-container-using-docker-c8e346295669>`_
 
 Tools
 -----
@@ -161,10 +156,6 @@ Documentation
 * `How to document Python code with Sphinx <https://opensource.com/article/19/11/document-python-sphinx>`_
     interesting section about tox
 
-Notebooks
----------
-* `Jupyter Notebooks in the IDE <https://towardsdatascience.com/jupyter-notebooks-in-the-ide-visual-studio-code-versus-pycharm-5e72218eb3e8>`_
-
 Testing
 -------
 * `tox nox and invoke <https://www.youtube.com/watch?v=-BHverY7IwU>`_  Break the Cycle:
@@ -185,6 +176,10 @@ Testing
 * `Leverage Sublime project folders to ease your work <https://storiesinmypocket.com/articles/leverage-sublime-project-folders-ease-your-work/>`_
 * `Property-based tests for the Python standard library (and builtins) <https://github.com/Zac-HD/stdlib-property-tests>`_
 
+Django
+------
+* `Understanding django <https://www.mattlayman.com/understand-django/browser-to-django/>`_
+
 Fortran/C/C++
 -------------
 * `<https://www.fortran90.org>`_
@@ -199,6 +194,17 @@ Development environment
 * `Managing Python Environments <https://www.pluralsight.com/tech-blog/managing-python-environments/>`_
 * `Using Sublime Text for python <https://storiesinmypocket.com/articles/using-sublime-text-python/>`_
 
-Django
-------
-* `Understanding django <https://www.mattlayman.com/understand-django/browser-to-django/>`_
+Notebooks
+---------
+* `Jupyter Notebooks in the IDE <https://towardsdatascience.com/jupyter-notebooks-in-the-ide-visual-studio-code-versus-pycharm-5e72218eb3e8>`_
+
+Containers
+----------
+* `Building Python Data Science Container using Docker <https://faizanbashir.me/building-python-data-science-container-using-docker-c8e346295669>`_
+
+Programming blogs
+-----------------
+* `julien danjou <https://julien.danjou.info>`_
+* `Patrick's software blog <http://www.patricksoftwareblog.com/>`_
+* `Ruslan Spivak <https://ruslanspivak.com/>`_
+
