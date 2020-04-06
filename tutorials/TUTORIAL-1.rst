@@ -460,6 +460,14 @@ Micc_ has already taken care of this.
 
 Testing your code
 ^^^^^^^^^^^^^^^^^
+`Test driven development <https://en.wikipedia.org/wiki/Test-driven_development>`_ is a
+software development process that relies on the repetition of a very short development cycle:
+requirements are turned into very specific test cases, then the code is improved so that the
+tests pass. This is opposed to software development that allows code to be added that is not
+proven to meet requirements. The advantage of this is clear: the shorter the cycle, the
+smaller the code that is to be searched for bugs. This allows you to produce correct code
+faster, and in case you are a beginner, also speeds your learning of Python. Please check
+Ned Batchelder's very good introduction to `testing with pytest <https://nedbatchelder.com/text/test3.html>`_.
 
 When micc_ creates a new project, or when you add components to an existing project,
 it immediately adds a test script for each component in the :file:`tests` directory.

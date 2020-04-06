@@ -1,3 +1,6 @@
+This page is a compilation of links I found interesting while learning Python and while solving
+everyday problems. As I keep on learning this list evolves continuously :-)
+
 For Beginners
 -------------
 * `De Programmeursleerling - Pieter Spronck <http://www.spronck.net/pythonbook/dutchindex.xhtml>`_
@@ -8,6 +11,8 @@ Python as a language
 * Python is known for being a language that’s easy to read, quick to develop in, and applicable to
   `a wide range of scenarios <https://realpython.com/what-can-i-do-with-python/>`_
 * `Writing your first Python program <https://able.bio/SamDev14/writing-your-first-python-program--31a3607>`_
+* `How long did it take you to learn Python <https://nedbatchelder.com/blog/202003/how_long_did_it_take_you_to_learn_python.html>`_
+  Wait, don’t answer that. It doesn’t matter. Ned Batchelder
 
 Software engineering
 --------------------
@@ -72,8 +77,8 @@ Python idioms and readability
 
 Exceptions
 ----------
-
 * `Write Unbreakable Python <https://jessewarden.com/2020/03/write-unbreakable-python.html>`_
+* `pretty-errors: Prettifies Python exception output to make it legible <https://github.com/onelivesleft/PrettyErrors/>`_
 
 Type checking in Python
 -----------------------
@@ -89,6 +94,29 @@ Design patterns
 * `Refactoring and Design patterns <https://refactoring.guru>`_
 * `Pyton anti-patterns <https://docs.quantifiedcode.com/python-anti-patterns/index.html>`_
 * `Coding problems <https://github.com/MTrajK/coding-problems>`_
+
+Testing
+-------
+* `Getting Started Testing: pytest edition <https://nedbatchelder.com/text/test3.html.`_
+* `tox nox and invoke <https://www.youtube.com/watch?v=-BHverY7IwU>`_  Break the Cycle:
+  Three excellent Python tools to automate repetitive tasks
+* `Hypothesis <https://hypothesis.readthedocs.io/>`_
+* `Escape from auto-manual testing with Hypothesis! <https://youtu.be/SmBAl34RV4M?list=PLPbTDk1hBo3xof51R8pk3kP1BVBuMYP9c>`_
+* `Beyond Unit Tests: Taking Your Testing to the Next Level - PyCon 2018 <https://www.youtube.com/watch?v=MYucYon2-lk>`_
+* `Why your mock doesn't work <https://nedbatchelder.com/blog/201908/why_your_mock_doesnt_work.html>`_
+* `Visual Testing with PyCharm and pytest - PyCon 2018 <https://www.youtube.com/watch?v=FjojZxDZscQ>`_
+* `"WHAT IS THIS MESS?" - Writing tests for pre-existing code bases - PyCon 2018 <https://www.youtube.com/watch?v=LDdUuoI_lIg>`_
+* `Python Testing 201 with pytest <https://www.mattlayman.com/blog/2019/python-testing-201-with-pytest/>`_
+* `8 great pytest plugins <https://opensource.com/article/18/6/pytest-plugins>`_
+* `Pytest Features, That You Need in Your (Testing) Life <https://martinheinz.dev/blog/7>`_
+* `An Introduction To Test Driven Development <https://able.bio/SamDev14/an-introduction-to-test-driven-development--69muplk>`_
+* `How To Write Tests For Python <https://able.bio/SamDev14/how-to-write-tests-for-python--22m3q1n>`_
+* `How I’m testing in 2020 <https://www.b-list.org/weblog/2020/feb/03/how-im-testing-2020/>`_
+* `Building Good Tests <https://salmonmode.github.io/2019/03/29/building-good-tests.html>`_
+* `Leverage Sublime project folders to ease your work <https://storiesinmypocket.com/articles/leverage-sublime-project-folders-ease-your-work/>`_
+* `Property-based tests for the Python standard library (and builtins) <https://github.com/Zac-HD/stdlib-property-tests>`_
+* `a pytest plugin designed for analyzing resource usage <https://github.com/CFMTech/pytest-monitor>`_
+* `ward - A modern Python test framework <https://github.com/darrenburns/ward>`_
 
 Debugging and logging
 ---------------------
@@ -114,6 +142,8 @@ Machine learning and datascience
 * `Plotnine: Grammar of Graphics for Python <https://www.datascienceworkshops.com/blog/plotnine-grammar-of-graphics-for-python/>`_
 * `Top 10 Python libraries of 2019 <https://tryolabs.com/blog/2019/12/10/top-10-python-libraries-of-2019/>`_
 * `Top 10 Python Packages for Machine Learning <https://www.activestate.com/blog/top-10-python-machine-learning-packages/?utm_source=pycoders-weekly&utm_medium=email&utm_content=newsletter-2020-03-17-top-10-ML-packages&utm_campaign=as-blog>`_
+* `streamz: Build Pipelines to Manage Continuous Streams of Data <https://github.com/python-streamz/streamz/blob/master/docs/source/index.rst>`_
+* `nfstream - A flexible network data analysis framework <https://github.com/aouinizied/nfstream>`_
 
 CLIs
 ----
@@ -129,6 +159,7 @@ Packaging
 * `The Python Packaging Ecosystem <http://www.curiousefficiency.org/posts/2016/09/python-packaging-ecosystem.html>`_
 * `Python Packaging Is Good Now <https://glyph.twistedmatrix.com/2016/08/python-packaging.html>`_
 * `Conda: Myths and Misconceptions <https://jakevdp.github.io/blog/2016/08/25/conda-myths-and-misconceptions/>`_
+* `The private PyPI server powered by flexible backends <https://github.com/pywharf/pywharf>`_
 
 Installing packages
 -------------------
@@ -156,26 +187,6 @@ Documentation
 * `How to document Python code with Sphinx <https://opensource.com/article/19/11/document-python-sphinx>`_
     interesting section about tox
 
-Testing
--------
-* `tox nox and invoke <https://www.youtube.com/watch?v=-BHverY7IwU>`_  Break the Cycle:
-  Three excellent Python tools to automate repetitive tasks
-* `Hypothesis <https://hypothesis.readthedocs.io/>`_
-* `Escape from auto-manual testing with Hypothesis! <https://youtu.be/SmBAl34RV4M?list=PLPbTDk1hBo3xof51R8pk3kP1BVBuMYP9c>`_
-* `Beyond Unit Tests: Taking Your Testing to the Next Level - PyCon 2018 <https://www.youtube.com/watch?v=MYucYon2-lk>`_
-* `Why your mock doesn't work <https://nedbatchelder.com/blog/201908/why_your_mock_doesnt_work.html>`_
-* `Visual Testing with PyCharm and pytest - PyCon 2018 <https://www.youtube.com/watch?v=FjojZxDZscQ>`_
-* `"WHAT IS THIS MESS?" - Writing tests for pre-existing code bases - PyCon 2018 <https://www.youtube.com/watch?v=LDdUuoI_lIg>`_
-* `Python Testing 201 with pytest <https://www.mattlayman.com/blog/2019/python-testing-201-with-pytest/>`_
-* `8 great pytest plugins <https://opensource.com/article/18/6/pytest-plugins>`_
-* `Pytest Features, That You Need in Your (Testing) Life <https://martinheinz.dev/blog/7>`_
-* `An Introduction To Test Driven Development <https://able.bio/SamDev14/an-introduction-to-test-driven-development--69muplk>`_
-* `How To Write Tests For Python <https://able.bio/SamDev14/how-to-write-tests-for-python--22m3q1n>`_
-* `How I’m testing in 2020 <https://www.b-list.org/weblog/2020/feb/03/how-im-testing-2020/>`_
-* `Building Good Tests <https://salmonmode.github.io/2019/03/29/building-good-tests.html>`_
-* `Leverage Sublime project folders to ease your work <https://storiesinmypocket.com/articles/leverage-sublime-project-folders-ease-your-work/>`_
-* `Property-based tests for the Python standard library (and builtins) <https://github.com/Zac-HD/stdlib-property-tests>`_
-
 Django
 ------
 * `Understanding django <https://www.mattlayman.com/understand-django/browser-to-django/>`_
@@ -201,6 +212,12 @@ Notebooks
 Containers
 ----------
 * `Building Python Data Science Container using Docker <https://faizanbashir.me/building-python-data-science-container-using-docker-c8e346295669>`_
+
+Windows
+-------
+* `Using WSL to Build a Python Development Environment on Windows <https://pbpython.com/wsl-python.html>`_
+  This is promising: maybe we finally have a an environment on Windows with a minimal difference from
+  Linux an MacOSX.
 
 Programming blogs
 -----------------
