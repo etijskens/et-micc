@@ -117,6 +117,7 @@ Testing
 * `Property-based tests for the Python standard library (and builtins) <https://github.com/Zac-HD/stdlib-property-tests>`_
 * `a pytest plugin designed for analyzing resource usage <https://github.com/CFMTech/pytest-monitor>`_
 * `ward - A modern Python test framework <https://github.com/darrenburns/ward>`_
+* `The Clean Architecture in Python - How to write testable and flexible code <https://breadcrumbscollector.tech/the-clean-architecture-in-python-how-to-write-testable-and-flexible-code/>`_
 
 Debugging and logging
 ---------------------
@@ -160,6 +161,10 @@ Packaging
 * `Python Packaging Is Good Now <https://glyph.twistedmatrix.com/2016/08/python-packaging.html>`_
 * `Conda: Myths and Misconceptions <https://jakevdp.github.io/blog/2016/08/25/conda-myths-and-misconceptions/>`_
 * `The private PyPI server powered by flexible backends <https://github.com/pywharf/pywharf>`_
+
+Graphics
+--------
+* `ModernGL : a python wrapper over OpenGL 3.3+ <https://github.com/moderngl/moderngl>`_
 
 Installing packages
 -------------------
