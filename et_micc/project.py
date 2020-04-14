@@ -528,11 +528,11 @@ class Project:
                     f.write(txt)
 
                 # pyproject.toml
-                self.add_dependencies({'click': '^7.0'})
+                self.add_dependencies({'click': '^7.0.0'})
                 self.pyproject_toml['tool']['poetry']['scripts'][app_name] = f"{package_name}:{cli_app_name}.main"
                 self.pyproject_toml.save()
 
-                # TODO: add 'import <package_name>.cli_<app_name> to __init__.py
+                # add 'import <package_name>.cli_<app_name> to __init__.py
                 line = f"import {package_name}.cli_{app_name}\n"
                 file = project_path / self.package
                 et_micc.utils.insert_in_file(file, [line], before=True, startswith="__version__")
