@@ -9,7 +9,7 @@ from {{ cookiecutter.package_name }}.{{ cookiecutter.cli_app_name }} import main
 
 def test_main():
     runner = CliRunner()
-    result = runner.invoke(cli.main, ['-vv'])
+    result = runner.invoke(main, ['-vv'])
     print(result.output)
     assert 'running' in result.output
 
