@@ -15,7 +15,7 @@ from {{ cookiecutter.package_name }}.{{ cookiecutter.cli_app_name }} import main
 
 def test_hello():
     runner = CliRunner()
-    result = runner.invoke(cli.main, ['-vv','hello'])
+    result = runner.invoke(main, ['-vv','hello'])
     print(result.output)
     assert 'Hello world' in result.output
 
