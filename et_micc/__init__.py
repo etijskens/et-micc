@@ -6,6 +6,6 @@ Package et-micc
 
 Top-level package for :py:mod:`et-micc`.
 """
-__version__ = "0.10.20"
+__version__ = "0.10.21"
 
 import et_micc.cli_micc # avoid attribute error when executing micc when installed from pypi
