@@ -26,15 +26,30 @@ Python internals
 
 Python for HPC
 --------------
+Here's a list of approaches that rely on low-lever programming languages, as C, C++ and Fortran, for
+speeding up Python (sequential) code. Some of these approaches, e.g. `Numba <http://numba.pydata.org>`_
+rely on automatic code transformation from Python, so there is no need to write low-level code yourself.
+
 * `Performance Python: Seven Strategies for Optimizing Your Numerical Code <https://www.youtube.com/watch?v=zQeYx87mfyw>`_
 * `High performance Python 1 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-1>`_
 * `High performance Python 2 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-2>`_
 * `High performance Python 3 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-3>`_
+* `Python Bindings: Calling C or C++ From Python <https://realpython.com/python-bindings-overview/#strengths-and-weaknesses_2>`_
+
+Approaches mimicking or wrapping OpenMP and MPI
+* `Pymp – OpenMP-like Python Programming <https://www.admin-magazine.com/HPC/Articles/Pymp-OpenMP-like-Python-Programming?utm_source=ADMIN+Newsletter&utm_campaign=HPC_Update_135_2020-04-16_Pymp_–_OpenMP-like_Python_Programming>`_
+  A really interesting concept, not as efficient as OpenMP itself (which incurs quite a bit of overhead
+  itself), and, of course, limited to a single node. As the number of cores per node keeps increasing,
+  pymp may be a good solution for problems that can do with a single node.
 * `High performance Python 4 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-4>`_
-* `Sequential Exeuction, Multiprocessing, and Multithreading IO-Bound Tasks in Python <https://zacs.site/blog/linear-python.html>`_
+  Mpi4py, doing mpi from Python.
+
+Other parallel processing approaches:
+
+* `Sequential Execution, Multiprocessing, and Multithreading IO-Bound Tasks in Python <https://zacs.site/blog/linear-python.html>`_
 * `Common Issues Using Celery (And Other Task Queues) <https://adamj.eu/tech/2020/02/03/common-celery-issues-on-django-projects/>`_
 * `The Parallelism Blues: when faster code is slower <https://pythonspeed.com/articles/parallelism-slower/>`_
-* `Python Bindings: Calling C or C++ From Python <https://realpython.com/python-bindings-overview/#strengths-and-weaknesses_2>`_
+* `Dask <https://dask.org>`_
 
 Profiling
 ---------
@@ -66,12 +81,24 @@ Python idioms and readability
 * `pythonic things <https://access.redhat.com/blogs/766093/posts/2802001>`_
 * `71 Python Code Snippets for Everyday Problems <https://therenegadecoder.com/code/python-code-snippets-for-everyday-problems/>`_
 * `Clean Code Concepts Adapted for Python <https://github.com/zedr/clean-code-python>`_
-* `The 22 Most-Used Python Packages in the World <https://medium.com/better-programming/the-22-most-used-python-packages-in-the-world-7020a904b2e>`_
 * `The place of the 'is' syntax in Python <https://utcc.utoronto.ca/~cks/space/blog/python/IsSyntaxPlace>`_
 * `5 Things You're Doing Wrong When Programming in Python <https://www.youtube.com/watch?v=fMRzuwlqfzs>`_
 * `10 Python Tips and Tricks For Writing Better Code <https://www.youtube.com/watch?v=C-gEQdGVXbk>`_
 * `Tour of Python Itertools <https://towardsdatascience.com/tour-of-python-itertools-2af84db18a5e>`_
 * `Getting the most out of Python collections <https://sourcery.ai/blog/effective-collection-handling/>`_
+* `Unpacking in Python: Beyond Parallel Assignment <https://stackabuse.com/unpacking-in-python-beyond-parallel-assignment/>`_
+* `When Python Practices Go Wrong <https://rhodesmill.org/brandon/slides/2019-11-codedive/>`_ About the
+  use of exec() and eval(). A presentation, so, the logic isn`t always obvious, but definitely an
+  interesting topic. Here's the corresponding video `When Python Practices Go Wrong - Brandon Rhodes - code::dive 2019 <https://www.youtube.com/watch?v=S0No2zSJmks>`_
+* `The Curious Case of Python's Context Manager <https://rednafi.github.io/digressions/python/2020/03/26/python-contextmanager.html>`_
+* `Demystifying Python’s Descriptor Protocol <https://deepsource.io/blog/demystifying-python-descriptor-protocol/>`_
+
+Useful packages
+---------------
+(not from the standard library)
+
+* `safer: a safer file writer <https://medium.com/@TomSwirly/%EF%B8%8F-safer-a-safer-file-writer-%EF%B8%8F-5fe267dbe3f5>`_
+* `The 22 Most-Used Python Packages in the World <https://medium.com/better-programming/the-22-most-used-python-packages-in-the-world-7020a904b2e>`_
 * `Five Amazing Python Libraries you should be using! <https://youtu.be/eILeIEE3C8c>`_
 * `The most underrated python packages <https://towardsdatascience.com/the-most-underrated-python-packages-e22bf6049b5e>`_
 
@@ -97,7 +124,7 @@ Design patterns
 
 Testing
 -------
-* `Getting Started Testing: pytest edition <https://nedbatchelder.com/text/test3.html.`_
+* `Getting Started Testing: pytest edition <https://nedbatchelder.com/text/test3.html>`_
 * `tox nox and invoke <https://www.youtube.com/watch?v=-BHverY7IwU>`_  Break the Cycle:
   Three excellent Python tools to automate repetitive tasks
 * `Hypothesis <https://hypothesis.readthedocs.io/>`_
@@ -113,11 +140,11 @@ Testing
 * `How To Write Tests For Python <https://able.bio/SamDev14/how-to-write-tests-for-python--22m3q1n>`_
 * `How I’m testing in 2020 <https://www.b-list.org/weblog/2020/feb/03/how-im-testing-2020/>`_
 * `Building Good Tests <https://salmonmode.github.io/2019/03/29/building-good-tests.html>`_
-* `Leverage Sublime project folders to ease your work <https://storiesinmypocket.com/articles/leverage-sublime-project-folders-ease-your-work/>`_
 * `Property-based tests for the Python standard library (and builtins) <https://github.com/Zac-HD/stdlib-property-tests>`_
 * `a pytest plugin designed for analyzing resource usage <https://github.com/CFMTech/pytest-monitor>`_
 * `ward - A modern Python test framework <https://github.com/darrenburns/ward>`_
 * `The Clean Architecture in Python - How to write testable and flexible code <https://breadcrumbscollector.tech/the-clean-architecture-in-python-how-to-write-testable-and-flexible-code/>`_
+* `Effective Python Testing With Pytest <https://realpython.com/pytest-python-testing>`_
 
 Debugging and logging
 ---------------------
@@ -161,6 +188,7 @@ Packaging
 * `Python Packaging Is Good Now <https://glyph.twistedmatrix.com/2016/08/python-packaging.html>`_
 * `Conda: Myths and Misconceptions <https://jakevdp.github.io/blog/2016/08/25/conda-myths-and-misconceptions/>`_
 * `The private PyPI server powered by flexible backends <https://github.com/pywharf/pywharf>`_
+* `Packaging without setup.py <https://pgjones.dev/blog/packaging-without-setup-py-2020/>`_
 
 Graphics
 --------
@@ -183,6 +211,7 @@ Tools
 * `Understanding Best Practice Python Tooling by Comparing Popular Project Templates <https://medium.com/better-programming/understanding-best-practice-python-tooling-by-comparing-popular-project-templates-6eba49229106>`_
 * `My unpopular meaning about Black code formatter <https://luminousmen.com/post/my-unpopular-opinion-about-black-code-formatter>`_
 * `Python static analysis tools <https://luminousmen.com/post/python-static-analysis-tools >`_
+* `Leverage Sublime project folders to ease your work <https://storiesinmypocket.com/articles/leverage-sublime-project-folders-ease-your-work/>`_
 
 Documentation
 -------------
@@ -229,4 +258,4 @@ Programming blogs
 * `julien danjou <https://julien.danjou.info>`_
 * `Patrick's software blog <http://www.patricksoftwareblog.com/>`_
 * `Ruslan Spivak <https://ruslanspivak.com/>`_
-
+* `<https://rhodesmill.org/brandon/>`_
