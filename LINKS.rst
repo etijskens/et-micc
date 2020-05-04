@@ -17,6 +17,9 @@ Python as a language
 Software engineering
 --------------------
 * `Cognitive Biases In Software Development <http://smyachenkov.com/posts/cognitive-biases-software-development/>`_
+* `What scientists must know about hardware to write fast code <https://biojulia.net/post/hardware/>`_
+  A simplified view - but not over-simplified - on how hardware affects performance. Written with
+  Julia in mind rather than Python, but the principles remain valid.
 
 Python internals
 ----------------
