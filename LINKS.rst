@@ -95,6 +95,7 @@ Python idioms and readability
   interesting topic. Here's the corresponding video `When Python Practices Go Wrong - Brandon Rhodes - code::dive 2019 <https://www.youtube.com/watch?v=S0No2zSJmks>`_
 * `The Curious Case of Python's Context Manager <https://rednafi.github.io/digressions/python/2020/03/26/python-contextmanager.html>`_
 * `Demystifying Python’s Descriptor Protocol <https://deepsource.io/blog/demystifying-python-descriptor-protocol/>`_
+* `Why You Should Use More Enums In Python <https://florian-dahlitz.de/blog/why-you-should-use-more-enums-in-python>`_
 
 Useful packages
 ---------------
@@ -148,6 +149,8 @@ Testing
 * `ward - A modern Python test framework <https://github.com/darrenburns/ward>`_
 * `The Clean Architecture in Python - How to write testable and flexible code <https://breadcrumbscollector.tech/the-clean-architecture-in-python-how-to-write-testable-and-flexible-code/>`_
 * `Effective Python Testing With Pytest <https://realpython.com/pytest-python-testing>`_
+* `Document your tests <https://hynek.me/articles/document-your-tests/>`_
+* `15 amazing pytest plugins <https://testandcode.com/116>`_ and more (an episode on an interesting blog).
 
 Debugging and logging
 ---------------------
@@ -262,3 +265,4 @@ Programming blogs
 * `Patrick's software blog <http://www.patricksoftwareblog.com/>`_
 * `Ruslan Spivak <https://ruslanspivak.com/>`_
 * `<https://rhodesmill.org/brandon/>`_
+* `testandcode <https://testandcode.com>`_

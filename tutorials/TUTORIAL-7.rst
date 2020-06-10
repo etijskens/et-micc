@@ -94,6 +94,11 @@ or::
     > conda list
     ???
 
+.. note::
+   The ``module load`` commands modify the ``$PATH`` variable of your environment, so
+   that the required commands can be found. This lasts only for the duration of the
+   (remote) terminal session. You have to execute them again with every new session.
+
 The poetry_ part, requires - at least at the time of writing - some special attention.
 
 Note about using Poetry on the cluster
@@ -552,12 +557,12 @@ dependency of micc-build_.
 
     > pip install -t .cenv pytest
 
-Now set the ``PYTHONPATH`` environment variable ot the :file:`.cenv` directory and export it::
+Now set the ``PYTHONPATH`` environment variable to the :file:`.cenv` directory and export it::
 
     > export PYTHONPATH=$PWD/.cenv
 
 .. note:: The ``PYTHONPATH`` environment variable is retained for the duration of the terminal
-    session.
+    session only.
 
 Run pytest to see if everything is working::
 
