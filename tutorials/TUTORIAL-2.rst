@@ -809,33 +809,56 @@ Finally, the ``--debug`` flag adds debug information during the compilation.
 
 Controlling the build of cpp modules
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The C++ compiler, e.g. the Intel C++ compiler, is specified as:
 
-.. code-block::
+The build of C++ modules can be fully controlled by modifying the the module's
+:file:`CMakeLists.txt` file to your needs. Micc_ provides every cpp module with
+a template containing examples of frequently used CMake_ commands commented out.
+These include the specification of :
 
-   > micc-build --cxx-compiler path/to/icpc
+* compiler options
+* preprocessor macros
+* include directories
+* link directories
+* link libraries
 
-Here, the ``--cxx-compiler``'s value is tranferred to the CMake_ variable
-``CMAKE_CXX_COMPILER``.
+You just need to uncomment them and provide the values you need:
 
-CMake_ provides default build options for four build types:
+.. code-block:: cmake
+
+    ...
+    # set compiler:
+    # set(CMAKE_CXX_COMPILER path/to/executable)
+
+    # Add compiler options:
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} <additional C++ compiler options>")
+
+    # Add preprocessor macro definitions:
+    # add_compile_definitions(
+    #     OPENFOAM=1912                     # set value
+    #     WM_LABEL_SIZE=$ENV{WM_LABEL_SIZE} # set value from environment variable
+    #     WM_DP                             # just define the macro
+    # )
+
+    # Add include directories
+    #include_directories(
+    #     path/to/dir1
+    #     path/to/dir2
+    # )
+    ...
+
+CMake_ provides default build options for four build types: DEBUG, MINSIZEREL,
+RELEASE, and RELWITHDEBINFO.
 
 * ``CMAKE_CXX_FLAGS_DEBUG     ``: ``-g``
 * ``CMAKE_CXX_FLAGS_MINSIZEREL``: ``-Os -DNDEBUG``
 * ``CMAKE_CXX_FLAGS_RELEASE   ``: ``-O3 -DNDEBUG``
 * ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``: ``-O2 -g -DNDEBUG``
 
-You can overwrite their value by specifying ``--build-type`` (to select the build type)
-and ``--cxx-flags`` to set the appropriate value. These variables are merged with the
-CMake_ variable ``CMAKE_CXX_FLAGS``, which is empty by default. This variable can be
-overwritten by using the ``--cxx-flags-all`` option,
+The build type is selected by setting the ``CMAKE_BUILD_TYPE`` variable (default:
+``RELEASE``).
 
-.. note:: ALL cpp modules are built with the same options. To specify separate options
-   for a particular module use the ``-m|--module`` option.
-
-.. note:: CMake_ selects reasonable options for the four build types above, taking into
-   account the chosen compiler. For tweeking, however, you will most probably have to
-   change the compiler options when you change the compiler.
+For convenience, micc-build_ provides a command line argument ``--build-type`` for
+specifying the build type.
 
 Save and load build options to/from file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
