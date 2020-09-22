@@ -3,26 +3,33 @@ TODO
 .. _readthedocs: https://readthedocs.org/
 .. _poetry: https://poetry.eustace.io/
 
+* update tutorial 7
+* move ``LINKS.rst`` to a separate git repo (it changes too often)
+* add a remove command for removing a component of a micc_ project
+* add a rename command for renaming a component of a micc_ project or the project itself.
+
 * Put makefile targets into micc commands and remove micc/makefile? This
   makes a more uniform interface. Use subprocess or lrcmd for this?
-* Fortran compiler options (while using f2py): is ``-O3`` enough? 
+
+* Fortran compiler options (while using f2py): is ``-O3`` enough?
 * allow for multiple Fortran/C++ source files?
 * how to add external projects for f2py and C++ modules (include files,
   libraries)?
+
+    * this was fixed for C++ by using the CMake framework
+
 * check `cppimport <https://github.com/tbenthompson/cppimport>`_
 * undo ``micc app ...``?
 * undo ``micc module ...``?
-* check if project_name exists already on `readthedocs`_, and prompt for a 
-  different name. (My ``utils`` project works fine, but it was to be expected 
-  that the name was already used on `readthedocs`_.
-* micc feature rename project, in case one forgot to check if that project name 
-  does not already exist on `readthedocs`_ 
+
+* check if project_name exists already on `readthedocs`_ or `pypi`_. If not
+  abort and print a message that suggests to use a different name, or to create
+  the project anyway by using ``--force``.
+
 * remove dependency on `toml <https://pypi.org/project/toml/>`_ in favor of
   `tomlkit <https://pypi.org/project/tomlkit/>`_ which comes with poetry.
   (now that we are fixed poetry issue #1182)
-* pypi publishing
-* virtual environments
-* requirements
+
 * regression tests
 * Reflect about "do we really need poetry? (see below)
 

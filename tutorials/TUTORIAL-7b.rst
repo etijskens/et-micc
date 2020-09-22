@@ -1,46 +1,233 @@
 Tutorial 7 - Using micc projects on the VSC clusters
 ====================================================
 
-We distinguish to cases:
-
-* installing a micc_-project for further development, and
-* installing a micc_-project (in a virtual environment) for use in production runs.
-
-.. note:: This tutorial uses the Leibniz cluster of the University of Antwerp as an
-    example. The principles pertain, however, to all VSC clusters, and most probably
+.. note:: This tutorial uses the Leibniz cluster of the University of Antwerp for the
+    examples. The principles pertain, however, to all VSC clusters, and most probably
     also to other clusters using a module system for exposing its software stack.
 
-7.1 Micc use on the cluster for developing code
------------------------------------------------
+Most differences between using your local machine or a cluster stem from
+the fact that a cluster, typically, uses a *module* system for making software
+available to the user on a login node (interactive mode) and to a compute node
+(batch mode). In addition, the cluster uses a scheduler that determines when your
+compute jobs are executed.
 
-Most differences between using  your local machine and using the cluster stem from
-the fact that the cluster uses a *module* system for making software available to the
-user, and less importantly, that the cluster uses a scheduler to run your compute jobs
-in batch mode when the hardware you requested is available.
+The tools we need are, typically:
 
-Most tools that are commonly used on the cluster are built for optimal performance and
-pre-installed on the cluster. You need to make them available for execution by
-``module load`` commands (for all the details see
-`Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_).
-Although the operating system also exposes some tools such as compilers, as they
-are many versions behind and, consequentially, they are **not** fit for high performance
-computing. As an example consider the ``git`` command. This is the git_ version exposed by
-the operating system::
+* a modern Python version. As Python 2.7 is officially discontinued, that would
+  probably be 3.7 or later.
+* common Python packages for computing, like Numpy, scipy, matplotlib, ...
+* compilers for C++ and/or Fortran, for compiling binary extensions.
+* CMake, as the build system for C++ binary extensions.
+* git, for version control, if we are developing code on the cluster.
+
+7.1 Using modules
+-----------------
+The cluster's operating system exposes some of these tools, but, they lag
+many versions behind and, although very reliable, they are **not** fit for
+high performance computing purposes.
+
+As an example consider the GCC C++ compiler ``g++``. Here is the ``g++`` version
+exposed by the operating system (at the day of writing: August 2020)::
+
+    > which g++
+    /usr/bin/g++
+    > g++ --version
+    g++ (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39)
+    ...
+
+Still at the day of writing, the latest GCC version is 6 major versions ahead of
+that: 10.2! The OS g++ is very reliable for building operating system components
+but it is not suited for building C++ binary extensions that must squeeze the last
+bit of performance out of the cluster's hardware. Obviously, this old g++ can
+impossibly be aware of modern hardware, and, consequentially, cannot generate
+code that exploit all the modern hardware features introduced for improving
+performance of scientific computations.
+
+Similarly, the OS Python is 2.7.5, whereas 3.9 is almost released, and 2.7.x isn't
+even officially supported anymore.
+
+So as a rule of thumb:
+
+    **Never use the tools provided by the operating system.**
+
+As the preinstalled modules are built by VSC specialists for optimal performance on
+the cluster hardware, this rule should be extended as:
+
+    **Do not install your own tools (unless they are not performance critical, or, you are a specialist yourself).**
+
+If you need some software package, a library, a Python module, or, whatever, which
+is not available as a cluster module, especially, if it is performance critical, contact
+your local VSC team and they will build and install it for you (and all other users).
+
+The VSC Team has installed many software packages ready to be used for high performance
+computing. In fact, they are built using the modern compilers and with optimal performance
+in mind. Contrary to what you are used to on your personal computer where installed software
+packages are immediately accessible, on the cluster an extra step must be taken to
+make installed packages accessible.
+
+If you are unsure whether a command is provided by the operating system or not, use the
+linux ``which`` command::
+
+    > which g++
+    /usr/bin/g++
+
+Typically, commands of the operating system are found in ``/usr/bin`` and should
+usually not be used for high performance computing. Commands provided by some
+cluster module are, typically, found in ``/apps/<vsc-site>/...``.
+
+.. note::
+   The ``which cmd`` command shows the path to the first ``cmd`` on the PATH
+   environment variable.
+
+So, how do we get access to the commands we are supposed to use?
+
+HPC packages are installed as modules and to make
+them accessible, they must be loaded. Loading a module means that your operating system
+environment is modified such that it can find the software's executables, that is, the
+directories containing its executables are added to the ``PATH`` variable. In additio,
+other environment variables adjusted or added to make everything work smoothly.
+
+E.g., to use a recent version of git_ we load the git module::
+
+    > module load git
+    > which git
+    /apps/antwerpen/broadwell/centos7/git/2.13.3/bin/git
+    > git --version
+    git version 2.13.3
+
+Before we loaded ``git``, the ``which`` command would have shown::
 
     > which git
     /usr/bin/git
     > git --version
     git version 1.8.3.1
 
-When you load the git module you get version 2.13.3::
+A much older version, indeed.
+
+You can search for modules containing e.g. the word ``gcc`` (case insensitive)::
+
+    > module spider gcc
+    ...
+
+You can list the loaded modules::
+
+    > module list
+
+You can unload a module::
+
+    > module unload git
+    > which git
+    /usr/bin/git
+
+The current ``git`` command is that of the OS again.
+
+You can unload all modules::
+
+    > module purge
+
+To learn the details about the VSC clusters' module system, consult
+`Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_.
+
+7.2 Python virtual environments on the cluster
+----------------------------------------------
+
+Micc_ targets Python projects and facilitates the development of binary Python extensions
+to boost the performance of performance critical components. It is good practice to
+develop (in fact, also deploy) Python projects in virtual environments, to isolate the
+development from your other work. On a PC micc_ relied on poetry_ to create and maintain
+your project's virtual environments. At the time of writing (August 2020) poetry_ doesn't
+support the creation of virtual environments of Python versions with pre-installed Python
+packages. ``Poetry_ install`` will reinstall pre-installed Python packages in the virtua]
+environment, thereby loosing the performance advantages of the pre-installed packages.
+Consequently, we prefer working without poetry_ on the cluster.
+
+7.3.1 Python virtual environments without using poetry_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+First, we make sure to load a modern Python version. Note that pyenv_ is also not supported
+on the cluster. The VSC clusters have many Python versions available, and come in different
+flavours, depending on the toolchain that was used to build them. On Leibniz, e.g., we would
+execute::
+
+    > module load leibniz/2019b
+    > module load Python/3.7.4-intel-2019b
+
+The first ``module load`` command selects all modules built with the Intel 2019b toolchain,
+and the second makes Python 3.7.4, compiled with the Intel 2019b toolchain, available. As
+this is the default Python version on Leibniz, the command::
+
+    > module load Python
+
+would have achieved exactly the same.
+
+The ``Python/3.7.4-intel-2019b`` module does not come allone. It depends on a bunch of
+other modules, one of which is the Intel 2019b toolchain itself, ``intel/2019b`` (entry 4)::
+
+    > module list
+
+    Currently Loaded Modules:
+      1) leibniz/supported
+      2) GCCcore/8.3.0
+      3) binutils/2.32-GCCcore-8.3.0
+      4) intel/2019b
+      5) baselibs/2019b-GCCcore-8.3.0
+      6) Tcl/8.6.9-intel-2019b
+      7) X11/2019b-GCCcore-8.3.0
+      8) Tk/8.6.9-intel-2019b
+      9) SQLite/3.29.0-intel-2019b
+     10) HDF5/1.8.21-intel-2019b-MPI
+     11) METIS/5.1.0-intel-2019b-i32-fp64
+     12) SuiteSparse/4.5.6-intel-2019b-METIS-5.1.0
+     13) Python/3.7.4-intel-2019b
+
+This Python installation also comes with a whole bunch of pre-installed Python packages
+which are useful for high performance computing, such as numpy_, as well as all dependencies
+of those packages. To see the list of pre-installed packages execute::
+
+    > pip list
+    Package            Version
+    ------------------ ------------
+    absl-py            0.7.1
+    alabaster          0.7.12
+    appdirs            1.4.3
+    ...
+    numpy              1.17.0
+    ...
+
+.. note::
+
+    If the python version is a conda installation, the command ``conda list`` is more
+    appropriate.
+
+Now we are ready to create a virtual environment. As we are used to ``poetry install``
+creating a virtual environment, named ``.venv`` in our project folder, we do the same
+using the python venv package::
+
+    > cd path/to/project_folder
+    > python -m venv .venv --system-site-packages
+
+The ``--system-site-packages`` flag ensures that all pre-installed python packages
+are also available in the virtual environment.
+
+To use the ``.venv`` virtual environment we must activate it::
+
+    > source ./.venv/bin/activate
+    (.venv) >
+
+.. note::
+
+    Not all VSC clusters modify the prompt to mark the activated virtual environment.
+    E.g. BrENIAC does not. If in doubt, execute ``which python``. If the virtual environment
+    is activated, the path returned will by something like ``path/to/project_folder/.venv/bin/python``.
+
+You can now execute ``pip list`` to see the list of installed packages in the virtual environment.
+Initially this will be just eht list of packages that come with our ``Python/3.7.4-intel-2019b``
+cluster module. Because we do not rely on poetry_, all your project dependencies must be installed
+manually. E.g. if we want to use pytest_ to execute our tests
+
+We also need git_ and CMake_::
 
     > module load git
-    > which git
-    /apps/antwerpen/broadwell/centos7/git/2.13.3/bin/git
-
-Though this is not the very latest git version, but it is definitely way ahead of 1.8.3.1.
-Moreover, both versions differ in the major component of the version, which indicates that
-they are not backward compatible.
+    > module load CMake
 
 As git is now available, we can clone the git repository of our ET-dot project in some
 workspace directory (preferably somewhere on ``$VSC_DATA``) and ``cd`` into the project
@@ -74,8 +261,8 @@ dependencies. The pyenv_ part is again replaced by a ``module load`` command, e.
     > module load leibniz/2019b
     > module load Python/3.7.4-intel-2019b
 
-The first command selects all modules built with the Intel 2019b toolchain, and
-the second makes Python 3.7.4 available together with a whole bunch of pre-installed
+The first ``module load`` command selects all modules built with the Intel 2019b toolchain,
+and the second makes Python 3.7.4 available together with a whole bunch of pre-installed
 Python packages which are useful for high performance computing, such as numpy_, as
 well as all their dependencies. To see them execute::
 
@@ -271,10 +458,9 @@ Except for some ``DeprecationWarning`` warnings which are out of our reach, all 
 however, that if we hadn't loaded the CMake module, building the :py:mod:`dotc` binary extension
 would fail with and error telling that CMake cannot be found.
 
-The second, quick and dirty approach, avoids checking the project's :file:`pyproject.toml` file.
-Instead, you run some Python code, look for ``ModuleNotFoundError`` errors and ``pip install`` the
-missing modules. Here is an example running the test code of the ``ET-dot`` project, assuming
-micc-build_ has not been installed). The three tests fail in the same way::
+The second, quick and dirty approach, avoids checking the project's :file:`pyproject.toml`
+file and runs ``python -m pytest`` right away, which (if we hadn't already installed micc-build_)
+would fail all three tests::
 
     > python -m pytest
     ========================================== test session starts ==========================================
@@ -353,7 +539,7 @@ built, and that the auto-build feature was successfully engaged.
 
 If the project needs other packages, you would continue to have :py:exc:`ModuleNotFoundError`
 exceptions.
-Each time you ``pip install`` the missing package, and run the tests until no more
+Each time you] ``pip install`` the missing package, and run the test until no more
 :py:exc:`ModuleNotFoundError` exceptions arise and you are good to go.
 
 A bash script for creating and activating the virtual environment may be practical,
@@ -362,14 +548,12 @@ e.g. :file:`micc-setup`, stored in some directory which is on your system PATH::
     #!/bin/bash
     # This is file micc-setup
 
-    # load the necessary cluster modules
+    # load the modules needed
     module load leibniz/2019b
     module load Python/3.7.4-intel-2019b
     module load CMake
-    module load Git
     module list
 
-    # Does the virtual environment .venv exist?
     if [ -d  ".venv" ]
     then
         echo "Virtual environment present: '.venv'"
@@ -383,8 +567,7 @@ e.g. :file:`micc-setup`, stored in some directory which is on your system PATH::
     fi
 
 If most of your projects have binary extensions, you might choose to
-``pip install et-micc-build`` instead of ``et-m,icc``.
-
+``pip install et-micc-build`` on the second but last line.
 When run in the project root directory, this script loads the needed modules and
 activates the project's virtual environment :file:`.venv` if it exists, and, otherwise,
 create it and install micc_. The dependencies of the project you must install yourself.
