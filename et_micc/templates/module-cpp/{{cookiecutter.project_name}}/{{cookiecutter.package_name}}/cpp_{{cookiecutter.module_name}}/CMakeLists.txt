@@ -10,9 +10,9 @@
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 2.8.12)
 
-find_package(pybind11 CONFIG REQUIRED)
-
 project({{ cookiecutter.module_name }} CXX)
+
+find_package(pybind11 CONFIG REQUIRED)
 
 # set compiler:
 # set(CMAKE_CXX_COMPILER path/to/executable)
