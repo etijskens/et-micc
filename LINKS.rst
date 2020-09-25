@@ -333,6 +333,11 @@ Fortran/C/C++
 * `<http://www.cplusplus.com>`_
 * `<http://cppreference.com>`_
 
+Compilers
+---------
+
+* `CppCon 2017: Matt Godbolt “What Has My Compiler Done for Me Lately? Unbolting the Compiler's Lid” <https://youtu.be/bSkpMdDe4g4>`_
+
 Notebooks
 ---------
 * `Jupyter Notebooks in the IDE <https://towardsdatascience.com/jupyter-notebooks-in-the-ide-visual-studio-code-versus-pycharm-5e72218eb3e8>`_
