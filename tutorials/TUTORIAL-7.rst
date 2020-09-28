@@ -1,482 +1,217 @@
+This document walks you through the differences of using micc_ to manage your
+python+C++/Fortran projects on the VSC clusters. If you are already familiar with
+the use of HPC environments, the only relevant part of this tutorial is section
+`7.2 Using Poetry on the cluster`_. Otherwise, it is recommended to go through
+the entire tutorial.
+
+.. note:: This tutorial uses the Leibniz cluster of the University of Antwerp for the
+    examples. The principles pertain, however, to all VSC clusters, and most probably
+    also to other clusters using a module system for exposing its software stack.
+
 Tutorial 7 - Using micc projects on the VSC clusters
 ====================================================
 
-We distinguish to cases:
+Most differences between using your local machine or a cluster stem from
+the fact that a cluster, typically, uses a *module* system for making software
+available to the user on a login node (interactive mode) and to a compute node
+(batch mode). In addition, the cluster uses a scheduler that determines when your
+compute jobs are executed.
 
-* installing a micc_-project for further development, and
-* installing a micc_-project (in a virtual environment) for use in production runs.
+The tools we need are, typically:
 
-.. note:: This tutorial uses the Leibniz cluster of the University of Antwerp as an
-    example. The principles pertain, however, to all VSC clusters, and most probably
-    also to other clusters using a module system for exposing its software stack.
+* a modern Python version. As Python 2.7 is officially discontinued, that would
+  probably be 3.7 or later.
+* common Python packages for computing, like Numpy, scipy, matplotlib, ...
+* compilers for C++ and/or Fortran, for compiling binary extensions.
+* CMake, as the build system for C++ binary extensions.
+* git, for version control, if we are developing code on the cluster.
 
-7.1 Micc use on the cluster for developing code
------------------------------------------------
+7.1 Using modules
+-----------------
+The cluster's operating system exposes some of these tools, but, they lag
+many versions behind and, although very reliable, they are **not** fit for
+high performance computing purposes.
 
-Most differences between using  your local machine and using the cluster stem from
-the fact that the cluster uses a *module* system for making software available to the
-user, and less importantly, that the cluster uses a scheduler to run your compute jobs
-in batch mode when the hardware you requested is available.
+As an example consider the GCC C++ compiler ``g++``. Here is the ``g++`` version
+exposed by the operating system (at the day of writing: August 2020)::
 
-Most tools that are commonly used on the cluster are built for optimal performance and
-pre-installed on the cluster. You need to make them available for execution by
-``module load`` commands (for all the details see
-`Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_).
-Although the operating system also exposes some tools such as compilers, as they
-are many versions behind and, consequentially, they are **not** fit for high performance
-computing. As an example consider the ``git`` command. This is the git_ version exposed by
-the operating system::
+    > which g++
+    /usr/bin/g++
+    > g++ --version
+    g++ (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39)
+    ...
+
+Still at the day of writing, the latest GCC version is 6 major versions ahead of
+that: 10.2! The OS g++ is very reliable for building operating system components
+but it is not suited for building C++ binary extensions that must squeeze the last
+bit of performance out of the cluster's hardware. Obviously, this old g++ can
+impossibly be aware of modern hardware, and, consequentially, cannot generate
+code that exploit all the modern hardware features introduced for improving
+performance of scientific computations.
+
+Similarly, the OS Python is 2.7.5, whereas 3.9 is almost released, and 2.7.x isn't
+even officially supported anymore.
+
+So as a rule of thumb:
+
+    **Never use the tools provided by the operating system.**
+
+As the preinstalled modules are built by VSC specialists for optimal performance on
+the cluster hardware, this rule should be extended as:
+
+    **Do not install your own tools (unless they are not performance critical, or, you are a specialist yourself).**
+
+If you need some software package, a library, a Python module, or, whatever, which
+is not available as a cluster module, especially, if it is performance critical, contact
+your local VSC team and they will build and install it for you (and all other users).
+
+The VSC Team has installed many software packages ready to be used for high performance
+computing. In fact, they are built using the modern compilers and with optimal performance
+in mind. Contrary to what you are used to on your personal computer where installed software
+packages are immediately accessible, on the cluster an extra step must be taken to
+make installed packages accessible.
+
+If you are unsure whether a command is provided by the operating system or not, use the
+linux ``which`` command::
+
+    > which g++
+    /usr/bin/g++
+
+Typically, commands of the operating system are found in ``/usr/bin`` and should
+usually not be used for high performance computing. Commands provided by some
+cluster module are, typically, found in ``/apps/<vsc-site>/...``.
+
+.. note::
+   The ``which cmd`` command shows the path to the first ``cmd`` on the PATH
+   environment variable.
+
+So, how do we get access to the commands we are supposed to use?
+
+HPC packages are installed as modules and to make
+them accessible, they must be loaded. Loading a module means that your operating system
+environment is modified such that it can find the software's executables, that is, the
+directories containing its executables are added to the ``PATH`` variable. In additio,
+other environment variables adjusted or added to make everything work smoothly.
+
+E.g., to use a recent version of git_ we load the git module::
+
+    > module load git
+    > which git
+    /apps/antwerpen/broadwell/centos7/git/2.13.3/bin/git
+    > git --version
+    git version 2.13.3
+
+Before we loaded ``git``, the ``which`` command would have shown::
 
     > which git
     /usr/bin/git
     > git --version
     git version 1.8.3.1
 
-When you load the git module you get version 2.13.3::
+A much older version, indeed.
 
-    > module load git
+You can search for modules containing e.g. the word ``gcc`` (case insensitive)::
+
+    > module spider gcc
+    ...
+
+You can list the loaded modules::
+
+    > module list
+
+You can unload a module::
+
+    > module unload git
     > which git
-    /apps/antwerpen/broadwell/centos7/git/2.13.3/bin/git
+    /usr/bin/git
 
-Though this is not the very latest git version, but it is definitely way ahead of 1.8.3.1.
-Moreover, both versions differ in the major component of the version, which indicates that
-they are not backward compatible.
+The current ``git`` command is that of the OS again.
 
-As git is now available, we can clone the git repository of our ET-dot project in some
-workspace directory (preferably somewhere on ``$VSC_DATA``) and ``cd`` into the project
-directory::
+You can unload all modules::
 
-    > cd $VSC_DATA/path/to/my/workspace
-    > git clone https://github.com/etijskens/ET-dot
-    Cloning into 'ET-dot'...
-    remote: Enumerating objects: 116, done.
-    remote: Counting objects: 100% (116/116), done.
-    remote: Compressing objects: 100% (74/74), done.
-    remote: Total 116 (delta 45), reused 100 (delta 29), pack-reused 0
-    Receiving objects: 100% (116/116), 29.90 KiB | 0 bytes/s, done.
-    Resolving deltas: 100% (45/45), done.
-    > cd ET-dot
+    > module purge
 
-.. note::
-    It is good practice to **clone git repositories in** ``$VSC_DATA``. Doing this in
-    ``$VSC_HOME`` can easily consume all your file quota, and ``$VSC_SCRATCH`` is
-    not backed up.
+To learn the details about the VSC clusters' module system, consult
+`Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_.
 
-You will need also to load CMake if you want to build binary extension modules from C++
-source code as the :py:mod:`dotc` module::
+7.2 Using Poetry on the cluster
+-------------------------------
 
-    > module load CMake
+7.2.1 Installing Poetry
+^^^^^^^^^^^^^^^^^^^^^^^
+Poetry_ is, sofar, not available as a cluster module. You must install it yourself. The
+installation method recommended by the `Poetry documentation <https://python-poetry.org/docs/#installation>`_
+is also applicable on the cluster (even when the system Python version is still 2.7.x)::
 
-On our local machine we would now select a python version with pyenv_, and run
-``poetry install`` to create a virtual environment and install :py:mod:`ET-dot`'s
-dependencies. The pyenv_ part is again replaced by a ``module load`` command, e.g.::
+    > module purge
+    > curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 
-    > module load leibniz/2019b
+The ``module purge`` command ensures that the system Python is used for the Poetry_ installation.
+This allows you to have a single poetry_ installation that works for all Python versions that you
+might want to use. So, internally, poetry_ commands use the system Python which is always available,
+but your projects can use any Python version that is made avaible by loading a cluster module, or,
+that you installed yourself.
+
+7.2.2 Using pre-installed Python packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As the cluster modules generally come with pre-installed Python packages which are built
+to achieve optimal performance in a HPC environment, e.g. Numpy_, Scipy_, ...) we do not want
+``poetry install`` to reinstall these packages in your project's virtual environment. That
+would lead to suboptimal performance, and waste disk space. Fortunately, there is a way to
+tell Poetry_ that it must use pre-installed Python packages::
+
+    > mkdir -p ~/.cache/pypoetry/virtualenvs/.venv
+    > echo 'include-system-site-packages = true' > ~/.cache/pypoetry/virtualenvs/.venv/pyvenv.cfg'
+
+(If the name of your project's virtual environment is not ``.venv``, replace it with the
+name of your project's virtual environment).
+
+7.3 Using micc_ on the cluster
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+First, we make sure to load a modern Python version for our project. The VSC clusters have many
+Python versions available, and come in different flavours, depending on the toolchain that was
+used to build them. On Leibniz, e.g., we would load::
+
+    > module load leibniz/2019b     # unleashed all modules compiled with the intel-2019b toolchain
     > module load Python/3.7.4-intel-2019b
 
-The first command selects all modules built with the Intel 2019b toolchain, and
-the second makes Python 3.7.4 available together with a whole bunch of pre-installed
-Python packages which are useful for high performance computing, such as numpy_, as
-well as all their dependencies. To see them execute::
+This module comes with a number of pre-installed Python package wich you can see using;;
 
-    > pip list
-    Package            Version
-    ------------------ ------------
-    absl-py            0.7.1
-    alabaster          0.7.12
-    appdirs            1.4.3
-    ...
-    numpy              1.17.0
-    ...
+    > ll $(dirname `which python`)/../lib/python3.7/site-packages
 
-or::
+The above ``Python/3.7.4-intel-2019b`` is a good choice. Usually, loading a Python module
+will automatically also make the C++ and Fortran compilers available that were used to compile
+that Python module. They are, obviously, needed for building binary extensions from C++ and
+Fortran code.
 
-    > conda list
-    ???
+in addition, Micc_ relies on a number of other software package to do its work.
 
-.. note::
-   The ``module load`` commands modify the ``$PATH`` variable of your environment, so
-   that the required commands can be found. This lasts only for the duration of the
-   (remote) terminal session. You have to execute them again with every new session.
+* Git_, our preferred  version control system. The system ``git`` is a bit old, hence::
 
-The poetry_ part, requires - at least at the time of writing - some special attention.
+    > module purge
+    > git --version
+    git version 1.8.3.1 # this is the system git
+    > module load git
+    > git --version
+    git version 2.13.3
 
-Note about using Poetry on the cluster
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-On our local machine we used poetry_ for
+* For building binary extensions from C++ we need CMake_, hence::
 
-* virtual environment creation and management,
-* installation of dependencies in a project's virtual environment, using the commands
+    > cmake --version
+    cmake version 2.8.12.2 # this is the system CMake
+    > module load leibniz/2019b
+    > module load CMake
+    > cmake --version
+    cmake version 3.11.1
 
-  * ``poetry install``,
-  * ``poetry update``,
-  * ``poetry add`` and
-  * ``poetry remove``,
+* For building binary extensions from Fortran, we need f2py_, which is made available from
+  Numpy_. Hence, we need to load a cluster Python module with Numpy_ pre-installed (please
+  check `7.2.2 Using pre-installed Python packages`_ for this). The above loaded Python version
+  is ok for that.
 
-* for publishing to PyPi_, with command ``poetry publish``.
+TODO:
 
-We do **not** recommend using Poetry_ for installing dependencies on the cluster. The
-main reason for this is that poetry masks any pre-installed Python packages that are made
-available by the cluster software stack. Every Python distribution on the cluster comes
-with a such set of pre-installed packages that are important for high performance computing,
-and are built (compiled) to squeeze out the last bit of performance out of the hardware on
-which they will run. Typical examples are Numpy_, `Scipy <https://www.scipy.org>`_,
-`pandas <https://pandas.pydata.org>`_, ... ``Poetry install`` will install equally
-functional packages which are built for running on many different hardwares, rather than for
-optimal performance. By using ``poetry install`` performances will be sacrificed. In addition,
-re-installing these packages consumes a lot of your file quota.
-
-To avoid trouble, we thus recommend to **not** install poetry_ on the cluster. If you
-want to publish your package, ``commit`` the changes to the git repository, ``push`` them
-to github_, fetch the latest version on your local machine and use ``poetry publish --build``
-to publish.
-
-Virtual environments and dependencies on the cluster
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If we can't use Poetry_ for creating virtual environments and installing dependencies,
-we need some alternative way to achieve this. Fortunately, just doing this by hand is not
-too difficult.
-
-Creating a virtual environment in the project root directory is simple::
-
-    > python -m venv .venv --system-site-packages
-
-This command uses the :py:mod:`venv` package to create a virtual environment named ``.venv``.
-The ``--system-site-packages`` flag ensures that the virtual environment also sees all the
-pre-installed Python packages. The environment name is in fact arbitrary, but we choose to
-use the same name as Poetry_ would use. The environment name is also the name of the directory
-containing the virtual environment::
-
-    > tree .venv
-    .venv
-    ├── bin
-    │   ├── activate
-    │   ├── activate.csh
-    │   ├── activate.fish
-    │   ├── easy_install
-    │   ├── easy_install-3.7
-    │   ├── pip
-    │   ├── pip3
-    │   ├── pip3.7
-    │   ├── python -> /apps/antwerpen/broadwell/centos7/Python/3.7.4-intel-2019b/bin/python
-    │   └── python3 -> python
-    ├── include
-    ├── lib
-    │   └── python3.7
-    │       └── site-packages
-    │           ├── easy_install.py
-    │           ├── pip
-    │           │   ├── __init__.py
-    │           │   ├──
-
-This virtual environment can be activated by executing::
-
-    > source .venv/bin/activate
-    (.venv) >
-
-As on our local machine the command prompt contains a small notice as to the activated
-virtual environment. If in doubt you can always inspect the full path of the python
-executable::
-
-    (.venv) > which python
-    /data/antwerpen/201/vsc2017/workspace/ET-dot/.venv/bin/python
-
-To install the dependencies needed by the ET-dot project, we have two options,
-a quick and dirty approach and a systematic approach. Let's be systematic first,
-and checking the ``[tool.poetry.dependencies]`` section of the project's
-:file:`pyproject.toml` file, ::
-
-    (.venv) > cat pyproject.toml
-    ...
-    [tool.poetry.dependencies]
-    python = "^3.7"
-    et-micc-build = "^0.10.10"
-
-    [tool.poetry.dev-dependencies]
-    pytest = "^4.4.2"
-
-    ...
-
-The ``[tool.poetry.dependencies]`` section tells us that the our project depends on
-micc-build_, so we install it with pip_, which is the standard Python install tool::
-
-    (.venv) > pip install et-micc-build
-    Collecting et-micc-build
-      Downloading https://files.pythonhosted.org/packages/aa/00/d95e6cf3b584c1921655258ed4d5a51120ba0ad158e6ee9c0122b2ccd0b2/et_micc_build-0.10.11-py3-none-any.whl
-    ...
-
-As we did not specify a version, it will install the latest version of micc-build_ as
-well as all its dependencies, but contrary to ``poetry install``, it will **only** install
-packages for which the version specification is **not** met. E.g. the system site packages
-of the :file:`Python/3.7.4-intel-2019b` module contain Numpy 1.17.0 which satisfies the
-version specification by micc-build_ and thus Numpy is not installed, as is clear from the
-output::
-
-    ...
-    Requirement already satisfied: numpy<2.0.0,>=1.17.0 in /apps/antwerpen/broadwell/centos7/Python/3.7.4-intel-2019b/lib/python3.7/site-packages/numpy-1.17.0-py3.7-linux-x86_64.egg (from et-micc-build) (1.17.0)
-    ...
-
-This is exactly the behavior we were looking for to avoid masking the system site packages.
-
-An interesting side effect is that, since micc_ is a dependency of micc-build_, micc_ is now
-installed in our virtual environment, and thus can be used to assist the further development
-of the project::
-
-    (.venv) > which micc
-    /data/antwerpen/201/vsc20170/workspace/ET-dot/.venv/bin/micc
-    (.venv) > micc --version
-    micc, version 0.10.11
-
-As micc-build_ is the only dependency, we can verify that everything works fine by running
-``pytest``::
-
-    (.venv) > python -m pytest
-
-.. note:: just running ``pytest`` will fail because then ``pytest`` cannot see our virtual
-    environment and will fail to import :py:mod:`et_dot`.
-
-Here is the result::
-
-    ========================================== test session starts ==========================================
-    platform linux -- Python 3.7.4, pytest-5.0.1, py-1.8.0, pluggy-0.12.0
-    rootdir: /data/antwerpen/201/vsc20170/workspace/ET-dot
-    plugins: xonsh-0.9.9
-    collected 9 items
-
-    tests/test_cpp_dotc.py .                                                                          [ 11%]
-    tests/test_et_dot.py .......                                                                      [ 88%]
-    tests/test_f2py_dotf.py .                                                                         [100%]
-
-    =========================================== warnings summary ============================================
-    /apps/antwerpen/broadwell/centos7/Python/3.7.4-intel-2019b/lib/python3.7/site-packages/future-0.17.1-py3.7.egg/past/translation/__init__.py:35
-      /apps/antwerpen/broadwell/centos7/Python/3.7.4-intel-2019b/lib/python3.7/site-packages/future-0.17.1-py3.7.egg/past/translation/__init__.py:35: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
-        import imp
-
-    /apps/antwerpen/broadwell/centos7/Python/3.7.4-intel-2019b/lib/python3.7/site-packages/future-0.17.1-py3.7.egg/past/types/oldstr.py:5
-      /apps/antwerpen/broadwell/centos7/Python/3.7.4-intel-2019b/lib/python3.7/site-packages/future-0.17.1-py3.7.egg/past/types/oldstr.py:5: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated, and in 3.8 it will stop working
-        from collections import Iterable
-
-    /apps/antwerpen/broadwell/centos7/Python/3.7.4-intel-2019b/lib/python3.7/site-packages/future-0.17.1-py3.7.egg/past/builtins/misc.py:4
-      /apps/antwerpen/broadwell/centos7/Python/3.7.4-intel-2019b/lib/python3.7/site-packages/future-0.17.1-py3.7.egg/past/builtins/misc.py:4: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated, and in 3.8 it will stop working
-        from collections import Mapping
-
-    .venv/lib/python3.7/site-packages/cookiecutter/repository.py:19
-      /data/antwerpen/201/vsc20170/workspace/ET-dot/.venv/lib/python3.7/site-packages/cookiecutter/repository.py:19: DeprecationWarning: Flags not at the start of the expression '\n(?x)\n((((git|hg)\\+)' (truncated)
-        """)
-
-    -- Docs: https://docs.pytest.org/en/latest/warnings.html
-    ================================= 9 passed, 4 warnings in 11.04 seconds =================================
-
-Except for some ``DeprecationWarning`` warnings which are out of our reach, all tests succeed. Note,
-however, that if we hadn't loaded the CMake module, building the :py:mod:`dotc` binary extension
-would fail with and error telling that CMake cannot be found.
-
-The second, quick and dirty approach, avoids checking the project's :file:`pyproject.toml` file.
-Instead, you run some Python code, look for ``ModuleNotFoundError`` errors and ``pip install`` the
-missing modules. Here is an example running the test code of the ``ET-dot`` project, assuming
-micc-build_ has not been installed). The three tests fail in the same way::
-
-    > python -m pytest
-    ========================================== test session starts ==========================================
-    platform linux -- Python 3.7.4, pytest-5.0.1, py-1.8.0, pluggy-0.12.0
-    rootdir: /data/antwerpen/201/vsc20170/workspace/ET-dot
-    plugins: xonsh-0.9.9
-    collected 0 items / 3 errors
-
-    ================================================ ERRORS =================================================
-    ________________________________ ERROR collecting tests/test_cpp_dotc.py ________________________________
-    ImportError while importing test module '/data/antwerpen/201/vsc20170/workspace/ET-dot/tests/test_cpp_dotc.py'.
-    Hint: make sure your test modules/packages have valid Python names.
-    Traceback:
-    et_dot/__init__.py:10: in <module>
-        import et_dot.dotc
-    E   ModuleNotFoundError: No module named 'et_dot.dotc'
-
-    During handling of the above exception, another exception occurred:
-    tests/test_cpp_dotc.py:9: in <module>
-        import et_dot.dotc as cpp
-    et_dot/__init__.py:15: in <module>
-        from et_micc_build.cli_micc_build import auto_build_binary_extension
-    E   ModuleNotFoundError: No module named 'et_micc_build'
-    _________________________________ ERROR collecting tests/test_et_dot.py _________________________________
-    ImportError while importing test module '/data/antwerpen/201/vsc20170/workspace/ET-dot/tests/test_et_dot.py'.
-    Hint: make sure your test modules/packages have valid Python names.
-    Traceback:
-    et_dot/__init__.py:10: in <module>
-        import et_dot.dotc
-    E   ModuleNotFoundError: No module named 'et_dot.dotc'
-
-    During handling of the above exception, another exception occurred:
-    tests/test_et_dot.py:10: in <module>
-        import et_dot
-    et_dot/__init__.py:15: in <module>
-        from et_micc_build.cli_micc_build import auto_build_binary_extension
-    E   ModuleNotFoundError: No module named 'et_micc_build'
-    _______________________________ ERROR collecting tests/test_f2py_dotf.py ________________________________
-    ImportError while importing test module '/data/antwerpen/201/vsc20170/workspace/ET-dot/tests/test_f2py_dotf.py'.
-    Hint: make sure your test modules/packages have valid Python names.
-    Traceback:
-    et_dot/__init__.py:10: in <module>
-        import et_dot.dotc
-    E   ModuleNotFoundError: No module named 'et_dot.dotc'
-
-    During handling of the above exception, another exception occurred:
-    tests/test_f2py_dotf.py:8: in <module>
-        import et_dot.dotf as f90
-    et_dot/__init__.py:15: in <module>
-        from et_micc_build.cli_micc_build import auto_build_binary_extension
-    E   ModuleNotFoundError: No module named 'et_micc_build'
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ======================================== 3 error in 0.34 seconds ========================================
-
-All three tests fail in more or less the same way. E.g in the last test there is first
-a :py:exc:`ModuleNotFoundError`::
-
-    E   ModuleNotFoundError: No module named 'et_dot.dotc'
-
-which tells us that the binary extension :py:mod:`dotc` is not found. This is logical
-because it hasn't been built. (You can verify that there are no :file:`.so` files by
-running ``ls -l et_dot``.) The auto-build feature should normally take care of that.
-The error gives rise to another :py:exc:`ModuleNotFoundError`::
-
-    E   ModuleNotFoundError: No module named 'et_micc_build'
-
-which tells us that micc-build_ is not installed in our virtual environment, which is
-indeed necessary for engaging the auto-build feature. So we ``pip install`` it::
-
-    (.venv) > pip install et-micc-build
-    Collecting et-micc-build
-    ...
-
-and run the tests again to see that they succeed, meaning that the binary modules were
-built, and that the auto-build feature was successfully engaged.
-
-If the project needs other packages, you would continue to have :py:exc:`ModuleNotFoundError`
-exceptions.
-Each time you ``pip install`` the missing package, and run the tests until no more
-:py:exc:`ModuleNotFoundError` exceptions arise and you are good to go.
-
-A bash script for creating and activating the virtual environment may be practical,
-e.g. :file:`micc-setup`, stored in some directory which is on your system PATH::
-
-    #!/bin/bash
-    # This is file micc-setup
-
-    # load the necessary cluster modules
-    module load leibniz/2019b
-    module load Python/3.7.4-intel-2019b
-    module load CMake
-    module load Git
-    module list
-
-    # Does the virtual environment .venv exist?
-    if [ -d  ".venv" ]
-    then
-        echo "Virtual environment present: '.venv'"
-        echo "Activating '.venv' ..."
-        source .venv/bin/activate
-    else
-        # create new virtual environment
-        python -m venv .venv --system-site-packages
-        source .venv/bin/activate
-        pip install et-micc
-    fi
-
-If most of your projects have binary extensions, you might choose to
-``pip install et-micc-build`` instead of ``et-m,icc``.
-
-When run in the project root directory, this script loads the needed modules and
-activates the project's virtual environment :file:`.venv` if it exists, and, otherwise,
-create it and install micc_. The dependencies of the project you must install yourself.
-
-You must ``source`` this script in the project root directory. If you do not ``source`` the
-script, the environment will be correctly setup, but the virtual environment will not be
-activated when after the script terminates, nor will the modules be loaded::
-
-    > cd path/to/ET-dot
-    > source micc-setup
-
-    Currently Loaded Modules:
-      1) leibniz/2019b                  9) SQLite/3.29.0-intel-2019b
-      2) GCCcore/8.3.0                 10) HDF5/1.8.21-intel-2019b-MPI
-      3) binutils/2.32-GCCcore-8.3.0   11) METIS/5.1.0-intel-2019b-i32-fp64
-      4) intel/2019b                   12) SuiteSparse/4.5.6-intel-2019b-METIS-5.1.0
-      5) baselibs/2019b-GCCcore-8.3.0  13) Python/3.7.4-intel-2019b
-      6) Tcl/8.6.9-intel-2019b         14) git/2.13.3
-      7) X11/2019b-GCCcore-8.3.0       15) CMake/3.11.1
-      8) Tk/8.6.9-intel-2019b
-    Virtual environment present: '.venv'
-    Activating '.venv' ...
-    (.venv) >
-
-This :file:`micc-setup` script work for every project, but the modules loaded are
-hardcoded. You can of course elaborate on this very simple script.
-
-7.2 Using a micc_ project as a dependency
------------------------------------------
-To use a micc_ project such as ET-dot in an other project, say *foo*, is simple. Create a
-virtual environment in *foo* and use ``pip install``. Using the micc-setup script whe
-wrote before::
-
-    > cd path/to/foo
-    > source micc-setup
-
-    The following have been reloaded with a version change:
-      1) leibniz/supported => leibniz/2019b
-
-
-    Currently Loaded Modules:
-      1) leibniz/2019b
-      2) GCCcore/8.3.0
-      3) binutils/2.32-GCCcore-8.3.0
-      4) intel/2019b
-      5) baselibs/2019b-GCCcore-8.3.0
-      6) Tcl/8.6.9-intel-2019b
-      7) X11/2019b-GCCcore-8.3.0
-      8) Tk/8.6.9-intel-2019b
-      9) SQLite/3.29.0-intel-2019b
-     10) HDF5/1.8.21-intel-2019b-MPI
-     11) METIS/5.1.0-intel-2019b-i32-fp64
-     12) SuiteSparse/4.5.6-intel-2019b-METIS-5.1.0
-     13) Python/3.7.4-intel-2019b
-     14) git/2.13.3
-     15) CMake/3.11.1
-    Creating  new virtual environment '.venv'
-    Activating '.venv' ...
-    Installing micc ...
-    Collecting et-micc
-      ...
-    (.venv) > pip install git+https://github.com/etijskens/ET-dot
-    Collecting git+https://github.com/etijskens/ET-dot
-      Cloning https://github.com/etijskens/ET-dot to /tmp/pip-req-build-i1ta63e3
-      Installing build dependencies ... done
-      Getting requirements to build wheel ... done
-      Installing backend dependencies ... done
-        Preparing wheel metadata ... done
-    Collecting et-micc-build<0.11.0,>=0.10.10 (from et-dot==1.0.0)
-      ...
-
-Note that we installed *ET-dot* directly from github_. If we had published it to
-PyPi_, ``pip install ET-dot`` would have been sufficient.
-
-Using virtual environments in batch jobs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using project *foo* in a batch job is exactly the same as on the command line. You
-must load the cluster modules you need, and activate the environment. Here is an example
-(PBS) job script, assuming that foo.py is a python script that imports :py:mod:`et_dot` ::
-
-    #!/usr/bin/env bash
-    #PBS -l nodes=1:ppn=1
-    #PBS -l walltime=00:05:00
-    #PBS -l pmem=1gb
-
-    cd $VSC_DATA/path/to/foo
-    # load necessary cluster modules and activate virtual environment
-    source micc-setup
-    # run python script
-    python foo.py
-
-7.3 Using conda Python distributions
+7.4 Using conda Python distributions
 ------------------------------------
 You can set up your own Conda virtual environments on the cluster, just as we described
 in `Tutorial 6 - Using conda python and conda virtual environments`_. The problem with that

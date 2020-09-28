@@ -6,7 +6,9 @@ TODO
 * update tutorial 7
 * move ``LINKS.rst`` to a separate git repo (it changes too often)
 * add a remove command for removing a component of a micc_ project
+  see https://github.com/etijskens/et-micc/issues/32
 * add a rename command for renaming a component of a micc_ project or the project itself.
+  see https://github.com/etijskens/et-micc/issues/29
 
 * Put makefile targets into micc commands and remove micc/makefile? This
   makes a more uniform interface. Use subprocess or lrcmd for this?

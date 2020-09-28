@@ -3,6 +3,28 @@ including dead-ends.
 
 https://sdss-python-template.readthedocs.io/en/latest/
 
+Using poetry on the cluster
+---------------------------
+Installed poetry with ``pip install poetry``. ``poetry install` for ``ET-dot``
+seems to update e.g.. Numpy (it is also found in ``.venv``'s ``site-packages``), but
+``import numpy`` nevertheless uses the preinstalled python, which is almost what
+we want, except for Numpy to appear in the ``site-packages``, which wastes disk
+space.
+
+I must still be verified how we can install poetry just once for several python
+versions. Suspectedly, the system python (2.7.5 on Leibniz) is not sufficient.
+I jugded this wrong. I installed poetry on Leibniz, using the recommended
+method::
+
+  > curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+
+with the system python, and i was able to run ``poetry install`` on a project.
+
+
+v0.10.25
+========
+It's been a while that this file has been updated ...
+
 v0.9.6 (2019-11-21)
 ===================
 * Keeping version number between micc and micc-build consistent is error-prone.
