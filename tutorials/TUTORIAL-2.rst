@@ -825,33 +825,35 @@ You just need to uncomment them and provide the values you need:
 
 .. code-block:: cmake
 
-    ...
-    # set compiler:
-    # set(CMAKE_CXX_COMPILER path/to/executable)
+   # ...
 
-    # Add compiler options:
-    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} <additional C++ compiler options>")
+   # set compiler:
+   # set(CMAKE_CXX_COMPILER path/to/executable)
 
-    # Add preprocessor macro definitions:
-    # add_compile_definitions(
-    #     OPENFOAM=1912                     # set value
-    #     WM_LABEL_SIZE=$ENV{WM_LABEL_SIZE} # set value from environment variable
-    #     WM_DP                             # just define the macro
-    # )
+   # Add compiler options:
+   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} <additional C++ compiler options>")
 
-    # Add include directories
-    #include_directories(
-    #     path/to/dir1
-    #     path/to/dir2
-    # )
-    ...
+   # Add preprocessor macro definitions:
+   # add_compile_definitions(
+   #     OPENFOAM=1912                     # set value
+   #     WM_LABEL_SIZE=$ENV{WM_LABEL_SIZE} # set value from environment variable
+   #     WM_DP                             # just define the macro
+   # )
+
+   # Add include directories
+   #include_directories(
+   #     path/to/dir1
+   #     path/to/dir2
+   # )
+
+   #...
 
 CMake_ provides default build options for four build types: DEBUG, MINSIZEREL,
 RELEASE, and RELWITHDEBINFO.
 
-* ``CMAKE_CXX_FLAGS_DEBUG     ``: ``-g``
+* ``CMAKE_CXX_FLAGS_DEBUG``: ``-g``
 * ``CMAKE_CXX_FLAGS_MINSIZEREL``: ``-Os -DNDEBUG``
-* ``CMAKE_CXX_FLAGS_RELEASE   ``: ``-O3 -DNDEBUG``
+* ``CMAKE_CXX_FLAGS_RELEASE``: ``-O3 -DNDEBUG``
 * ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``: ``-O2 -g -DNDEBUG``
 
 The build type is selected by setting the ``CMAKE_BUILD_TYPE`` variable (default:

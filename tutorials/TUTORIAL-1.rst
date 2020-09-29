@@ -22,13 +22,12 @@ to use it. The standard place to publish Python code is the
 `Python Package Index <https://pypi.org>`_ where you find hundreds of thousands
 of projects ready to be used. Even if you have only a few colleagues that may
 want to use your code, you make their life easier when you publish your
-*my_nifty_module* at `PyPI <https://pypi.org>`_ as they will only need to type::
+*my_nifty_module* at PyPI_ as they will only need to type::
 
    > pip install my_nifty_module
 
 (The name *my_nifty_module* is not used so far, but, please, choose a better name).
-`Micc <https://github.com/etijskens/et-micc>`_ will help you publishing your work at
-`PyPI <https://pypi.org>`_  with as little effort as possible.
+Micc_ will help you publishing your work at PyPI_  with as little effort as possible.
 
 So, let us call the project *ET-dot*. *ET* denote my initials, which helps
 to be unique, remains descriptive, and is certainly short. First, ``cd`` into a
@@ -254,7 +253,7 @@ Python 3.8.0.
 
 Virtual environments
 ^^^^^^^^^^^^^^^^^^^^
-For a more detailed introduction to virtual environments see
+For a detailed introduction to virtual environments see
 `Python Virtual Environments: A Primer <https://realpython.com/python-virtual-environments-a-primer/>`_.
 
 When you are developing or using several Python projects it can become difficult
@@ -295,9 +294,9 @@ Creating virtual environments with Poetry
 Poetry_ uses the above mechanism to manage virtual environment on a per project
 basis, and can install all the dependencies of that project, as specified in the
 :file:`pyproject.toml` file, using the ``install`` command. Since our project does
-not have a virtual environment yet, `Poetry <https://python-poetry.org>`_  creates
-one, named :file:`.venv`, and installs all dependencies in it. We first choose the
-Python version to use for the project::
+not have a virtual environment yet, Poetry_ creates one, named :file:`.venv`, and
+installs all dependencies in it. We first choose the Python version to use for the
+project::
 
    > pyenv local 3.7.5
    > poetry install
@@ -327,7 +326,7 @@ our code. The last package is ET-dot itself, which is installed in so-called
 *development mode*. This means that any changes in the source code are immediately
 visible in the virtual environment. Adding/removing dependencies is easily achieved
 by running ``poetry add some_module`` and ``poetry remove some_other_module``.
-Consult the `poetry documentation <https://poetry.eustace.io/docs/>`_ for details
+Consult the poetry_documentation_ for details
 
 If the virtual environment already exists, or if some virtual environment is activated
 (not necessarily that of the project itself - be warned), that virtual environment is

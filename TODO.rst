@@ -2,6 +2,8 @@ TODO
 ====
 .. _readthedocs: https://readthedocs.org/
 .. _poetry: https://poetry.eustace.io/
+.. _PyPI: https://pypi.org/
+.. _micc: https://micc.readthedocs.io/en/master/
 
 * update tutorial 7
 * move ``LINKS.rst`` to a separate git repo (it changes too often)

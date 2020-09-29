@@ -12,6 +12,7 @@ Welcome to micc's documentation!
    apps
    api
    devenv
+   faq
    tutorials
    links
    authors

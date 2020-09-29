@@ -1,420 +1,236 @@
-Tutorial 6 - Using conda Python and conda virtual environments
-==============================================================
 
-This tutorial is about using micc_ with conda virtual environments on your local machine.
+This document walks you through the differences of using micc_ to manage your
+python+C++/Fortran projects on the VSC clusters. If you are already familiar with
+the use of HPC environments, the only relevant part of this tutorial is section
+`7.2 Using Poetry on the cluster`_. Otherwise, it is recommended to go through
+the entire tutorial.
 
-Here are some reasons to use conda environments:
+.. note:: This tutorial uses the Leibniz cluster of the University of Antwerp for the
+    examples. The principles pertain, however, to all VSC clusters, and most probably
+    also to other clusters using a module system for exposing its software stack.
 
-* Anaconda is popular because it brings many of the tools used in data science and machine
-  learning with just one install, so it’s great for having short and simple setup.
+Tutorial 7 - Using micc projects on the VSC clusters
+====================================================
 
-* Some Python packages provided by conda are optimized for performance, e.g. Numpy is using
-  Intel MKL (Math Kernel Library) for some of its functionality.
+Most differences between using your local machine or a cluster stem from
+the fact that a cluster, typically, uses a *module* system for making software
+available to the user on a login node (interactive mode) and to a compute node
+(batch mode). In addition, the cluster uses a scheduler that determines when your
+compute jobs are executed.
 
-* Then there is the Intel Python distribution which also uses conda. It provides highly
-  performance optimized packages.
+The tools we need are, typically:
 
-6.1 Miniconda
--------------
-If you haven't installed miniconda on your local machine, you can follow the instructions
-on the `miniconda installation page <https://docs.conda.io/en/latest/miniconda.html>`_.
+* a modern Python version. As Python 2.7 is officially discontinued, that would
+  probably be 3.7 or later.
+* common Python packages for computing, like Numpy, scipy, matplotlib, ...
+* compilers for C++ and/or Fortran, for compiling binary extensions.
+* CMake, as the build system for C++ binary extensions.
+* git, for version control, if we are developing code on the cluster.
 
-Conda Python distributions have their own way of creating and managing virtual environments
-but the principle is the same
-(see`Conda tasks <https://conda.io/projects/conda/en/latest/user-guide/tasks/index.html>`_).
+7.1 Using modules
+-----------------
+The cluster's operating system exposes some of these tools, but, they lag
+many versions behind and, although very reliable, they are **not** fit for
+high performance computing purposes.
 
-Cd to our project::
+As an example consider the GCC C++ compiler ``g++``. Here is the ``g++`` version
+exposed by the operating system (at the day of writing: August 2020)::
 
-    > cd path/to/ET-dot
+    > which g++
+    /usr/bin/g++
+    > g++ --version
+    g++ (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39)
+    ...
 
-and create a virtual conda environment. We choose a different name :file:`.cenv`, so the two
-can live next to each other::
+Still at the day of writing, the latest GCC version is 6 major versions ahead of
+that: 10.2! The OS g++ is very reliable for building operating system components
+but it is not suited for building C++ binary extensions that must squeeze the last
+bit of performance out of the cluster's hardware. Obviously, this old g++ can
+impossibly be aware of modern hardware, and, consequentially, cannot generate
+code that exploit all the modern hardware features introduced for improving
+performance of scientific computations.
 
-    > conda create -p ./cenv37 python=3.7
+Similarly, the OS Python is 2.7.5, whereas 3.9 is almost released, and 2.7.x isn't
+even officially supported anymore.
 
-The name chosen is arbitrary of course, but it resembles the .venv we got (by default) with
-poetry_, and the ``37`` is to distinguish different environments for different Python
-versions. In fact, also the location, which was specified with ``-p ./cenv37`` is arbitrary,
-but the project root directory is a familiar place for this and compliant with our earlier
-approach using virtual environments created with ``poetry install``. Alternatively, you might
-want to use the environment for other projects too, in which case you might locate it in a
-different place.
+So as a rule of thumb:
 
-This is the output generated::
+    **Never use the tools provided by the operating system.**
 
-    Collecting package metadata (current_repodata.json): done
-    Solving environment: done
+As the preinstalled modules are built by VSC specialists for optimal performance on
+the cluster hardware, this rule should be extended as:
 
-    ## Package Plan ##
+    **Do not install your own tools (unless they are not performance critical, or, you are a specialist yourself).**
 
-      environment location: /Users/etijskens/software/dev/ET-dot/.cenv37
+If you need some software package, a library, a Python module, or, whatever, which
+is not available as a cluster module, especially, if it is performance critical, contact
+your local VSC team and they will build and install it for you (and all other users).
 
-      added / updated specs:
-        - python=3.7
+The VSC Team has installed many software packages ready to be used for high performance
+computing. In fact, they are built using the modern compilers and with optimal performance
+in mind. Contrary to what you are used to on your personal computer where installed software
+packages are immediately accessible, on the cluster an extra step must be taken to
+make installed packages accessible.
 
+If you are unsure whether a command is provided by the operating system or not, use the
+linux ``which`` command::
 
-    The following packages will be downloaded:
+    > which g++
+    /usr/bin/g++
 
-        package                    |            build
-        ---------------------------|-----------------
-        certifi-2019.11.28         |           py37_0         156 KB
-        libcxx-4.0.1               |       hcfea43d_1         947 KB
-        libcxxabi-4.0.1            |       hcfea43d_1         350 KB
-        libedit-3.1.20181209       |       hb402a30_0         136 KB
-        libffi-3.2.1               |       h475c297_4          37 KB
-        ncurses-6.1                |       h0a44026_1         732 KB
-        openssl-1.1.1d             |       h1de35cc_3         3.4 MB
-        pip-19.3.1                 |           py37_0         1.9 MB
-        python-3.7.5               |       h359304d_0        18.1 MB
-        readline-7.0               |       h1de35cc_5         316 KB
-        setuptools-42.0.2          |           py37_0         645 KB
-        sqlite-3.30.1              |       ha441bb4_0         2.4 MB
-        tk-8.6.8                   |       ha441bb4_0         2.8 MB
-        xz-5.2.4                   |       h1de35cc_4         239 KB
-        zlib-1.2.11                |       h1de35cc_3          90 KB
-        ------------------------------------------------------------
-                                               Total:        32.1 MB
-
-    The following NEW packages will be INSTALLED:
-
-      ca-certificates    pkgs/main/osx-64::ca-certificates-2019.11.27-0
-      certifi            pkgs/main/osx-64::certifi-2019.11.28-py37_0
-      libcxx             pkgs/main/osx-64::libcxx-4.0.1-hcfea43d_1
-      libcxxabi          pkgs/main/osx-64::libcxxabi-4.0.1-hcfea43d_1
-      libedit            pkgs/main/osx-64::libedit-3.1.20181209-hb402a30_0
-      libffi             pkgs/main/osx-64::libffi-3.2.1-h475c297_4
-      ncurses            pkgs/main/osx-64::ncurses-6.1-h0a44026_1
-      openssl            pkgs/main/osx-64::openssl-1.1.1d-h1de35cc_3
-      pip                pkgs/main/osx-64::pip-19.3.1-py37_0
-      python             pkgs/main/osx-64::python-3.7.5-h359304d_0
-      readline           pkgs/main/osx-64::readline-7.0-h1de35cc_5
-      setuptools         pkgs/main/osx-64::setuptools-42.0.2-py37_0
-      sqlite             pkgs/main/osx-64::sqlite-3.30.1-ha441bb4_0
-      tk                 pkgs/main/osx-64::tk-8.6.8-ha441bb4_0
-      wheel              pkgs/main/osx-64::wheel-0.33.6-py37_0
-      xz                 pkgs/main/osx-64::xz-5.2.4-h1de35cc_4
-      zlib               pkgs/main/osx-64::zlib-1.2.11-h1de35cc_3
-
-
-    Proceed ([y]/n)? y
-
-
-    Downloading and Extracting Packages
-    readline-7.0         | 316 KB    | ##################################### | 100%
-    libffi-3.2.1         | 37 KB     | ##################################### | 100%
-    pip-19.3.1           | 1.9 MB    | ##################################### | 100%
-    sqlite-3.30.1        | 2.4 MB    | ##################################### | 100%
-    zlib-1.2.11          | 90 KB     | ##################################### | 100%
-    libedit-3.1.20181209 | 136 KB    | ##################################### | 100%
-    xz-5.2.4             | 239 KB    | ##################################### | 100%
-    setuptools-42.0.2    | 645 KB    | ##################################### | 100%
-    libcxx-4.0.1         | 947 KB    | ##################################### | 100%
-    tk-8.6.8             | 2.8 MB    | ##################################### | 100%
-    python-3.7.5         | 18.1 MB   | ##################################### | 100%
-    certifi-2019.11.28   | 156 KB    | ##################################### | 100%
-    openssl-1.1.1d       | 3.4 MB    | ##################################### | 100%
-    ncurses-6.1          | 732 KB    | ##################################### | 100%
-    libcxxabi-4.0.1      | 350 KB    | ##################################### | 100%
-    Preparing transaction: done
-    Verifying transaction: done
-    Executing transaction: done
-    #
-    # To activate this environment, use
-    #
-    #     $ conda activate /Users/etijskens/software/dev/ET-dot/.cenv37
-    #
-    # To deactivate an active environment, use
-    #
-    #     $ conda deactivate
-
-As mentioned at the end, we can activate the environment with the command::
-
-    > conda activate /Users/etijskens/software/dev/ET-dot/.cenv37
-    > (/Users/etijskens/software/dev/ET-dot/.cenv37)
+Typically, commands of the operating system are found in ``/usr/bin`` and should
+usually not be used for high performance computing. Commands provided by some
+cluster module are, typically, found in ``/apps/<vsc-site>/...``.
 
 .. note::
-    The command ``conda activate .cenv37/`` would have worked too, but not
-    ``conda activate .cenv37``, as ``conda`` will consider ``.cenv37`` to be
-    a named environment (an environment created with ``conda create --name <envname>``
-    and look it up in its default directory.
+   The ``which cmd`` command shows the path to the first ``cmd`` on the PATH
+   environment variable.
 
-Conda provides hundreds of popular packages, which are often better optimised than the
-general purpose packages on PyPI_. You install them using conda install::
+So, how do we get access to the commands we are supposed to use?
 
-    > conda install numpy
-    Collecting package metadata (current_repodata.json): done
-    Solving environment: done
+HPC packages are installed as modules and to make
+them accessible, they must be loaded. Loading a module means that your operating system
+environment is modified such that it can find the software's executables, that is, the
+directories containing its executables are added to the ``PATH`` variable. In additio,
+other environment variables adjusted or added to make everything work smoothly.
 
-    ## Package Plan ##
+E.g., to use a recent version of git_ we load the git module::
 
-      environment location: /Users/etijskens/software/dev/workspace/ET-dot/.cenv37
+    > module load git
+    > which git
+    /apps/antwerpen/broadwell/centos7/git/2.13.3/bin/git
+    > git --version
+    git version 2.13.3
 
-      added / updated specs:
-        - numpy
+Before we loaded ``git``, the ``which`` command would have shown::
 
+    > which git
+    /usr/bin/git
+    > git --version
+    git version 1.8.3.1
 
-    The following NEW packages will be INSTALLED:
+A much older version, indeed.
 
-      blas               pkgs/main/osx-64::blas-1.0-mkl
-      intel-openmp       pkgs/main/osx-64::intel-openmp-2019.4-233
-      libgfortran        pkgs/main/osx-64::libgfortran-3.0.1-h93005f0_2
-      mkl                pkgs/main/osx-64::mkl-2019.4-233
-      mkl-service        pkgs/main/osx-64::mkl-service-2.3.0-py37hfbe908c_0
-      mkl_fft            pkgs/main/osx-64::mkl_fft-1.0.15-py37h5e564d8_0
-      mkl_random         pkgs/main/osx-64::mkl_random-1.1.0-py37ha771720_0
-      numpy              pkgs/main/osx-64::numpy-1.17.4-py37h890c691_0
-      numpy-base         pkgs/main/osx-64::numpy-base-1.17.4-py37h6575580_0
-      six                pkgs/main/osx-64::six-1.13.0-py37_0
+You can search for modules containing e.g. the word ``gcc`` (case insensitive)::
 
-
-    Proceed ([y]/n)? y
-
-    Preparing transaction: done
-    Verifying transaction: done
-    Executing transaction: done
-
-Clearly, this numpy adds some performance optimized components from Intel like  blas,
-intel-openmp, mkl etc. It is important to use ``conda install`` for such packages as
-``pip install`` or ``poetry install`` would install different a different Numpy.
-
-Finally, we run ``poetry install`` to install the remaining dependencies (we remove
-:file:`poetsry.lock` to allow poetry to choose the most recent version)::
-
-    (/Users/etijskens/software/dev/workspace/ET-dot/.cenv37) > rm poetry.lock
-    (/Users/etijskens/software/dev/workspace/ET-dot/.cenv37) > poetry install
-    Updating dependencies
-    Resolving dependencies... (2.4s)
-
-    Writing lock file
-
-
-    Package operations: 49 installs, 0 updates, 0 removals
-
-      - Installing chardet (3.0.4)
-      - Installing idna (2.8)
-      - Installing markupsafe (1.1.1)
-      - Installing pyparsing (2.4.5)
-      - Installing python-dateutil (2.8.1)
-      - Installing pytz (2019.3)
-      - Installing urllib3 (1.25.7)
-      - Installing alabaster (0.7.12)
-      - Installing arrow (0.15.4)
-      - Installing babel (2.7.0)
-      - Installing docutils (0.15.2)
-      - Installing imagesize (1.1.0)
-      - Installing jinja2 (2.10.3)
-      - Installing more-itertools (8.0.2)
-      - Installing packaging (19.2)
-      - Installing pygments (2.5.2)
-      - Installing requests (2.22.0)
-      - Installing snowballstemmer (2.0.0)
-      - Installing sphinxcontrib-applehelp (1.0.1)
-      - Installing sphinxcontrib-devhelp (1.0.1)
-      - Installing sphinxcontrib-htmlhelp (1.0.2)
-      - Installing sphinxcontrib-jsmath (1.0.1)
-      - Installing sphinxcontrib-qthelp (1.0.2)
-      - Installing sphinxcontrib-serializinghtml (1.1.3)
-      - Installing binaryornot (0.4.4)
-      - Installing click (7.0)
-      - Installing future (0.18.2)
-      - Installing jinja2-time (0.2.0)
-      - Installing pbr (5.4.4)
-      - Installing poyo (0.5.0)
-      - Installing sphinx (2.3.0)
-      - Installing whichcraft (0.6.1)
-      - Installing zipp (0.6.0)
-      - Installing cookiecutter (1.6.0)
-      - Installing importlib-metadata (1.3.0)
-      - Installing semantic-version (2.8.3)
-      - Installing sphinx-click (2.3.1)
-      - Installing sphinx-rtd-theme (0.4.3)
-      - Installing tomlkit (0.5.8)
-      - Installing walkdir (0.4.1)
-      - Installing atomicwrites (1.3.0)
-      - Installing attrs (19.3.0)
-      - Installing et-micc (0.10.13)
-      - Installing pluggy (0.13.1)
-      - Installing py (1.8.0)
-      - Installing pybind11 (2.4.3)
-      - Installing wcwidth (0.1.7)
-      - Installing et-micc-build (0.10.13)
-      - Installing pytest (4.6.8)
-      - Installing ET-dot (1.0.0)
-
-Clearly, Numpy is not in the install list. The numpy we installed with conda is still
-available:
-
-    (/Users/etijskens/software/dev/workspace/ET-dot/.cenv37) > conda list
-    # packages in environment at /Users/etijskens/software/dev/workspace/ET-dot/.cenv37:
-    #
-    # Name                    Version                   Build  Channel
-    ...
-    et-dot                    1.0.0                     dev_0    <develop>
-    et-micc                   0.10.13                  pypi_0    pypi
-    et-micc-build             0.10.13                  pypi_0    pypi
-    ...
-    intel-openmp              2019.4                      233
-    ...
-    libgfortran               3.0.1                h93005f0_2
-    ...
-    mkl                       2019.4                      233
-    mkl-service               2.3.0            py37hfbe908c_0
-    mkl_fft                   1.0.15           py37h5e564d8_0
-    mkl_random                1.1.0            py37ha771720_0
-    ...
-    numpy                     1.17.4           py37h890c691_0
-    numpy-base                1.17.4           py37h6575580_0
+    > module spider gcc
     ...
 
-Notice the last Channel column, which describes from where the packages come.
-The ``pypi`` entries where installed from PyPI_ during the ``poetry install``
-command. The <develop> entry refers our current project ET-dot which was installed
-in 'development' mode, meaning that modification to the :file:`.py` files are
-immediately seen by the environment.
+If you know the package name, you can list the available versions with ``module av``. Here are
+the available Python versions (the command is case insensitive)::
 
-Run ``pytest`` to verify that everything is working fine::
+    > module av python/
 
-    (/Users/etijskens/software/dev/workspace/ET-dot/.cenv37) > python -m pytest
-    ========================================= test session starts ==========================================
-    platform darwin -- Python 3.7.5, pytest-4.6.8, py-1.8.0, pluggy-0.13.1
-    rootdir: /Users/etijskens/software/dev/workspace/ET-dot
-    collected 9 items
+which on Leibniz returns::
 
-    tests/test_cpp_dotc.py .                                                                         [ 11%]
-    tests/test_et_dot.py .......                                                                     [ 88%]
-    tests/test_f2py_dotf.py .                                                                        [100%]
+    ----------------------------------------------------- /apps/antwerpen/modules/centos7/software-broadwell/2019b -----------------------------------------------------
+       Biopython/1.74-GCCcore-8.3.0-IntelPython3-2019b    Biopython/1.74-intel-2019b-Python-3.7.4 (D)    Python/3.7.4-intel-2019b (D)
+       Biopython/1.74-intel-2019b-Python-2.7.16           Python/2.7.16-intel-2019b
 
-    =========================================== warnings summary ===========================================
-    .cenv37/lib/python3.7/site-packages/cookiecutter/repository.py:19
-      /Users/etijskens/software/dev/workspace/ET-dot/.cenv37/lib/python3.7/site-packages/cookiecutter/repository.py:19: DeprecationWarning: Flags not at the start of the expression '\n(?x)\n((((git|hg)\\+)' (truncated)
-        """)
+    ----------------------------------------------------- /apps/antwerpen/modules/centos7/software-broadwell/2018b -----------------------------------------------------
+       Python/2.7.15-intel-2018b    Python/3.6.8-intel-2018b    Python/3.7.0-intel-2018b    Python/3.7.1-intel-2018b
 
-    -- Docs: https://docs.pytest.org/en/latest/warnings.html
-    ================================ 9 passed, 1 warnings in 23.77 seconds =================================
+    ----------------------------------------------------- /apps/antwerpen/modules/centos7/software-broadwell/2018a -----------------------------------------------------
+       Python/2.7.14-intel-2018a    Python/3.6.4-intel-2018a    Python/3.6.6-intel-2018a
 
-This was all run in a fresh ``git clone`` of *ET-dot*, without the binary extensions. That
-there are no errors implies that the auto-build feature was succesfully engaged to build
-the binary extensions :file:`et_dot/dotf` and :file:`et_dot/dotc`.
+    ----------------------------------------------------- /apps/antwerpen/modules/centos7/software-broadwell/2017a -----------------------------------------------------
+       Biopython/1.68-intel-2017a-Python-2.7.13    pbs_python/4.6.0-intel-2017a-Python-2.7.13    Python/3.6.1-intel-2017a
+       Biopython/1.68-intel-2017a-Python-3.6.1     Python/2.7.13-intel-2017a
 
-.. note::
-    Poetry_ **always** uses `pip <https://pip.pypa.io/en/stable/>`_ for its installs, even in a conda environment.
-    This may perhaps change in the future, as Poetry_ evolves, but for the time being
-    it is the user's responsibility to ``conda install`` the modules he needs from the
-    conda ecosystem.
+      Where:
+       D:  Default Module
 
-6.2 Intel distribution for Python
----------------------------------
-The `Intel Python <https://software.intel.com/en-us/distribution-for-python>`_ distribution
-is also based on conda. It contains many popular packages for high performance computing,
-data analytics, machine learning and artificial intelligence. The 2020 release announces:
+    If you need software that is not listed, request it at hpc@uantwerpen.be
 
-*   Faster machine learning with scikit-learn key algorithms accelerated with Intel DAAL
-*   Help address the needs of data scientists to harness Intel DAAL capabilities with a
-    Python API using daal4py package improvements
-*   Speed up pandas and NumPy with a compiler-based framework: High Performance Analytics
-    Toolkit (HPAT)
-*   Includes the latest TensorFlow and Caffe libraries that are optimized for Intel®
-    architecture
+Please, mind the last line. If you need something that is not pre-installed, request it at mailto:hpc@antwerpen.be
 
-To create a conda environment for the *Intel distribution for Python* follow these
-instructions:
+You can unload a module::
 
-Cd into your project root directory::
+    > module unload git
+    > which git
+    /usr/bin/git
 
-    > cd path/to/ET-dot
+The current ``git`` command is that of the OS again.
 
-and create the environment:
+You can unload all modules::
 
-    > conda create -p ./.idp -c intel intelpython3_core python=3
-    Collecting package metadata (current_repodata.json): done
-    Solving environment: done
+    > module purge
 
-    ## Package Plan ##
+To learn the details about the VSC clusters' module system, consult
+`Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_.
 
-      environment location: /Users/etijskens/software/dev/workspace/ET-dot/.idp
+7.2 Using Poetry on the cluster
+-------------------------------
 
-      added / updated specs:
-        - intelpython3_core
-        - python=3
+7.2.1 Installing Poetry
+^^^^^^^^^^^^^^^^^^^^^^^
+Poetry_ is, sofar, not available as a cluster module. You must install it yourself. The
+installation method recommended by the poetry_documentation_ is also applicable on the
+cluster (even when the system Python version is still 2.7.x)::
 
+    > module purge
+    > curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
 
-    The following NEW packages will be INSTALLED:
+The ``module purge`` command ensures that the system Python is used for the Poetry_ installation.
+This allows you to have a single poetry_ installation that works for all Python versions that you
+might want to use. So, internally, poetry_ commands use the system Python which is always available,
+but your projects can use any Python version that is made avaible by loading a cluster module, or,
+that you installed yourself.
 
-      bzip2              intel/osx-64::bzip2-1.0.8-0
-      certifi            intel/osx-64::certifi-2019.9.11-py37_0
-      icc_rt             intel/osx-64::icc_rt-2020.0-intel_166
-      intel-openmp       intel/osx-64::intel-openmp-2020.0-intel_166
-      intelpython        intel/osx-64::intelpython-2020.0-1
-      intelpython3_core  intel/osx-64::intelpython3_core-2020.0-0
-      libffi             intel/osx-64::libffi-3.2.1-11
-      mkl                intel/osx-64::mkl-2020.0-intel_166
-      mkl-service        intel/osx-64::mkl-service-2.3.0-py37_0
-      mkl_fft            intel/osx-64::mkl_fft-1.0.15-py37ha68da19_3
-      mkl_random         intel/osx-64::mkl_random-1.1.0-py37ha68da19_0
-      numpy              intel/osx-64::numpy-1.17.4-py37ha68da19_4
-      numpy-base         intel/osx-64::numpy-base-1.17.4-py37_4
-      openssl            intel/osx-64::openssl-1.1.1d-0
-      pip                intel/osx-64::pip-19.1.1-py37_0
-      python             intel/osx-64::python-3.7.4-3
-      pyyaml             intel/osx-64::pyyaml-5.1.1-py37_0
-      scipy              intel/osx-64::scipy-1.3.2-py37ha68da19_0
-      setuptools         intel/osx-64::setuptools-41.0.1-py37_0
-      six                intel/osx-64::six-1.12.0-py37_0
-      sqlite             intel/osx-64::sqlite-3.29.0-0
-      tbb                intel/osx-64::tbb-2020.0-intel_166
-      tbb4py             intel/osx-64::tbb4py-2020.0-py37_intel_0
-      tcl                intel/osx-64::tcl-8.6.4-24
-      tk                 intel/osx-64::tk-8.6.4-29
-      wheel              intel/osx-64::wheel-0.31.0-py37_3
-      xz                 intel/osx-64::xz-5.2.4-h1de35cc_7
-      yaml               intel/osx-64::yaml-0.1.7-2
-      zlib               intel/osx-64::zlib-1.2.11-h1de35cc_7
+7.2.2 Using pre-installed Python packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As the cluster modules generally come with pre-installed Python packages which are built
+to achieve optimal performance in a HPC environment, e.g. Numpy_, `Scipy <https://scipy.org/>`_,
+...) we do not want ``poetry install`` to reinstall these packages in your project's virtual
+environment. That would lead to suboptimal performance, and waste disk space. Fortunately,
+there is a way to tell Poetry_ that it must use pre-installed Python packages::
 
+    > mkdir -p ~/.cache/pypoetry/virtualenvs/.venv
+    > echo 'include-system-site-packages = true' > ~/.cache/pypoetry/virtualenvs/.venv/pyvenv.cfg'
 
-    Proceed ([y]/n)? y
+(If the name of your project's virtual environment is not ``.venv``, replace it with the
+name of your project's virtual environment).
 
-    Preparing transaction: done
-    Verifying transaction: done
-    Executing transaction: done
-    #
-    # To activate this environment, use
-    #
-    #     $ conda activate /Users/etijskens/software/dev/workspace/ET-dot/.idp
-    #
-    # To deactivate an active environment, use
-    #
-    #     $ conda deactivate
+7.3 Using micc_ on the cluster
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+First, we make sure to load a modern Python version for our project. The VSC clusters have many
+Python versions available, and come in different flavours, depending on the toolchain that was
+used to build them. On Leibniz, e.g., we would load::
 
-.. note::
-    If you haven't installed a conda Python distribution before, the fastest way to obtain conda
-    is to install
-    `Miniconda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/download.html>`_.
+    > module load leibniz/2019b     # unleashed all modules compiled with the intel-2019b toolchain
+    > module load Python/3.7.4-intel-2019b
 
-As before, you can now activate the environment::
+This module comes with a number of pre-installed Python package wich you can see using;;
 
-    > conda activate .idp/
-    (/Users/etijskens/software/dev/workspace/ET-dot/.idp) >
+    > ll $(dirname `which python`)/../lib/python3.7/site-packages
 
-We do not recommend to use ``poetry install`` to install the project`s dependencies. (The
-Intel distribution for Python, apparently, uses distutils instead of pip for its distributions,
-wich causes problems). Rather, install them manually::
+The above ``Python/3.7.4-intel-2019b`` is a good choice. Usually, loading a Python module
+will automatically also make the C++ and Fortran compilers available that were used to compile
+that Python module. They are, obviously, needed for building binary extensions from C++ and
+Fortran code.
 
-    (/Users/etijskens/software/dev/workspace/ET-dot/.idp) > pip install et-micc-build
-    ...
-    (/Users/etijskens/software/dev/workspace/ET-dot/.idp) > pip install pytest
-    ...
+in addition, Micc_ relies on a number of other software package to do its work.
 
-Finally, run the tests:
+* Git_, our preferred  version control system. The system ``git`` is a bit old, hence::
 
-    > python -m pytest
-    ============================= test session starts ==============================
-    platform darwin -- Python 3.7.4, pytest-5.3.2, py-1.8.0, pluggy-0.13.1
-    rootdir: /Users/etijskens/software/dev/workspace/ET-dot
-    collected 9 items
+    > module purge
+    > git --version
+    git version 1.8.3.1 # this is the system git
+    > module load git
+    > git --version
+    git version 2.13.3
 
-    tests/test_cpp_dotc.py .                                                 [ 11%]
-    tests/test_et_dot.py .......                                             [ 88%]
-    tests/test_f2py_dotf.py .                                                [100%]
+* For building binary extensions from C++ we need CMake_, hence::
 
-    ============================== 9 passed in 4.50s ===============================
+    > cmake --version
+    cmake version 2.8.12.2 # this is the system CMake
+    > module load leibniz/2019b
+    > module load CMake
+    > cmake --version
+    cmake version 3.11.1
+
+* For building binary extensions from Fortran, we need f2py_, which is made available from
+  Numpy_. Hence, we need to load a cluster Python module with Numpy_ pre-installed (please
+  check `7.2.2 Using pre-installed Python packages`_ for this). The above loaded Python version
+  is ok for that.
 
