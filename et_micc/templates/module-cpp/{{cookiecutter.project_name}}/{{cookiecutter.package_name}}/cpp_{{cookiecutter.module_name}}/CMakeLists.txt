@@ -49,6 +49,6 @@ find_package(pybind11 CONFIG REQUIRED)
 
 pybind11_add_module({{ cookiecutter.module_name }} {{ cookiecutter.module_name }}.cpp)
 
-install(FILES       "_build/{{ cookiecutter.module_name }}${PYTHON_MODULE_EXTENSION}"
+install(FILES       "_cmake_build/{{ cookiecutter.module_name }}${PYTHON_MODULE_EXTENSION}"
         DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/.."
        )
