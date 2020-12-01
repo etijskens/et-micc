@@ -25,6 +25,8 @@ Software engineering
 * `What scientists must know about hardware to write fast code <https://biojulia.net/post/hardware/>`_
   A simplified view - but not over-simplified - on how hardware affects performance. Written with
   Julia in mind rather than Python, but the principles remain valid.
+* `Clean architecture  <https://github.com/preslavmihaylov/booknotes/tree/master/architecture/clean-architecture>`_
+* `The Grand Unified Theory of Software Architecture <https://danuker.go.ro/the-grand-unified-theory-of-software-architecture.html>`_
 
 Python internals
 ----------------
@@ -81,7 +83,6 @@ Profiling
 * `Profiling Python Code <https://www.admin-magazine.com/HPC/Articles/Profiling-Python-Code?utm_source=ADMIN+Newsletter&utm_campaign=HPC_Update_134_2020-03-19_MPI_Apps_with_Singularity&utm_medium=email>`_
 * `Disassemble Your Python Code <https://florian-dahlitz.de/blog/disassemble-your-python-code>`_
 * `Counting FLOPS and other CPU counters in Python <http://www.bnikolic.co.uk/blog/python/flops/2019/09/27/python-counting-events.html>`_
-
 
 Python idioms and readability
 -----------------------------
@@ -150,6 +151,7 @@ Useful packages
 * `Pickle’s nine flaws <https://nedbatchelder.com/blog/202006/pickles_nine_flaws.html>`_
 * `Taichi:a programming language designed for high-performance computer graphics <https://github.com/taichi-dev/taichi>`_
 * `rich: rich text and beautiful formatting in the terminal <https://github.com/willmcgugan/rich>`_
+
 
 Exceptions
 ----------
@@ -228,6 +230,7 @@ Scientific Python
 * `Array Oriented Programming with Python NumPy <https://towardsdatascience.com/array-oriented-programming-with-python-numpy-e0190dd6ab65>`_
 * `Numeric and Scientific Python Packages built on Numpy <https://wiki.python.org/moin/NumericAndScientific>`_
 * `Symbolic Maths in Python <https://alexandrugris.github.io/maths/2017/04/30/symbolic-maths-python.html>`_
+* `How to use HDF5 files in Python <https://www.pythonforthelab.com/blog/how-to-use-hdf5-files-in-python/>`_
 
 Machine learning and datascience
 --------------------------------
@@ -273,6 +276,7 @@ Graphics
 * `Magnum: Lightweight and modular C++11/C++14 graphics middleware for games and data visualization <https://doc.magnum.graphics/python/examples/>`_
 * `Grammar of graphics for Pyhon (using plotnine and pandas) <https://www.datascienceworkshops.com/blog/plotnine-grammar-of-graphics-for-python/>`_
 * `plotly Express <https://pbpython.com/plotly-look.html>`_
+* `widgets in matplotlib <https://kapernikov.com/ipywidgets-with-matplotlib/>`_
 
 Installing packages
 -------------------
@@ -296,6 +300,7 @@ Tools
 * `9 useful tricks of git branch <https://gitbetter.substack.com/p/9-useful-tricks-of-git-branch-you>`_
 * `gitutor <https://github.com/artemisa-mx/gitutor>`_
 * `Things You Want to Do in Git and How to Do Them <https://stu2b50.dev/posts/things-you-wante9665>`_
+* `Helpful git commands for beginners <https://dev.to/s2engineers/helpful-git-commands-for-beginners-40bm>`_
 
 Development environment, developement workflow
 ----------------------------------------------
@@ -351,6 +356,10 @@ Windows
 * `Using WSL to Build a Python Development Environment on Windows <https://pbpython.com/wsl-python.html>`_
   This is promising: maybe we finally have a an environment on Windows with a minimal difference from
   Linux an MacOSX.
+
+Linux
+-----
+* `2020: The Year of the Linux Desktop - Moving from Macbook to Linux <https://monadical.com/posts/moving-to-linux-desktop.html>`_
 
 Programming blogs
 -----------------
