@@ -5,6 +5,8 @@ TODO
 .. _PyPI: https://pypi.org/
 .. _micc: https://micc.readthedocs.io/en/master/
 
+* allow Fortran binary extensions to be build and installed with CMake_,
+  just as for C++ binary extensions. This provides a more uniform interface.
 * update tutorial 7
 * move ``LINKS.rst`` to a separate git repo (it changes too often)
 * add a remove command for removing a component of a micc_ project
