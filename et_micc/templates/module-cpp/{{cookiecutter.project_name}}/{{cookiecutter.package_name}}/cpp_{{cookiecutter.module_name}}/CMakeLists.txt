@@ -8,7 +8,7 @@
 # build and install the .so file:
 #   > make install
 #-------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.4)
 
 project({{ cookiecutter.module_name }} CXX)
 

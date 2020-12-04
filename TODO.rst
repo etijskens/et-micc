@@ -5,8 +5,12 @@ TODO
 .. _PyPI: https://pypi.org/
 .. _micc: https://micc.readthedocs.io/en/master/
 
+* check for a the presence of a global CMake or add it as a dev dependency
+  in pyproject.toml.
 * allow Fortran binary extensions to be build and installed with CMake_,
   just as for C++ binary extensions. This provides a more uniform interface.
+* pybind11 v2.6.1 depends on a more recent version of CMake (v3.4).
+
 * update tutorial 7
 * move ``LINKS.rst`` to a separate git repo (it changes too often)
 * add a remove command for removing a component of a micc_ project
