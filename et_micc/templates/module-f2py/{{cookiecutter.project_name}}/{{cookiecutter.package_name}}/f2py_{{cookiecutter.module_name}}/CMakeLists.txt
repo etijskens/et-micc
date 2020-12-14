@@ -35,6 +35,10 @@
         # RELEASE is the default build type:
         set(CMAKE_BUILD_TYPE RELEASE)
     endif()
+
+    # Set the module name:
+    set(F2PY_module_name "{{ cookiecutter.module_name }}")
+
 #>> end boilerplate code
 
 # Some useful defines to be passed to the build process:
@@ -140,35 +144,35 @@ list(APPEND F2PY_defines "-DF2PY_REPORT_ON_ARRAY_COPY=1")
         set(F2PY_f90flags "--f90flags='${F2PY_f90flags}'")
     endif()
 
-  # If the user used ADD_COMPILE_DEFINITIONS transfer the definitions to F2PY_defines
+    # If the user used ADD_COMPILE_DEFINITIONS transfer the definitions to F2PY_defines
     get_directory_property( defines DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS )
     # message("defines:${defines}")
     foreach(def IN LISTS defines)
         list(APPEND F2PY_defines "-D${def}")
     endforeach()
 
-  # If the user used include_directories, transfer the include directories to F2PY_includes
+    # If the user used include_directories, transfer the include directories to F2PY_includes
     get_directory_property( includes DIRECTORY ${CMAKE_SOURCE_DIR} INCLUDE_DIRECTORIES )
     # message("includes:${includes}")
     foreach(inc IN LISTS includes)
         list(APPEND F2PY_includes "-I${inc}")
     endforeach()
 
-  # If the user used link_directories, transfer the link directories to F2PY_linkdirs
+    # If the user used link_directories, transfer the link directories to F2PY_linkdirs
     get_directory_property( linkdirs DIRECTORY ${CMAKE_SOURCE_DIR} LINK_DIRECTORIES )
     # message("linkdirs:${linkdirs}")
     foreach(dir IN LISTS linkdirs)
         list(APPEND F2PY_linkdirs "-L${dir}")
     endforeach()
 
-  # If the user used link_libraries, transfer the link libraries to F2PY_linklibs
+    # If the user used link_libraries, transfer the link libraries to F2PY_linklibs
     get_directory_property( linklibs DIRECTORY ${CMAKE_SOURCE_DIR} LINK_LIBRARIES )
     # message("linklibs:${linklibs}")
     foreach(lib IN LISTS linklibs)
         list(APPEND F2PY_linklibs "-l${lib}")
     endforeach()
 
-  # list all settings
+    # list all settings
     message("")
     message("# Build settings ###################################################################################")
     message("CMAKE_Fortran_COMPILER: ${CMAKE_Fortran_COMPILER}")
@@ -198,6 +202,12 @@ list(APPEND F2PY_defines "-DF2PY_REPORT_ON_ARRAY_COPY=1")
     else()
       message(FATAL_ERROR "python executable not found.")
     endif()
+    # Obtain the binary extension suffix for this Python version:
+    execute_process(
+        COMMAND ${PYTHON_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))"
+        OUTPUT_VARIABLE BINARY_EXTENSION_SUFFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
 
     # Find the f2py executable:
     find_program(
@@ -215,38 +225,28 @@ list(APPEND F2PY_defines "-DF2PY_REPORT_ON_ARRAY_COPY=1")
       message(FATAL_ERROR "f2py executable not found.")
     endif()
 
-    # Set the module name:
-    set(F2PY_module_name "{{ cookiecutter.module_name }}")
-    message("module name           : ${F2PY_module_name}")
-
     # Set the fortran source file
     set(F2PY_fortran_source "${CMAKE_CURRENT_SOURCE_DIR}/${F2PY_module_name}.f90")
+    # Set the module filepath
+    set(F2PY_module_filepath ${CMAKE_CURRENT_BINARY_DIR}/${F2PY_module_name}${BINARY_EXTENSION_SUFFIX})
 
-    # Obtain the binary extension suffix:
-    execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))"
-        OUTPUT_VARIABLE BINARY_EXTENSION_SUFFIX
-    )
-    # message("BINARY_EXTENSION_SUFFIX=" ${BINARY_EXTENSION_SUFFIX})
-
-    # Set the (full) name of the module file, with the binary extension suffix.
-    set(F2PY_module_filename ${CMAKE_CURRENT_BINARY_DIR}/${F2PY_module_name}$ENV{EXT_SUFFIX})
-    message("module filename       : ${F2PY_module_filename}")
+    message("module name           : ${F2PY_module_name}${BINARY_EXTENSION_SUFFIX}")
+    message("module filepath       : ${F2PY_module_filepath}")
     message("source                : ${F2PY_fortran_source}")
     message("python executable     : ${PYTHON_EXECUTABLE} [version=${_python_version}]")
-    message("  f2py executable       : ${F2PY_EXECUTABLE} [version=${_f2py_version}]")
+    message("  f2py executable     : ${F2PY_EXECUTABLE} [version=${_f2py_version}]")
     message("####################################################################################################")
 
     ### Create a CMake target for the binary extension module ##########################################
     add_custom_target(
       ${F2PY_module_name} ALL
-      DEPENDS ${F2PY_module_filename}
+      DEPENDS ${F2PY_module_filepath}
     )
 
     # Create a command for building the binary extension module
-    #   This uses the fortran compiler found by CMake.
+    # (This uses the fortran compiler found by CMake.)
     add_custom_command(
-      OUTPUT ${F2PY_module_filename}
+      OUTPUT ${F2PY_module_filepath}
       COMMAND ${F2PY_EXECUTABLE}
         -m ${F2PY_module_name}
         -c
@@ -263,9 +263,10 @@ list(APPEND F2PY_defines "-DF2PY_REPORT_ON_ARRAY_COPY=1")
         --build-dir ${CMAKE_CURRENT_SOURCE_DIR}/_cmake_build
       WORKING_DIRECTORY
     )
-    # install the binary extension module
+
+    # Install the binary extension module
     install(
-      FILES ${F2PY_module_filename}
+      FILES ${F2PY_module_filepath}
       DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/.."
     )
 #>> end boilerplate code

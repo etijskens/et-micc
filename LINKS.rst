@@ -84,6 +84,11 @@ Profiling
 * `Disassemble Your Python Code <https://florian-dahlitz.de/blog/disassemble-your-python-code>`_
 * `Counting FLOPS and other CPU counters in Python <http://www.bnikolic.co.uk/blog/python/flops/2019/09/27/python-counting-events.html>`_
 
+Resource monitoring
+-------------------
+* `Remora <https://www.admin-magazine.com/HPC/Articles/Remora-Resource-Monitoring-for-Users?utm_source=ADMIN+Newsletter&utm_campaign=HPC_Update_143_2020-12-10_Remora%3A_Resource_Monitoring+_or_Users&utm_medium=email>`_
+* `REMORA: REsource MOnitoring for Remote Applications <https://github.com/TACC/remora>`_
+
 Python idioms and readability
 -----------------------------
 * `The Elements of Python Stylez <https://github.com/amontalenti/elements-of-python-style>`_
@@ -151,7 +156,6 @@ Useful packages
 * `Pickle’s nine flaws <https://nedbatchelder.com/blog/202006/pickles_nine_flaws.html>`_
 * `Taichi:a programming language designed for high-performance computer graphics <https://github.com/taichi-dev/taichi>`_
 * `rich: rich text and beautiful formatting in the terminal <https://github.com/willmcgugan/rich>`_
-
 
 Exceptions
 ----------
