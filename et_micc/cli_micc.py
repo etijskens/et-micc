@@ -345,9 +345,9 @@ def tag(ctx):
            "Default = module structure."
     , default=False, is_flag=True
 )
-@click.option('--f2py'
+@click.option('--f90'
     , default=False, is_flag=True
-    , help="Add a f2py binary extionsion module (Fortran)."
+    , help="Add a f90 binary extionsion module (Fortran)."
 )
 @click.option('--cpp'
     , default=False, is_flag=True
@@ -368,7 +368,7 @@ def add(ctx
         , name
         , app, group
         , py, package
-        , f2py
+        , f90
         , cpp
         , templates
         , overwrite
@@ -388,9 +388,9 @@ def add(ctx
 
     * Python source  in :file:`<name>.py*`or :file:`<name>/__init__.py`, depending on the :py:obj:`package` flag.
 
-    If ``f2py==True``: (add f2py module)
+    If ``f90==True``: (add f90 module)
 
-    * Fortran source in :file:`f2py_<name>/<name>.f90` for f2py binary extension modules.
+    * Fortran source in :file:`f90_<name>/<name>.f90` for f90 binary extension modules.
 
     If ``cpp==True``: (add cpp module)
 
@@ -402,7 +402,7 @@ def add(ctx
     options.group = group
     options.py = py
     options.package = package
-    options.f2py = f2py
+    options.f90 = f90
     options.cpp = cpp
     options.templates = templates
     options.overwrite = overwrite

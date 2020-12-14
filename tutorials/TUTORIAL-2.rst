@@ -38,8 +38,8 @@ Adding a binary extension is as simple as:
 
 .. code-block:: bash
 
-   > micc add foo --f2py   # add a binary extension 'foo' written in Fortran
-   > micc add bar --cpp    # add a binary extension 'bar' written in C++
+   > micc add foo --f90   # add a binary extension 'foo' written in (Modern) Fortran
+   > micc add bar --cpp   # add a binary extension 'bar' written in C++
 
 .. note::
     For the ``micc add`` command to be valid, your project must have a package
@@ -100,7 +100,7 @@ my knowledge of Fortran is quite limited compared to C++. However, your mileage 
 
 2.2 Building binary extensions from Fortran
 -------------------------------------------
-Binary extension modules based on Fortran are called *f2py modules* because micc_ uses
+Binary extension modules based on Fortran are called *f90 modules*. Micc_ uses
 the f2py_ tool to build these binary extension modules from Fortran. F2py_ is part of
 Numpy_.
 
@@ -127,22 +127,22 @@ Numpy_.
 
     See `Modules and packages`_ for details.
 
-We are now ready to create a f2py module for a Fortran implementation fof the
+We are now ready to create a f90 module for a Fortran implementation fof the
 dot product, say :py:mod:`dotf`, where the ``f``, obviously, stands for Fortran:
 
 .. code-block:: bash
 
-    > micc add dotf --f2py
-    [INFO]           [ Adding f2py module dotf to project ET-dot.
-    [INFO]               - Fortran source in       ET-dot/et_dot/f2py_dotf/dotf.f90.
-    [INFO]               - Python test code in     ET-dot/tests/test_f2py_dotf.py.
-    [INFO]               - module documentation in ET-dot/et_dot/f2py_dotf/dotf.rst (in restructuredText format).
+    > micc add dotf --f90
+    [INFO]           [ Adding f90 module dotf to project ET-dot.
+    [INFO]               - Fortran source in       ET-dot/et_dot/f90_dotf/dotf.f90.
+    [INFO]               - Python test code in     ET-dot/tests/test_f90_dotf.py.
+    [INFO]               - module documentation in ET-dot/et_dot/f90_dotf/dotf.rst (in restructuredText format).
     [WARNING]            Dependencies added. Run \'poetry update\' to update the project\'s virtual environment.
     [INFO]           ] done.
 
 The output tells us where to enter the Fortran source code, the test code and the documentation.
 Enter the Fortran implementation of the dot product below in the Fortran source file
-:file:`ET-dot/et_dot/f2py_dotf/dotf.f90` (using your favourite editor or an IDE):
+:file:`ET-dot/et_dot/f90_dotf/dotf.f90` (using your favourite editor or an IDE):
 
 .. code-block:: fortran
 
@@ -164,7 +164,7 @@ Enter the Fortran implementation of the dot product below in the Fortran source 
        end do
    end function dotf
 
-The output of the ``micc add dotf --f2py`` command above also shows a warning::
+The output of the ``micc add dotf --f90`` command above also shows a warning::
 
     [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
 
@@ -243,11 +243,11 @@ We might want to increment the minor component of the version string by now::
 The binary extension module can now be built::
 
     (.venv) > micc-build
-    [INFO] [ Building f2py module dotf in directory '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/f2py_dotf/build_'
+    [INFO] [ Building f90 module dotf in directory '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/f90_dotf/build_'
     ...
     [DEBUG]          >>> shutil.copyfile( 'dotf.cpython-37m-darwin.so', '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/dotf.cpython-37m-darwin.so' )
     [INFO] ] done.
-    [INFO] Check /Users/etijskens/software/dev/workspace/ET-dot/micc-build-f2py_dotf.log for details.
+    [INFO] Check /Users/etijskens/software/dev/workspace/ET-dot/micc-build-f90_dotf.log for details.
     [INFO] Binary extensions built successfully:
     [INFO] - ET-dot/et_dot/dotf.cpython-37m-darwin.so
     (.venv) >
@@ -260,15 +260,15 @@ failed to build. If the source file does not have any syntax errors, you will se
     (.venv) > ls -l et_dot
     total 8
     -rw-r--r--  1 etijskens  staff  720 Dec 13 11:04 __init__.py
-    drwxr-xr-x  6 etijskens  staff  192 Dec 13 11:12 f2py_dotf/
-    lrwxr-xr-x  1 etijskens  staff   92 Dec 13 11:12 dotf.cpython-37m-darwin.so@ -> path/to/ET-dot/et_dot/f2py_foo/foo.cpython-37m-darwin.so
+    drwxr-xr-x  6 etijskens  staff  192 Dec 13 11:12 f90_dotf/
+    lrwxr-xr-x  1 etijskens  staff   92 Dec 13 11:12 dotf.cpython-37m-darwin.so@ -> path/to/ET-dot/et_dot/f90_foo/foo.cpython-37m-darwin.so
 
 .. note::
     The extension of the module :file:`dotf.cpython-37m-darwin.so` will depend on the Python
     version (c.q. 3.7) you are using, and on your operating system (c.q. MacOS).
 
 Since our binary extension is built, we can test it. Here is some test code. Enter it in file
-:file:`ET-dot/tests/test_f2py_dotf.py`:
+:file:`ET-dot/tests/test_f90_dotf.py`:
 
 .. code-block:: python
 
@@ -312,7 +312,7 @@ Here is the outcome of ``pytest``:
    collected 8 items
 
    tests/test_et_dot.py .......                                                   [ 87%]
-   tests/test_f2py_dotf.py .                                                      [100%]
+   tests/test_f90_dotf.py .                                                       [100%]
 
    ============================== 8 passed in 0.16 seconds ==============================
    >
@@ -534,7 +534,7 @@ directory :file:`ET-dot/et_dot`::
     drwxr-xr-x  7 etijskens  staff   224 Dec 13 14:43 cpp_dotc/
     lrwxr-xr-x  1 etijskens  staff    93 Dec 13 14:43 dotc.cpython-37m-darwin.so@ -> /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/cpp_dotc/dotc.cpython-37m-darwin.so
     lrwxr-xr-x  1 etijskens  staff    94 Dec 13 14:27 dotf.cpython-37m-darwin.so@ -> /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/f2py_dotf/dotf.cpython-37m-darwin.so
-    drwxr-xr-x  6 etijskens  staff   192 Dec 13 14:43 f2py_dotf/
+    drwxr-xr-x  6 etijskens  staff   192 Dec 13 14:43 f90_dotf/
     (.venv) >
 
 .. note:: The extension of the module :file:`dotc.cpython-37m-darwin.so`
@@ -546,7 +546,7 @@ string::
     (.venv) > micc version -p
     [INFO]           (ET-dot)> micc version (0.2.0) -> (0.2.1)
 
-Here is the test code. It is almost exactly the same as that for the f2py module :py:mod:`dotf`,
+Here is the test code. It is almost exactly the same as that for the f90 module :py:mod:`dotf`,
 except for the module name. Enter the test code in :file:`ET-dot/tests/test_cpp_dotc.py`:
 
 .. code-block:: python
@@ -577,7 +577,7 @@ Finally, run pytest:
 
    tests/test_cpp_dotc.py .                                                       [ 11%]
    tests/test_et_dot.py .......                                                   [ 88%]
-   tests/test_f2py_dotf.py .                                                      [100%]
+   tests/test_f90_dotf.py .                                                       [100%]
 
    ============================== 9 passed in 0.28 seconds ==============================
 
@@ -759,10 +759,6 @@ extension modules in the project, add the ``-m|--module`` option:
 
 This will only build module *my_module*.
 
-.. note::
-    If you do not use ``--module my_module``, the f2py options apply to all f2py
-    modules in the project, and the cpp options to all cpp modules in the project.
-
 Performing a clean build
 ^^^^^^^^^^^^^^^^^^^^^^^^
 To perform a clean build, add the ``--clean`` flag to the ``micc build`` command:
@@ -774,7 +770,7 @@ To perform a clean build, add the ``--clean`` flag to the ``micc build`` command
 This will remove the previous build directory and as well as the binary extension
 module.
 
-Controlling the build of f2py modules
+Controlling the build of f90 modules
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To specify the Fortran compiler, e.g. the GNU fortran compiler:
 
@@ -800,7 +796,7 @@ Finally, the ``--debug`` flag adds debug information during the compilation.
 ``debug`` as value (case insensitive). Specifying ``debug`` is equivalent to
 ``--debug --noopt --noarch``.
 
-.. note:: ALL f2py modules are built with the same options. To specify separate options
+.. note:: ALL f90 modules are built with the same options. To specify separate options
    for a particular module use the ``-m|--module`` option.
 
 .. note:: Although there are some commonalities between the compiler options of the
@@ -885,7 +881,7 @@ later build as:
 
 For Python modules the documentation is automatically extracted from the doc-strings
 in the module. However, when it comes to documenting binary extension modules, this
-does not seem a good option. Ideally, the source files :file:`ET-dot/et_dot/f2py_dotf/dotf.f90`
+does not seem a good option. Ideally, the source files :file:`ET-dot/et_dot/f90_dotf/dotf.f90`
 amnd :file:`ET-dot/et_dot/cpp_dotc/dotc.cpp` should document the Fortran functions and
 subroutines, and C++ functions, respectively, rahter than the Python interface. Yet
 from the perspective of ET-dot being a Python project, the users is only interested
@@ -893,17 +889,17 @@ in the documentation of the Python interface to those functions and subroutines.
 Therefore, micc_ requires you to document the Python interface in separate :file:`.rst`
 files:
 
-* :file:`ET-dot/et_dot/f2py_dotf/dotf.rst`
+* :file:`ET-dot/et_dot/f90_dotf/dotf.rst`
 * :file:`ET-dot/et_dot/cpp_dotc/dotc.rst`
 
-Here are the contents, respectively, for :file:`ET-dot/et_dot/f2py_dotf/dotf.rst`:
+Here are the contents, respectively, for :file:`ET-dot/et_dot/f90_dotf/dotf.rst`:
 
 .. code-block:: rst
 
    Module et_dot.dotf
    ******************
 
-   Module :py:mod:`dotf` built from fortran code in :file:`f2py_dotf/dotf.f90`.
+   Module :py:mod:`dotf` built from fortran code in :file:`f90_dotf/dotf.f90`.
 
    .. function:: dotf(a,b)
       :module: et_dot.dotf

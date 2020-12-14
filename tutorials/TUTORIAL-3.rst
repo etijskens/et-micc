@@ -151,7 +151,7 @@ Finally, we run pytest_:
    tests/test_cli_dot-files.py .                                                   [ 10%]
    tests/test_cpp_dotc.py .                                                        [ 20%]
    tests/test_et_dot.py .......                                                    [ 90%]
-   tests/test_f2py_dotf.py .                                                       [100%]
+   tests/test_f90_dotf.py .                                                       [100%]
    
    ================================== 10 passed in 0.33 seconds ==========================   
 

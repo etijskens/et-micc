@@ -118,8 +118,8 @@ on MACOSX, ``Linux` on Linux and ``Windows`` on Windows. If it exists, it should
     * On Linux   : ``build_options.Linux.json``
     * On Windows : ``build_options.Windows.json``
 
-F2py module build option specifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+f90 module build option specifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 All `options available to the f2py command line application <https://docs.scipy.org/doc/numpy/f2py/usage.html#command-f2py>`_
 can be entered in the build file specification. Pure flags, like e.g. ``--noopt``, which are present
 or not, but have no value, are entered in the dictionary with value None. Below are some examples of

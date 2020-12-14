@@ -254,7 +254,7 @@ class Project:
             files = []
             files.extend(package_path.glob('**/*.py'))
             files.extend(package_path.glob('**/cpp_*/'))
-            files.extend(package_path.glob('**/f2py_*'))
+            files.extend(package_path.glob('**/f90_*'))
             if len(files) > 1:  # __init__.py is always there.
                 click.echo("  contents:")
                 for f in files:
@@ -276,8 +276,8 @@ class Project:
                     elif f.name.startswith('cpp_'):
                         kind = "C++ module  "
                         extra = f"{os.sep}{f.name.split('_', 1)[1]}.cpp"
-                    elif f.name.startswith('f2py_'):
-                        kind = "f2py module "
+                    elif f.name.startswith('f90_'):
+                        kind = "f90 module "
                         extra = f"{os.sep}{f.name.split('_', 1)[1]}.f90"
                     elif f.name == '__init__.py':
                         kind = "package     "
@@ -379,7 +379,7 @@ class Project:
 
         * :py:meth:`add_app`,
         * :py:meth:`add_python_module`,
-        * :py:meth:`add_f2py_module`,
+        * :py:meth:`add_f90_module`,
         * :py:meth:`add_cpp_module`
         """
         if self.module:
@@ -401,14 +401,14 @@ class Project:
         else:
             py_implied = ""
 
-        if (not (self.options.app or self.options.py or self.options.f2py or self.options.cpp)
-                or not xor(xor(self.options.app, self.options.py), xor(self.options.f2py, self.options.cpp))):
+        if (not (self.options.app or self.options.py or self.options.c or self.options.cpp)
+                or not xor(xor(self.options.app, self.options.py), xor(self.options.c, self.options.cpp))):
             # Do not log, as the state of the project is not changed.
             self.error(f"Specify one and only one of \n"
-                       f"  --app  ({int(self.options.app)}){app_implied}\n"
-                       f"  --py   ({int(self.options.py)}){py_implied}\n"
-                       f"  --f2py ({int(self.options.f2py)})\n"
-                       f"  --cpp  ({int(self.options.cpp)})\n", fg='bright_red'
+                       f"  --app ({int(self.options.app)}){app_implied}\n"
+                       f"  --py  ({int(self.options.py)}){py_implied}\n"
+                       f"  --f90 ({int(self.options.c)})\n"
+                       f"  --cpp ({int(self.options.cpp)})\n", fg='bright_red'
                        )
             return
 
@@ -458,10 +458,10 @@ class Project:
                     self.options.templates = 'module-py'
                 self.add_python_module()
 
-            elif self.options.f2py:
+            elif self.options.c:
                 if not self.options.templates:
-                    self.options.templates = 'module-f2py'
-                self.add_f2py_module()
+                    self.options.templates = 'module-f90'
+                self.add_c_module()
 
             elif self.options.cpp:
                 if not self.options.templates:
@@ -577,36 +577,36 @@ class Project:
                             "\n   :members:\n\n"
                             )
 
-    def add_f2py_module(self):
-        """Add a f2py module to this project."""
+    def add_c_module(self):
+        """Add a c module to this project."""
         project_path = self.project_path
         module_name = self.options.add_name
 
         with et_micc.logger.log(self.logger.info,
-                                f"Adding f2py module {module_name} to project {project_path.name}."
+                                f"Adding f90 module {module_name} to project {project_path.name}."
                                 ):
             self.options.template_parameters.update({'module_name': module_name})
 
             self.exit_code = et_micc.expand.expand_templates(self.options)
             if self.exit_code:
                 self.logger.critical(
-                    f"Expand failed during Project.add_f2py_module for project ({self.project_name})."
+                    f"Expand failed during Project.add_f90_module for project ({self.project_name})."
                 )
 
             package_name = self.options.template_parameters['package_name']
             src_file = os.path.join(project_path.name
                                     , package_name
-                                    , 'f2py_' + module_name
+                                    , 'f90_' + module_name
                                     , module_name + '.f90'
                                     )
             tst_file = os.path.join(project_path.name
                                     , 'tests'
-                                    , 'test_f2py_' + module_name + '.py'
+                                    , 'test_f90_' + module_name + '.py'
                                     )
 
             rst_file = os.path.join(project_path.name
                                     , package_name
-                                    , 'f2py_' + module_name
+                                    , 'f90_' + module_name
                                     , module_name + '.rst'
                                     )
             self.logger.info(f"- Fortran source in       {src_file}.")
@@ -617,7 +617,7 @@ class Project:
                 self.add_dependencies({'et-micc-build': f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
                 with open("API.rst", "a") as f:
-                    f.write(f"\n.. include:: ../{package_name}/f2py_{module_name}/{module_name}.rst\n")
+                    f.write(f"\n.. include:: ../{package_name}/f90_{module_name}/{module_name}.rst\n")
 
         self.add_auto_build_code()
 
@@ -711,7 +711,7 @@ class Project:
         return (self.py_module_exists(module_name)
                 or self.py_package_exists(module_name)
                 or self.cpp_module_exists(module_name)
-                or self.f2py_module_exists(module_name)
+                or self.f90_module_exists(module_name)
                 )
 
     def py_module_exists(self, module_name):
@@ -733,13 +733,13 @@ class Project:
         """
         return (self.project_path / self.package_name / module_name / '__init__.py').is_file()
 
-    def f2py_module_exists(self, module_name):
-        """Test if there is already a f2py module with name py:obj:`module_name` in this project.
+    def f90_module_exists(self, module_name):
+        """Test if there is already a f90 module with name py:obj:`module_name` in this project.
 
         :param str module_name: module name
         :returns: bool
         """
-        return (self.project_path / self.package_name / ('f2py_' + module_name) / f"{module_name}.f90").is_file()
+        return (self.project_path / self.package_name / ('f90_' + module_name) / f"{module_name}.f90").is_file()
 
     def cpp_module_exists(self, module_name):
         """Test if there is already a cpp module with name py:obj:`module_name` in this project.
@@ -800,25 +800,6 @@ class Project:
                            f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py."
                            )
 
-    # removed in favor of docs/Makefile
-    # see https://github.com/etijskens/et-micc/issues/24
-    # def docs_cmd(self):
-    #     """Build documentation."""
-    #     docs = self.project_path / 'docs'
-    #     open_cmds = []
-    #
-    #     for format_ in self.options.documentation_formats:
-    #         args = ['-M', format_, str(docs), str(docs / '_build')]
-    #         self.exit_code = sphinx_build(args)
-    #         if self.options.open:
-    #             if format_ == 'html':
-    #                 open_cmds.append(['open', str(docs / '_build' / 'html' / 'index.html')])
-    #             elif format_ == 'latexpdf':
-    #                 open_cmds.append(['open', str(docs / '_build' / 'latex' / (self.project_name + ".pdf"))])
-    #
-    #     if open_cmds:
-    #         my_env = os.environ.copy()
-    #         et_micc.utils.execute(open_cmds, logfun=print, cwd=str(docs), env=my_env)
 
     def get_logger(self, log_file_path=None):
         """"""

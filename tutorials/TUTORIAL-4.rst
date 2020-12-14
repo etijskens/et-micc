@@ -51,7 +51,7 @@ version number at any time with the ``micc version`` command.
      contents:
        application cli_dot_files.py
        C++ module  cpp_dotc/dotc.cpp
-       f2py module f2py_dotf/dotf.f90
+       f90 module  f90_dotf/dotf.f90
 
 To bump the patch component:
        
