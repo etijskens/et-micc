@@ -30,11 +30,11 @@ fi
 # (adjust this to your needs):
 workspace="~/software/dev/workspace"
 
-site_packages=`python -c 'import site; print(site.getsitepackages()[0])'`
+site_packages=$(python -c 'import site; print(site.getsitepackages()[0])')
 cd ${sitepackages}
-echo "site-packages = ${site_packages}
+echo "site-packages = ${site_packages}"
 
-if [[ -d "et_micc" ]]
+if [[ -d et_micc ]]
 then
   echo "sym-linking ~/software/dev/workspace/et-micc/et_micc/"
   rm -rf et_micc && ln -s ${workspace}/et-micc/et_micc/
