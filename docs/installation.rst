@@ -42,7 +42,4 @@ warning and the suggestion to first install them. Note, that unless micc-build_ 
 dependency of your project (because it has binary extensions), micc_ is usually not
 in the ``site-packages`` folder (it is usually installed system-wide).
 
-Remark: Actually, there is a good use case for installing micc_ as a dev dependency,
-because 
-
 Productivity tip: put a symbolic link to symlink-micc.sh somewhere on the path.
