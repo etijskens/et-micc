@@ -46,6 +46,8 @@ def main(ctx, verbosity, project_path, clear_log):
 
     See below for (sub)commands.
     """
+    print("coucou")
+
     if verbosity > 1:
         print("Current micc command is using Python", sys.version.replace('\n', ' '), end='\n\n')
 
@@ -219,8 +221,16 @@ def convert_to_package(ctx, overwrite, backup):
 
 
 @main.command()
+@click.option('--name', is_flag=True
+    , help="print the project name."
+    , default=False
+)
+@click.option('--version', is_flag=True
+    , help="print the project version."
+    , default=False
+)
 @click.pass_context
-def info(ctx):
+def info(ctx,name,version):
     """Show project info.
 
     * file location
@@ -237,8 +247,13 @@ def info(ctx):
     if project.exit_code:
         ctx.exit(project.exit_code)
 
-    with et_micc.logger.logtime(options):
-        project.info_cmd()
+    if name:
+        print(project.package_name)
+    if version:
+        print(project.version)
+    else:
+        with et_micc.logger.logtime(options):
+            project.info_cmd()
 
     if project.exit_code:
         ctx.exit(project.exit_code)
