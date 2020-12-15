@@ -38,6 +38,11 @@ with symbolic links to the project module directories ``et-micc/et_micc`` and
 in the project your are working on.
 
 If the project's virtual environment does not contain the package folders, you get a
-warning and the suggestion to first install them.
+warning and the suggestion to first install them. Note, that unless micc-build_ is a
+dependency of your project (because it has binary extensions), micc_ is usually not
+in the ``site-packages`` folder (it is usually installed system-wide).
+
+Remark: Actually, there is a good use case for installing micc_ as a dev dependency,
+because 
 
 Productivity tip: put a symbolic link to symlink-micc.sh somewhere on the path.
