@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Build f2py binary extension module {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
+# Build f90 binary extension module {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
 #   > cd _cmake_build
 # For a clean build:
 #   > rm -rf *
@@ -14,6 +14,8 @@
 #  - F2PY_f90flags ->  f2py --f90flags=<${F2PY_arch}>
 #  - F2PY_debug    ->  f2py --debug
 # Suitable values for these are estimated from CMAKE_BUILD_TYPE (RELEASE by default).
+#
+# In addition the following CMake variables are defined:
 #  - F2PY_defines  : a list of defines passed to the Fortran compiler
 #  - F2PY_includes : a list of included directories passed to the Fortran compiler
 #  - F2PY_linkdirs : a list of directories to be searched for linked libraries

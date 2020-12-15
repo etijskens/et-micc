@@ -161,7 +161,7 @@ def create(ctx
             break
     else:
         license_ = licenses[0]
-        
+
     options.template_parameters.update(
         {'project_short_description': description,
          'open_source_license': license_,

@@ -401,13 +401,13 @@ class Project:
         else:
             py_implied = ""
 
-        if (not (self.options.app or self.options.py or self.options.c or self.options.cpp)
-                or not xor(xor(self.options.app, self.options.py), xor(self.options.c, self.options.cpp))):
+        if (not (self.options.app or self.options.py or self.options.f90 or self.options.cpp)
+                or not xor(xor(self.options.app, self.options.py), xor(self.options.f90, self.options.cpp))):
             # Do not log, as the state of the project is not changed.
             self.error(f"Specify one and only one of \n"
                        f"  --app ({int(self.options.app)}){app_implied}\n"
-                       f"  --py  ({int(self.options.py)}){py_implied}\n"
-                       f"  --f90 ({int(self.options.c)})\n"
+                       f"  --py  ({int(self.options.py )}){py_implied}\n"
+                       f"  --f90 ({int(self.options.f90)})\n"
                        f"  --cpp ({int(self.options.cpp)})\n", fg='bright_red'
                        )
             return
@@ -458,10 +458,10 @@ class Project:
                     self.options.templates = 'module-py'
                 self.add_python_module()
 
-            elif self.options.c:
+            elif self.options.f90:
                 if not self.options.templates:
                     self.options.templates = 'module-f90'
-                self.add_c_module()
+                self.add_f90_module()
 
             elif self.options.cpp:
                 if not self.options.templates:
@@ -577,8 +577,8 @@ class Project:
                             "\n   :members:\n\n"
                             )
 
-    def add_c_module(self):
-        """Add a c module to this project."""
+    def add_f90_module(self):
+        """Add a f90 module to this project."""
         project_path = self.project_path
         module_name = self.options.add_name
 
@@ -800,6 +800,25 @@ class Project:
                            f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py."
                            )
 
+    # removed in favor of docs/Makefile
+    # see https://github.com/etijskens/et-micc/issues/24
+    # def docs_cmd(self):
+    #     """Build documentation."""
+    #     docs = self.project_path / 'docs'
+    #     open_cmds = []
+    #
+    #     for format_ in self.options.documentation_formats:
+    #         args = ['-M', format_, str(docs), str(docs / '_build')]
+    #         self.exit_code = sphinx_build(args)
+    #         if self.options.open:
+    #             if format_ == 'html':
+    #                 open_cmds.append(['open', str(docs / '_build' / 'html' / 'index.html')])
+    #             elif format_ == 'latexpdf':
+    #                 open_cmds.append(['open', str(docs / '_build' / 'latex' / (self.project_name + ".pdf"))])
+    #
+    #     if open_cmds:
+    #         my_env = os.environ.copy()
+    #         et_micc.utils.execute(open_cmds, logfun=print, cwd=str(docs), env=my_env)
 
     def get_logger(self, log_file_path=None):
         """"""
