@@ -23,6 +23,7 @@ import et_micc.utils
 import et_micc.expand
 import et_micc.logger
 from et_micc import __version__
+from et_micc.db import Database
 
 CURRENT_ET_MICC_BUILD_VERSION = __version__
 
@@ -81,6 +82,8 @@ class Project:
             else:
                 # all other micc commands require a project directory.
                 self.error(f"Not a project directory ({project_path}).")
+
+        self.db = Database(self)
 
     @property
     def project_path(self):
@@ -544,7 +547,6 @@ class Project:
         if not module_name == et_micc.utils.pep8_module_name(module_name):
             self.error(f"Not a valid module_name: {module_name}")
             return
-
         source_file = f"{module_name}.py" if self.options.structure == 'module' else f"{module_name}{os.sep}__init__.py"
 
         with et_micc.logger.log(self.logger.info,
@@ -576,6 +578,8 @@ class Project:
                     f.write(f"\n.. automodule:: {package_name}.{module_name}"
                             "\n   :members:\n\n"
                             )
+
+        db_entry = {'file':source_file}
 
     def add_f90_module(self):
         """Add a f90 module to this project."""

@@ -46,8 +46,6 @@ def main(ctx, verbosity, project_path, clear_log):
 
     See below for (sub)commands.
     """
-    print("coucou")
-
     if verbosity > 1:
         print("Current micc command is using Python", sys.version.replace('\n', ' '), end='\n\n')
 
@@ -249,8 +247,10 @@ def info(ctx,name,version):
 
     if name:
         print(project.package_name)
+        return
     if version:
         print(project.version)
+        return
     else:
         with et_micc.logger.logtime(options):
             project.info_cmd()
