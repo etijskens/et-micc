@@ -13,6 +13,8 @@ import json
 from pathlib import Path
 import subprocess
 from operator import xor
+from types import SimpleNamespace
+import json
 
 import click
 import semantic_version
@@ -23,7 +25,7 @@ import et_micc.utils
 import et_micc.expand
 import et_micc.logger
 from et_micc import __version__
-from et_micc.db import Database
+# from et_micc.db import Database
 
 CURRENT_ET_MICC_BUILD_VERSION = __version__
 
@@ -70,6 +72,11 @@ class Project:
             # existing project
             self.get_logger()
             self.version = self.pyproject_toml['tool']['poetry']['version']
+
+            with et_micc.utils.in_directory(self.project_path):
+                with open('db.json', 'r') as f:
+                    self.db = json.load(f)
+
         else:
             # not a project directory or not a directory at all
             if getattr(options, 'create', False):
@@ -82,8 +89,6 @@ class Project:
             else:
                 # all other micc commands require a project directory.
                 self.error(f"Not a project directory ({project_path}).")
-
-        self.db = Database(self)
 
     @property
     def project_path(self):
@@ -201,6 +206,12 @@ class Project:
                                 "by running 'poetry publish'."
             )
 
+        self.db = {}
+        with et_micc.utils.in_directory(self.project_path):
+            with open('db.json','w') as f:
+                json.dump (self.db, f)
+
+
     def module_to_package_cmd(self):
         """Convert a module project (:file:`module.py`) to a package project (:file:`package/__init__.py`)."""
         if self.package:
@@ -229,6 +240,7 @@ class Project:
         src = self.project_path / (self.package_name + '.py')
         dst = self.project_path / self.package_name / '__init__.py'
         shutil.move(src, dst)
+
 
     def info_cmd(self):
         """Output info on the project."""
@@ -287,6 +299,7 @@ class Project:
                     else:
                         kind = "module      "
                     click.echo("    " + kind + click.style(str(f.relative_to(package_path)) + extra, fg=fg))
+
 
     def version_cmd(self):
         """Bump the version according to :py:obj:`self.options.rule` or show the
@@ -375,6 +388,7 @@ class Project:
 
         self.logger.info('Done.')
 
+
     def add_cmd(self):
         """Add some source file to the project.
 
@@ -404,6 +418,7 @@ class Project:
         else:
             py_implied = ""
 
+        # Verify that one and only one of app/py/f90/cpp flags has been selected:
         if (not (self.options.app or self.options.py or self.options.f90 or self.options.cpp)
                 or not xor(xor(self.options.app, self.options.py), xor(self.options.f90, self.options.cpp))):
             # Do not log, as the state of the project is not changed.
@@ -415,7 +430,10 @@ class Project:
                        )
             return
 
+        db_entry = {'options': self.options.__dict__}
+
         if self.options.app:
+            # Prepare for adding an app
             app_name = self.options.add_name
             if self.app_exists(app_name):
                 self.error(f"Project {self.project_name} has already an app named {app_name}.")
@@ -436,14 +454,18 @@ class Project:
                 if not self.options.templates:
                     self.options.templates = 'app-simple'
 
-            self.add_app()
+            self.add_app(db_entry)
 
         else:
+            # Prepare for adding a sub-module
             module_name = self.options.add_name
+
+            # Verify that the name is not already used:
             if self.module_exists(module_name):
                 self.error(f"Project {self.project_name} has already a module named {module_name}.")
                 return
 
+            # Verify that the name is valid:
             if (not et_micc.utils.verify_project_name(module_name)
                     or module_name != et_micc.utils.pep8_module_name(module_name)):
                 self.error(
@@ -453,26 +475,32 @@ class Project:
                 )
                 return
 
-            #             self.options.template_parameters['path_to_cmake'] = et_micc.utils.path_to_cmake()
-
             if self.options.py:
-                self.options.structure = 'package' if self.options.package else 'module'
+                # prepare for adding a Python sub-module:
+                # self.options.structure = 'package' if self.options.package else 'module'
                 if not self.options.templates:
                     self.options.templates = 'module-py'
-                self.add_python_module()
+                self.add_python_module(db_entry)
 
             elif self.options.f90:
+                # prepare for adding a Fortran sub-module:
                 if not self.options.templates:
                     self.options.templates = 'module-f90'
-                self.add_f90_module()
+                self.add_f90_module(db_entry)
 
             elif self.options.cpp:
+                # prepare for adding a C++ sub-module:
                 if not self.options.templates:
                     self.options.templates = 'module-cpp'
-                self.add_cpp_module()
+                self.add_cpp_module(db_entry)
 
-    def add_app(self):
-        """Add a console script (app) to the package."""
+        self.db[self.options.add_name] = db_entry
+
+        with open('db.json','w') as f:
+            json.dump (self.db, f)
+
+    def add_app(self, db_entry):
+        """Add a console script (app, aka CLI) to the package."""
         project_path = self.project_path
         app_name = self.options.add_name
         cli_app_name = 'cli_' + et_micc.utils.pep8_module_name(app_name)
@@ -540,20 +568,22 @@ class Project:
                 file = project_path / self.package
                 et_micc.utils.insert_in_file(file, [line], before=True, startswith="__version__")
 
-    def add_python_module(self):
+    def add_python_module(self, db_entry):
         """Add a python sub-module or sub-package to this project."""
         project_path = self.project_path
         module_name = self.options.add_name
+
         if not module_name == et_micc.utils.pep8_module_name(module_name):
             self.error(f"Not a valid module_name: {module_name}")
             return
-        source_file = f"{module_name}.py" if self.options.structure == 'module' else f"{module_name}{os.sep}__init__.py"
 
+        source_file = f"{module_name}{os.sep}__init__.py" if self.options.package else f"{module_name}.py"
         with et_micc.logger.log(self.logger.info,
                                 f"Adding python module {source_file} to project {project_path.name}."
                                 ):
             self.options.template_parameters.update({'module_name': module_name})
 
+            # Create the needed folders and files by expanding the templates:
             self.exit_code = et_micc.expand.expand_templates(self.options)
             if self.exit_code:
                 self.logger.critical(
@@ -562,10 +592,9 @@ class Project:
                 return
 
             package_name = self.options.template_parameters['package_name']
-            if self.options.structure == 'package':
+            if self.options.package:
                 self.module_to_package(project_path / package_name / (module_name + '.py'))
 
-            package_name = self.options.template_parameters['package_name']
             src_file = os.path.join(project_path.name, package_name, source_file)
             tst_file = os.path.join(project_path.name, 'tests', 'test_' + module_name + '.py')
 
@@ -574,14 +603,14 @@ class Project:
 
             with et_micc.utils.in_directory(project_path):
                 # docs
-                with open("API.rst", "a") as f:
-                    f.write(f"\n.. automodule:: {package_name}.{module_name}"
-                            "\n   :members:\n\n"
-                            )
+                filename = "API.rst"
+                text = f"\n.. automodule:: {package_name}.{module_name}" \
+                        "\n   :members:\n\n"
+                with open(filename, "a") as f:
+                    f.write(text)
+                db_entry[filename] = text
 
-        db_entry = {'file':source_file}
-
-    def add_f90_module(self):
+    def add_f90_module(self, db_entry):
         """Add a f90 module to this project."""
         project_path = self.project_path
         module_name = self.options.add_name
@@ -649,7 +678,7 @@ class Project:
             startswith="__version__ = ",
         )
 
-    def add_cpp_module(self):
+    def add_cpp_module(self, db_entry):
         """Add a cpp module to this project."""
         project_path = self.project_path
         module_name = self.options.add_name

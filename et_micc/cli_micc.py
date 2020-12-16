@@ -57,14 +57,14 @@ def main(ctx, verbosity, project_path, clear_log):
         project_path=project_path.resolve(),
         clear_log=clear_log,
         template_parameters={},
-        create=False,
+        # create=False,
     )
 
 
 @main.command()
 @click.option('--publish'
     , help="If specified, verifies that the package name is available on PyPI.\n"
-           "If the result is False or inconclusive the project is not created."
+           "If the result is False or inconclusive the project is NOT created."
     , default=False, is_flag=True
 )
 @click.option('-p', '--package'
@@ -126,25 +126,26 @@ def create(ctx
     options = ctx.obj
     options.create = True
     options.micc_file = micc_file
-    options.structure = 'package' if package else 'module'
+    # options.structure = 'package' if package else 'module'
+    options.package = package
     options.publish = publish
 
     if not template:  # default, empty list
-        if options.structure == 'module':
-            template = ['package-base'
-                       , 'package-simple'
-                       , 'package-simple-docs'
-                       ]
-        else:
-            template = ['package-base'
+        if options.package:
+            template = [ 'package-base'
                        , 'package-general'
                        , 'package-simple-docs'
                        , 'package-general-docs'
                        ]
+        else:
+            template = [ 'package-base'
+                       , 'package-simple'
+                       , 'package-simple-docs'
+                       ]
         options.templates = template
-    else:
-        # ignore structure
-        options.structure = 'user-defined'
+    # else:
+    #     # ignore structure
+    #     options.structure = 'user-defined'
 
     options.allow_nesting = allow_nesting
 
