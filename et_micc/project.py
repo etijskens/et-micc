@@ -430,7 +430,7 @@ class Project:
                        )
             return
 
-        db_entry = {'options': self.options.__dict__}
+        db_entry = {'options': self.options}
 
         if self.options.app:
             # Prepare for adding an app
@@ -494,11 +494,10 @@ class Project:
                     self.options.templates = 'module-cpp'
                 self.add_cpp_module(db_entry)
 
-        self.db[self.options.add_name] = db_entry
+        
+        self.serialize_db(db_entry, verbose=True)
 
-        with open('db.json','w') as f:
-            json.dump (self.db, f)
-
+    
     def add_app(self, db_entry):
         """Add a console script (app, aka CLI) to the package."""
         project_path = self.project_path
@@ -885,4 +884,28 @@ class Project:
             self.options.clear_log = False
 
         self.options.logger = self.logger
+
+    def serialize_db(self, db_entry, verbose=False):
+        
+        my_options = {}
+        for key, val in db_entry['options'].__dict__.items():
+            if isinstance(val,(dict, list, tuple, str, int, float, bool)):
+                # default serializable types
+                my_options[key] = val
+                if verbose:
+                    print(f"serialize_db: using ({key}:{val})")
+            elif isinstance(val, Path):
+                my_options[key] = str(val)
+                if verbose:
+                    print(f"serialize_db: using ({key}:str('{val}'))")
+            else:
+                if verbose:
+                    print(f"serialize_db: ignoring ({key}:{val})")
+    
+        db_entry['options'] = my_options
+        self.db[self.options.add_name] = db_entry
+        with et_micc.utils.in_directory(self.options.project_path):
+            with open('db.json','w') as f:
+                json.dump(self.db, f, indent=2)
+
 # eof
