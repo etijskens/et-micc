@@ -14,7 +14,6 @@ from pathlib import Path
 import subprocess
 from operator import xor
 from types import SimpleNamespace
-import json
 
 import click
 import semantic_version
@@ -72,11 +71,6 @@ class Project:
             # existing project
             self.get_logger()
             self.version = self.pyproject_toml['tool']['poetry']['version']
-
-            with et_micc.utils.in_directory(self.project_path):
-                with open('db.json', 'r') as f:
-                    self.db = json.load(f)
-
         else:
             # not a project directory or not a directory at all
             if getattr(options, 'create', False):
@@ -149,12 +143,9 @@ class Project:
                 )
                 return
 
-        if self.options.structure == 'module':
-            structure = f"({relative_project_path}{os.sep}{self.package_name}.py)"
-        elif self.options.structure == 'package':
-            structure = f"({relative_project_path}{os.sep}{self.package_name}{os.sep}__init__.py)"
-        else:
-            structure = ''
+        structure, source_file = ('package', f'({relative_project_path}{os.sep}{self.package_name}{os.sep}__init__.py)') \
+                                 if self.options.package else \
+                                 ('module', f'({relative_project_path}{os.sep}{self.package_name}.py)')
 
         self.options.verbosity = max(1, self.options.verbosity)
         self.get_logger()
@@ -162,7 +153,7 @@ class Project:
             with et_micc.logger.log(self.logger.info
                     , f"Creating project ({self.project_name}):"
                                     ):
-                self.logger.info(f"Python {self.options.structure} ({self.package_name}): structure = {structure}")
+                self.logger.info(f"Python {structure} ({self.package_name}): structure = {source_file}")
                 template_parameters = {'project_name': self.project_name
                     , 'package_name': self.package_name
                                        }
@@ -205,11 +196,6 @@ class Project:
             self.logger.warning("To claim the name, it is best to publish your project now\n"
                                 "by running 'poetry publish'."
             )
-
-        self.db = {}
-        with et_micc.utils.in_directory(self.project_path):
-            with open('db.json','w') as f:
-                json.dump (self.db, f)
 
 
     def module_to_package_cmd(self):
@@ -399,7 +385,7 @@ class Project:
         * :py:meth:`add_f90_module`,
         * :py:meth:`add_cpp_module`
         """
-        if self.module:
+        if self.structure == 'module':
             self.error(f"Cannot add to a module project ({self.module}).\n"
                        f"  Use `micc convert-to-package' on this project to convert it to a package project."
                        )
@@ -494,8 +480,11 @@ class Project:
                     self.options.templates = 'module-cpp'
                 self.add_cpp_module(db_entry)
 
-        
-        self.serialize_db(db_entry, verbose=True)
+        with et_micc.utils.in_directory(self.project_path):
+            with open('db.json', 'r') as f:
+                self.db = json.load(f)
+
+        self.serialize_db(db_entry)
 
     
     def add_app(self, db_entry):
@@ -885,27 +874,194 @@ class Project:
 
         self.options.logger = self.logger
 
-    def serialize_db(self, db_entry, verbose=False):
-        
-        my_options = {}
-        for key, val in db_entry['options'].__dict__.items():
-            if isinstance(val,(dict, list, tuple, str, int, float, bool)):
-                # default serializable types
-                my_options[key] = val
-                if verbose:
-                    print(f"serialize_db: using ({key}:{val})")
-            elif isinstance(val, Path):
-                my_options[key] = str(val)
-                if verbose:
-                    print(f"serialize_db: using ({key}:str('{val}'))")
-            else:
-                if verbose:
-                    print(f"serialize_db: ignoring ({key}:{val})")
-    
-        db_entry['options'] = my_options
-        self.db[self.options.add_name] = db_entry
-        with et_micc.utils.in_directory(self.options.project_path):
+
+    def deserialize_db(self):
+        """Read file ``db.json`` into self.db."""
+
+        db_json = self.project_path / 'db.json'
+        if db_json.exists():
+            with db_json.open('r') as f:
+                self.db = json.load(f)
+        else:
+            self.db = {}
+
+    def serialize_db(self, db_entry=None, verbose=False):
+        """Write self.db to file ``db.json``.
+
+        Self.options is a SimpleNamespace object which is not default json serializable.
+        This function takes care of that by converting to ``str`` where possible, and
+        ignoring objects that do not need serialization, as e.g. self.options.logger.
+        """
+
+        if db_entry:
+            # produce a json serializable version of db_entry['options']:
+            my_options = {}
+            for key, val in db_entry['options'].__dict__.items():
+                if isinstance(val,(dict, list, tuple, str, int, float, bool)):
+                    # default serializable types
+                    my_options[key] = val
+                    if verbose:
+                        print(f"serialize_db: using ({key}:{val})")
+                elif isinstance(val, Path):
+                    my_options[key] = str(val)
+                    if verbose:
+                        print(f"serialize_db: using ({key}:str('{val}'))")
+                else:
+                    if verbose:
+                        print(f"serialize_db: ignoring ({key}:{val})")
+
+            db_entry['options'] = my_options
+
+            if not hasattr(self, 'db'):
+                # Read db.json into self.db if self.db does not yet exist.
+                self.deserialize_db()
+
+            # store the entry in self.db:
+            self.db[self.options.add_name] = db_entry
+
+        # finally, serialize self.db
+        with et_micc.utils.in_directory(self.project_path):
             with open('db.json','w') as f:
                 json.dump(self.db, f, indent=2)
+
+
+    def mv_component(self):
+        """"""
+        old_name, new_name = self.options.old_name, self.options.new_name
+        self.deserialize_db()
+        db_entry = self.db[old_name] # may raise KeyError
+        component_options = db_entry['options']
+        if new_name: # rename
+            with et_micc.logger.log(self.logger.info
+                                   , f"Package '{self.package_name}' Renaming component {old_name} -> {new_name}:"
+                                   ):
+                if component_options['package']:
+                    self.logger.info(f"Renaming Python sub-package: '{old_name}{os.sep}__init__.py'")
+                    self.rename_folder(str(self.project_path / self.package_name), old_name, old_name, new_name)
+                    self.logger.info(f"Renaming test file: 'tests/test_{old_name}.py'")
+                    self.rename_file(str(self.project_path / 'tests'), f'test_{old_name}.py', old_name, new_name)
+
+                elif component_options['py']:
+                    self.logger.info(f"Python sub-module: '{old_name}.py'")
+
+                elif component_options['f90']:
+                    self.logger.info(f"Fortran sub-module: 'f90_{old_name}{os.sep}{old_name}.f90'")
+
+                elif component_options['cpp']:
+                    self.logger.info(f"C++ sub-module: 'cpp_{old_name}{os.sep}{old_name}.cpp'")
+
+                elif component_options['group']:
+                    self.logger.info(f"Command line interface (with subcommands): 'cli_{old_name}.py'")
+
+                elif component_options['app']:
+                    self.logger.info(f"Command line interface (no subcommands): 'cli_{old_name}.py'")
+
+                for key,val in db_entry.items():
+                    if not key=='options':
+                        path = self.project_path / key
+                        parent_folder, filename, old_string = path.parent, path.name, val
+                        new_string = old_string.replace(old_name, new_name)
+                        self.rename_file(parent_folder, filename, old_string, new_string, contents_only=True)
+                        db_entry[key] = new_string
+                # Update the database:
+                self.logger.info(f"Updating database entry for : '{old_name}'")
+                self.db[new_name] = db_entry
+
+        else: # remove
+            with et_micc.logger.log(self.logger.info
+                                   , f"Package '{self.package_name}' Removing component '{old_name}'"
+                                   ):
+                if component_options['package']:
+                    self.logger.info(f"Removing Python sub-package: '{old_name}{os.sep}__init__.py'")
+                    shutil.rmtree(self.project_path / self.package_name / old_name)
+                    self.logger.info(f"Removing test file: 'tests/test_{old_name}.py'")
+                    os.remove(self.project_path / 'tests' / f'test_{old_name}.py')
+
+                elif component_options['py']:
+                    self.logger.info(f"Python sub-module: '{old_name}.py'")
+
+                elif component_options['f90']:
+                    self.logger.info(f"Fortran sub-module: 'f90_{old_name}{os.sep}{old_name}.f90'")
+
+                elif component_options['cpp']:
+                    self.logger.info(f"C++ sub-module: 'cpp_{old_name}{os.sep}{old_name}.cpp'")
+
+                elif component_options['group']:
+                    self.logger.info(f"Command line interface (with subcommands): 'cli_{old_name}.py'")
+
+                elif component_options['app']:
+                    self.logger.info(f"Command line interface (no subcommands): 'cli_{old_name}.py'")
+
+                for key, val in db_entry.items():
+                    if not key == 'options':
+                        path = self.project_path / key
+                        parent_folder, filename, old_string = path.parent, path.name, val
+                        new_string = ''
+                        self.rename_file(parent_folder, filename, old_string, new_string, contents_only=True)
+
+                # Update the database:
+                self.logger.info(f"Updating database entry for : '{old_name}'")
+
+        del self.db[old_name]
+        self.serialize_db()
+
+    def rename_folder(self, package_path, submodule_dirname, old_name, new_name):
+        """"""
+        # first rename the module folder
+        new_dirname = submodule_dirname.replace(old_name,new_name)
+        old_path = os.path.join(package_path, submodule_dirname)
+        new_path = os.path.join(package_path, new_dirname)
+        with et_micc.logger.log(self.logger.info, f'Renaming folder "{submodule_dirname}" -> "{new_dirname}"'):
+            os.rename(old_path, new_path)
+            # rename folder names:
+            folder_list = []
+            for root, folders, files in os.walk(str(new_path)):
+                for folder in folders:
+                    new_folder = folder.replace(old_name,new_name)
+                    folder_list.append((os.path.join(root,folder), os.path.join(root,new_folder)))
+            for tpl in folder_list:
+                old_folder = tpl[0]
+                new_folder = tpl[1]
+                self.logger.info(f"Renaming folder '{old_folder}'  -> '{new_folder}'")
+                os.rename(old_folder, new_folder)
+
+            # rename in files and file contents:
+            for root, folders, files in os.walk(str(new_path)):
+                for file in files:
+                    if not file.startswith('.orig.'):
+                        self.rename_file(root, file, old_name, new_name)
+    
+
+    def rename_file(self, parent_folder, file, old_name, new_name, contents_only=False):
+        """"""
+        path = os.path.join(parent_folder,file)
+
+        what = 'Modifying' if contents_only else 'Renaming'
+        with et_micc.logger.log(self.logger.info, f"{what} file {path}:"):
+            self.logger.info(f'Reading from {path}')
+            with open(path,'r') as f:
+                old_contents = f.read()
+
+            self.logger.info(f'Replacing "{old_name}" with "{new_name}" in file contents.')
+            new_contents = old_contents.replace(old_name, new_name)
+
+            if contents_only:
+                new_file = file
+            else:
+                new_file = file.replace(old_name,new_name)
+                self.logger.info(f'Replacing "{old_name}" with "{new_name}" in file name -> "{new_file}"')
+            new_path = os.path.join(parent_folder,new_file)
+
+            # By first renaming the original file, we avoid problems when the new
+            # file name is identical to the old file name (because it is invariant,
+            # e.g. __init__.py)
+            orig_file = '.orig.'+file
+            orig_path = os.path.join(parent_folder,orig_file)
+            self.logger.info(f'Keeping original file "{file}" as "{orig_file}".')
+            os.rename(path, orig_path)
+
+            self.logger.info(f'Writing modified file contents to {new_path}: ')
+            with open(new_path,'w') as f:
+                f.write(new_contents)
 
 # eof

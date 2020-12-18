@@ -57,7 +57,6 @@ def main(ctx, verbosity, project_path, clear_log):
         project_path=project_path.resolve(),
         clear_log=clear_log,
         template_parameters={},
-        # create=False,
     )
 
 
@@ -433,6 +432,36 @@ def add(ctx
 
     if project.exit_code:
         ctx.exit(project.exit_code)
+
+
+@main.command()
+@click.option('--silent', is_flag=True
+    , help="Do not ask for confirmation on deleting a component."
+    , default=False
+)
+@click.argument('old_name', type=str)
+@click.argument('new_name', type=str, default='')
+@click.pass_context
+def mv(ctx, old_name, new_name, silent):
+    """Rename or remove a component, i.e an app (CLI) or a submodule.
+
+    :param old_name: name of component to be removed or renamed.
+    :param new_name: new name of the component. If empty, the component will be removed.
+    """
+    options = ctx.obj
+
+    options.old_name = old_name
+    options.new_name = new_name
+    options.silent  = silent
+
+    project = Project(options)
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
+    with et_micc.logger.logtime(options):
+        project.mv_component()
+
+
 
 
 if __name__ == "__main__":

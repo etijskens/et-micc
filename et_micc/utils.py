@@ -279,8 +279,8 @@ def verify_project_structure(path,project=None):
         return False
     else:
         if project:
-            project.module = module
-            project.package = package
+            project.structure = 'module' if module else 'package'
+            project.src_file = module if module else package
             project.package_name = package_name
         return True
 
