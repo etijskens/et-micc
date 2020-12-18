@@ -412,7 +412,7 @@ class Project:
                        f"  --app ({int(self.options.app)}){app_implied}\n"
                        f"  --py  ({int(self.options.py )}){py_implied}\n"
                        f"  --f90 ({int(self.options.f90)})\n"
-                       f"  --cpp ({int(self.options.cpp)})\n", fg='bright_red'
+                       f"  --cpp ({int(self.options.cpp)})\n"
                        )
             return
 
@@ -942,7 +942,10 @@ class Project:
                     self.rename_file(str(self.project_path / 'tests'), f'test_{old_name}.py', old_name, new_name)
 
                 elif component_options['py']:
-                    self.logger.info(f"Python sub-module: '{old_name}.py'")
+                    self.logger.info(f"Renaming Python sub-module: '{old_name}.py'")
+                    self.rename_file(str(self.project_path / self.package_name), f'{old_name}.py', old_name, new_name)
+                    self.logger.info(f"Renaming test file: 'tests/test_{old_name}.py'")
+                    self.rename_file(str(self.project_path / 'tests'), f'test_{old_name}.py', old_name, new_name)
 
                 elif component_options['f90']:
                     self.logger.info(f"Fortran sub-module: 'f90_{old_name}{os.sep}{old_name}.f90'")
@@ -978,7 +981,10 @@ class Project:
                     os.remove(self.project_path / 'tests' / f'test_{old_name}.py')
 
                 elif component_options['py']:
-                    self.logger.info(f"Python sub-module: '{old_name}.py'")
+                    self.logger.info(f"Removing Python sub-module: '{old_name}.py'")
+                    os.remove(self.project_path / self.package_name / f'{old_name}.py')
+                    self.logger.info(f"Removing test file: 'tests/test_{old_name}.py'")
+                    os.remove(self.project_path / 'tests' / f'test_{old_name}.py')
 
                 elif component_options['f90']:
                     self.logger.info(f"Fortran sub-module: 'f90_{old_name}{os.sep}{old_name}.f90'")
