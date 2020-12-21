@@ -439,20 +439,31 @@ def add(ctx
     , help="Do not ask for confirmation on deleting a component."
     , default=False
 )
-@click.argument('old_name', type=str)
+@click.option('--entire-package', is_flag=True
+    , help="Replace all occurences of <cur_name> in the entire package and in the ``tests`` directory."
+    , default=False
+)
+@click.option('--entire-project', is_flag=True
+    , help="Replace all occurences of <cur_name> in the entire project."
+    , default=False
+)
+@click.argument('cur_name', type=str)
 @click.argument('new_name', type=str, default='')
 @click.pass_context
-def mv(ctx, old_name, new_name, silent):
+def mv(ctx, cur_name, new_name, silent, entire_package, entire_project):
     """Rename or remove a component, i.e an app (CLI) or a submodule.
 
-    :param old_name: name of component to be removed or renamed.
+    :param cur_name: name of component to be removed or renamed.
     :param new_name: new name of the component. If empty, the component will be removed.
     """
     options = ctx.obj
 
-    options.old_name = old_name
+    options.cur_name = cur_name
     options.new_name = new_name
-    options.silent  = silent
+    options.silent = silent
+    if new_name:
+        options.entire_package, options.entire_project =  entire_package, entire_project
+    # else these flags are ignored.
 
     project = Project(options)
     if project.exit_code:
@@ -460,8 +471,6 @@ def mv(ctx, old_name, new_name, silent):
 
     with et_micc.logger.logtime(options):
         project.mv_component()
-
-
 
 
 if __name__ == "__main__":

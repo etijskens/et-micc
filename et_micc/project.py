@@ -515,22 +515,26 @@ class Project:
 
             with et_micc.utils.in_directory(project_path):
                 # docs
+                # Look if this package has already an 'apps' entry in docs/index.rst
                 with open('docs/index.rst', "r") as f:
                     lines = f.readlines()
                 has_already_apps = False
-
                 api_line = -1
                 for l, line in enumerate(lines):
                     has_already_apps = has_already_apps or line.startswith("   apps")
                     if line.startswith('   api'):
                         api_line = l
+
+                # if not, create it:
                 if not has_already_apps:
                     lines.insert(api_line, '   apps\n')
                     with open('docs/index.rst', "w") as f:
                         for line in lines:
                             f.write(line)
+                # Create 'APPS.rst' if it does not exist:
                 txt = ''
                 if not Path('APPS.rst').exists():
+                    # create a title
                     title = "Command Line Interfaces (apps)"
                     line = len(title) * '*' + '\n'
                     txt += (line
@@ -538,23 +542,27 @@ class Project:
                             + line
                             + '\n'
                             )
-                else:
-                    txt += (f".. click:: {package_name}.{cli_app_name}:main\n"
-                            f"   :prog: {app_name}\n"
-                            f"   :show-nested:\n\n"
-                            )
-                with open("APPS.rst", "a") as f:
-                    f.write(txt)
+                # create entry for this apps documentation
+                txt2 = (f".. click:: {package_name}.{cli_app_name}:main\n"
+                        f"   :prog: {app_name}\n"
+                        f"   :show-nested:\n\n"
+                        )
+                file = 'APPS.rst'
+                with open(file, "a") as f:
+                    f.write(txt + txt2)
+                db_entry[file] = txt2
 
                 # pyproject.toml
                 self.add_dependencies({'click': '^7.0.0'})
                 self.pyproject_toml['tool']['poetry']['scripts'][app_name] = f"{package_name}:{cli_app_name}.main"
                 self.pyproject_toml.save()
+                db_entry['pyproject.toml'] = f'{app_name} = "refactoring_dev:cli_{app_name}.main"\n'
 
                 # add 'import <package_name>.cli_<app_name> to __init__.py
                 line = f"import {package_name}.cli_{app_name}\n"
-                file = project_path / self.package
+                file = project_path / self.package_name / '__init__.py'
                 et_micc.utils.insert_in_file(file, [line], before=True, startswith="__version__")
+                db_entry[os.path.join(self.package_name, '__init__.py')] = line
 
     def add_python_module(self, db_entry):
         """Add a python sub-module or sub-package to this project."""
@@ -637,12 +645,15 @@ class Project:
             with et_micc.utils.in_directory(project_path):
                 self.add_dependencies({'et-micc-build': f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
-                with open("API.rst", "a") as f:
-                    f.write(f"\n.. include:: ../{package_name}/f90_{module_name}/{module_name}.rst\n")
+                filename = "API.rst"
+                text = f"\n.. include:: ../{package_name}/f90_{module_name}/{module_name}.rst\n"
+                with open(filename, "a") as f:
+                    f.write(text)
+                db_entry[filename] = text
 
-        self.add_auto_build_code()
+        self.add_auto_build_code(db_entry)
 
-    def add_auto_build_code(self):
+    def add_auto_build_code(self, db_entry):
         """Add auto build code for binary extension modules in :file:`__init__.py` of the package."""
         module_name = self.options.add_name
         text_to_insert = [
@@ -660,11 +671,14 @@ class Project:
             "    else:",
             f"        click.secho(msg, fg='bright_red')",
         ]
+        file = os.path.join(self.package_name, '__init__.py')
         et_micc.utils.insert_in_file(
-            self.project_path / self.package_name / "__init__.py",
+            self.project_path / file,
             text_to_insert,
             startswith="__version__ = ",
         )
+        text = '\n'.join(text_to_insert)
+        db_entry[file] = text
 
     def add_cpp_module(self, db_entry):
         """Add a cpp module to this project."""
@@ -707,9 +721,13 @@ class Project:
                 self.add_dependencies({'et-micc-build': f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
                 with open("API.rst", "a") as f:
-                    f.write(f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n")
+                    filename = "API.rst"
+                    text = f"\n.. include:: ../{package_name}/cpp_{module_name}/{module_name}.rst\n"
+                    with open(filename, "a") as f:
+                        f.write(text)
+                    db_entry[filename] = text
 
-        self.add_auto_build_code()
+        self.add_auto_build_code(db_entry)
 
     def app_exists(self, app_name):
         """Test if there is already an app with name ``app_name`` in this project.
@@ -821,25 +839,6 @@ class Project:
                            f" . Module {module_py} converted to package {package_name}{os.sep}__init__.py."
                            )
 
-    # removed in favor of docs/Makefile
-    # see https://github.com/etijskens/et-micc/issues/24
-    # def docs_cmd(self):
-    #     """Build documentation."""
-    #     docs = self.project_path / 'docs'
-    #     open_cmds = []
-    #
-    #     for format_ in self.options.documentation_formats:
-    #         args = ['-M', format_, str(docs), str(docs / '_build')]
-    #         self.exit_code = sphinx_build(args)
-    #         if self.options.open:
-    #             if format_ == 'html':
-    #                 open_cmds.append(['open', str(docs / '_build' / 'html' / 'index.html')])
-    #             elif format_ == 'latexpdf':
-    #                 open_cmds.append(['open', str(docs / '_build' / 'latex' / (self.project_name + ".pdf"))])
-    #
-    #     if open_cmds:
-    #         my_env = os.environ.copy()
-    #         et_micc.utils.execute(open_cmds, logfun=print, cwd=str(docs), env=my_env)
 
     def get_logger(self, log_file_path=None):
         """"""
@@ -926,104 +925,131 @@ class Project:
 
 
     def mv_component(self):
-        """"""
-        old_name, new_name = self.options.old_name, self.options.new_name
+        """Rename or Remove a component (sub-module, sub-package, Fortran module, C++ module, app (CLI)."""
+        cur_name, new_name = self.options.cur_name, self.options.new_name
+        # Look up <cur_name> in the project's database to find out what kind of a component it is:
         self.deserialize_db()
-        db_entry = self.db[old_name] # may raise KeyError
+        db_entry = self.db[cur_name] # may raise KeyError
+
         component_options = db_entry['options']
         if new_name: # rename
             with et_micc.logger.log(self.logger.info
-                                   , f"Package '{self.package_name}' Renaming component {old_name} -> {new_name}:"
+                                   , f"Package '{self.package_name}' Renaming component {cur_name} -> {new_name}:"
                                    ):
-                if component_options['package']:
-                    self.logger.info(f"Renaming Python sub-package: '{old_name}{os.sep}__init__.py'")
-                    self.rename_folder(str(self.project_path / self.package_name), old_name, old_name, new_name)
-                    self.logger.info(f"Renaming test file: 'tests/test_{old_name}.py'")
-                    self.rename_file(str(self.project_path / 'tests'), f'test_{old_name}.py', old_name, new_name)
+                if self.options.entire_project:
+                    self.logger.info(f"Renaming entire project (--entire-project): '{self.project_name}'")
+                    self.replace_in_folder(self.project_path, cur_name, new_name)
+
+                elif self.options.entire_package:
+                    self.logger.info(f"Renaming entire package (--entire-package): '{self.package_name}'")
+                    self.replace_in_folder(self.project_path / self.package_name, cur_name, new_name)
+
+                elif component_options['package']:
+                    self.logger.info(f"Renaming Python sub-package: '{cur_name}{os.sep}__init__.py'")
+                    self.replace_in_folder(self.project_path / self.package_name / cur_name, cur_name, new_name)
+                    self.logger.info(f"Renaming test file: 'tests/test_{cur_name}.py'")
+                    self.replace_in_file(self.project_path / 'tests' / f'test_{cur_name}.py', cur_name, new_name)
 
                 elif component_options['py']:
-                    self.logger.info(f"Renaming Python sub-module: '{old_name}.py'")
-                    self.rename_file(str(self.project_path / self.package_name), f'{old_name}.py', old_name, new_name)
-                    self.logger.info(f"Renaming test file: 'tests/test_{old_name}.py'")
-                    self.rename_file(str(self.project_path / 'tests'), f'test_{old_name}.py', old_name, new_name)
+                    self.logger.info(f"Renaming Python sub-module: '{cur_name}.py'")
+                    self.replace_in_file(self.project_path / self.package_name / f'{cur_name}.py', cur_name, new_name)
+                    self.logger.info(f"Renaming test file: 'tests/test_{cur_name}.py'")
+                    self.replace_in_file(self.project_path / 'tests' / f'test_{cur_name}.py', cur_name, new_name)
 
                 elif component_options['f90']:
-                    self.logger.info(f"Fortran sub-module: 'f90_{old_name}{os.sep}{old_name}.f90'")
+                    self.logger.info(f"Fortran sub-module: 'f90_{cur_name}{os.sep}{cur_name}.f90'")
+                    self.replace_in_folder(self.project_path / self.package_name / f'f90_{cur_name}', cur_name, new_name)
+                    self.logger.info(f"Renaming test file: 'tests/test_{cur_name}.py'")
+                    self.replace_in_file(self.project_path / 'tests'/ f'test_f90_{cur_name}.py', cur_name, new_name)
 
                 elif component_options['cpp']:
-                    self.logger.info(f"C++ sub-module: 'cpp_{old_name}{os.sep}{old_name}.cpp'")
+                    self.logger.info(f"C++ sub-module: 'cpp_{cur_name}{os.sep}{cur_name}.cpp'")
+                    self.replace_in_folder(self.project_path / self.package_name / f'cpp_{cur_name}', cur_name, new_name)
+                    self.logger.info(f"Renaming test file: 'tests/test_{cur_name}.py'")
+                    self.replace_in_file(self.project_path / 'tests' / f'test_cpp_{cur_name}.py', cur_name, new_name)
 
-                elif component_options['group']:
-                    self.logger.info(f"Command line interface (with subcommands): 'cli_{old_name}.py'")
-
-                elif component_options['app']:
-                    self.logger.info(f"Command line interface (no subcommands): 'cli_{old_name}.py'")
-
+                elif component_options['app'] or component_options['group']:
+                    self.logger.info(f"Command line interface (no subcommands): 'cli_{cur_name}.py'")
+                    self.replace_in_file(self.project_path / self.package_name / f"cli_{cur_name}.py", cur_name, new_name)
+                    self.replace_in_file(self.project_path / 'tests' / f"test_cli_{cur_name}.py", cur_name, new_name)
+                    
                 for key,val in db_entry.items():
                     if not key=='options':
-                        path = self.project_path / key
-                        parent_folder, filename, old_string = path.parent, path.name, val
-                        new_string = old_string.replace(old_name, new_name)
-                        self.rename_file(parent_folder, filename, old_string, new_string, contents_only=True)
+                        filepath = self.project_path / key
+                        new_string = val.replace(cur_name, new_name)
+                        self.replace_in_file(filepath, val, new_string, contents_only=True)
                         db_entry[key] = new_string
+
                 # Update the database:
-                self.logger.info(f"Updating database entry for : '{old_name}'")
+                self.logger.info(f"Updating database entry for : '{cur_name}'")
                 self.db[new_name] = db_entry
 
         else: # remove
             with et_micc.logger.log(self.logger.info
-                                   , f"Package '{self.package_name}' Removing component '{old_name}'"
+                                   , f"Package '{self.package_name}' Removing component '{cur_name}'"
                                    ):
                 if component_options['package']:
-                    self.logger.info(f"Removing Python sub-package: '{old_name}{os.sep}__init__.py'")
-                    shutil.rmtree(self.project_path / self.package_name / old_name)
-                    self.logger.info(f"Removing test file: 'tests/test_{old_name}.py'")
-                    os.remove(self.project_path / 'tests' / f'test_{old_name}.py')
+                    self.logger.info(f"Removing Python sub-package: '{cur_name}{os.sep}__init__.py'")
+                    self.remove_folder(self.project_path / self.package_name / cur_name)
+                    self.logger.info(f"Removing test file: 'tests/test_{cur_name}.py'")
+                    self.remove_file(self.project_path / 'tests' / f'test_{cur_name}.py',)
 
                 elif component_options['py']:
-                    self.logger.info(f"Removing Python sub-module: '{old_name}.py'")
-                    os.remove(self.project_path / self.package_name / f'{old_name}.py')
-                    self.logger.info(f"Removing test file: 'tests/test_{old_name}.py'")
-                    os.remove(self.project_path / 'tests' / f'test_{old_name}.py')
+                    self.logger.info(f"Removing Python sub-module: '{cur_name}.py'")
+                    self.remove_file(self.project_path / self.package_name / f'{cur_name}.py')
+                    self.logger.info(f"Removing test file: 'tests/test_{cur_name}.py'")
+                    self.remove_file(self.project_path / 'tests' / f'test_{cur_name}.py')
 
                 elif component_options['f90']:
-                    self.logger.info(f"Fortran sub-module: 'f90_{old_name}{os.sep}{old_name}.f90'")
+                    self.logger.info(f"Removing Fortran sub-module: 'f90_{cur_name}")
+                    self.remove_folder(self.project_path / self.package_name / f'f90_{cur_name}')
+                    self.logger.info(f"Removing test file: 'tests/test_f90_{cur_name}.py'")
+                    self.remove_file(self.project_path / 'tests' / f'test_f90_{cur_name}.py')
 
                 elif component_options['cpp']:
-                    self.logger.info(f"C++ sub-module: 'cpp_{old_name}{os.sep}{old_name}.cpp'")
+                    self.logger.info(f"Removing C++ sub-module: 'cpp_{cur_name}")
+                    self.remove_folder(self.project_path / self.package_name / f'cpp_{cur_name}')
+                    self.logger.info(f"Removing test file: 'tests/test_cpp_{cur_name}.py'")
+                    self.remove_file(self.project_path / 'tests' / f'test_cpp_{cur_name}.py')
 
-                elif component_options['group']:
-                    self.logger.info(f"Command line interface (with subcommands): 'cli_{old_name}.py'")
+                elif component_options['app'] or component_options['group']:
+                    self.logger.info(f"Removing app: 'cli_{cur_name}.py'")
+                    self.remove_file(self.project_path / self.package_name / f"cli_{cur_name}.py")
+                    self.logger.info(f"Removing test file: 'test_cli_{cur_name}.py'")
+                    self.remove_file(self.project_path /  'tests' / f"test_cli_{cur_name}.py")
 
-                elif component_options['app']:
-                    self.logger.info(f"Command line interface (no subcommands): 'cli_{old_name}.py'")
 
                 for key, val in db_entry.items():
                     if not key == 'options':
                         path = self.project_path / key
                         parent_folder, filename, old_string = path.parent, path.name, val
                         new_string = ''
-                        self.rename_file(parent_folder, filename, old_string, new_string, contents_only=True)
+                        self.replace_in_file(path, old_string, new_string, contents_only=True)
 
                 # Update the database:
-                self.logger.info(f"Updating database entry for : '{old_name}'")
+                self.logger.info(f"Updating database entry for : '{cur_name}'")
 
-        del self.db[old_name]
+        del self.db[cur_name]
         self.serialize_db()
 
-    def rename_folder(self, package_path, submodule_dirname, old_name, new_name):
+
+    def replace_in_folder(self, folderpath, cur_name, new_name):
+
         """"""
-        # first rename the module folder
-        new_dirname = submodule_dirname.replace(old_name,new_name)
-        old_path = os.path.join(package_path, submodule_dirname)
-        new_path = os.path.join(package_path, new_dirname)
-        with et_micc.logger.log(self.logger.info, f'Renaming folder "{submodule_dirname}" -> "{new_dirname}"'):
-            os.rename(old_path, new_path)
+        # first rename the folder
+        cur_dirname = folderpath.name
+        new_dirname = cur_dirname.replace(cur_name,new_name)
+        new_folderpath = folderpath.parent / new_dirname
+
+        with et_micc.logger.log(self.logger.info, f'Renaming folder "{cur_dirname}" -> "{new_dirname}"'):
+            os.rename(folderpath, new_folderpath)
             # rename folder names:
             folder_list = []
-            for root, folders, files in os.walk(str(new_path)):
+            for root, folders, files in os.walk(str(new_folderpath)):
                 for folder in folders:
-                    new_folder = folder.replace(old_name,new_name)
+                    if folder in ['.venv']:
+                        continue
+                    new_folder = folder.replace(cur_name,new_name)
                     folder_list.append((os.path.join(root,folder), os.path.join(root,new_folder)))
             for tpl in folder_list:
                 old_folder = tpl[0]
@@ -1032,39 +1058,58 @@ class Project:
                 os.rename(old_folder, new_folder)
 
             # rename in files and file contents:
-            for root, folders, files in os.walk(str(new_path)):
+            for root, folders, files in os.walk(str(new_folderpath)):
                 for file in files:
-                    if not file.startswith('.orig.'):
-                        self.rename_file(root, file, old_name, new_name)
-    
+                    if file.startswith('.orig.'):
+                        continue
+                    if file.endswith('.so'):
+                        continue
+                    if file.endswith('.json'):
+                        continue
+                    if file.endswith('.lock'):
+                        continue
+                    self.replace_in_file(Path(root) / file, cur_name, new_name)
 
-    def rename_file(self, parent_folder, file, old_name, new_name, contents_only=False):
-        """"""
-        path = os.path.join(parent_folder,file)
+
+    def remove_file(self,path):
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+
+
+    def remove_folder(self,path):
+        shutil.rmtree(path)
+
+
+    def replace_in_file(self, filepath, cur_name, new_name, contents_only=False):
+        """Replace <cur_name> with <new_name> in the filename and its contents."""
+
+        file = filepath.name
 
         what = 'Modifying' if contents_only else 'Renaming'
-        with et_micc.logger.log(self.logger.info, f"{what} file {path}:"):
-            self.logger.info(f'Reading from {path}')
-            with open(path,'r') as f:
+        with et_micc.logger.log(self.logger.info, f"{what} file {filepath}:"):
+            self.logger.info(f'Reading from {filepath}')
+            with open(filepath,'r') as f:
                 old_contents = f.read()
 
-            self.logger.info(f'Replacing "{old_name}" with "{new_name}" in file contents.')
-            new_contents = old_contents.replace(old_name, new_name)
+            self.logger.info(f'Replacing "{cur_name}" with "{new_name}" in file contents.')
+            new_contents = old_contents.replace(cur_name, new_name)
 
             if contents_only:
                 new_file = file
             else:
-                new_file = file.replace(old_name,new_name)
-                self.logger.info(f'Replacing "{old_name}" with "{new_name}" in file name -> "{new_file}"')
-            new_path = os.path.join(parent_folder,new_file)
+                new_file = file.replace(cur_name,new_name)
+                self.logger.info(f'Replacing "{cur_name}" with "{new_name}" in file name -> "{new_file}"')
+            new_path = filepath.parent / new_file
 
             # By first renaming the original file, we avoid problems when the new
             # file name is identical to the old file name (because it is invariant,
             # e.g. __init__.py)
             orig_file = '.orig.'+file
-            orig_path = os.path.join(parent_folder,orig_file)
+            orig_path = filepath.parent / orig_file
             self.logger.info(f'Keeping original file "{file}" as "{orig_file}".')
-            os.rename(path, orig_path)
+            os.rename(filepath, orig_path)
 
             self.logger.info(f'Writing modified file contents to {new_path}: ')
             with open(new_path,'w') as f:
