@@ -480,10 +480,7 @@ class Project:
                     self.options.templates = 'module-cpp'
                 self.add_cpp_module(db_entry)
 
-        with et_micc.utils.in_directory(self.project_path):
-            with open('db.json', 'r') as f:
-                self.db = json.load(f)
-
+        self.deserialize_db()
         self.serialize_db(db_entry)
 
     
@@ -1033,24 +1030,25 @@ class Project:
         self.serialize_db()
 
 
-    def replace_in_folder(self, folderpath, cur_name, new_name):
-
+    def replace_in_folder( self, folderpath, cur_name, new_name ):
         """"""
-        # first rename the folder
         cur_dirname = folderpath.name
         new_dirname = cur_dirname.replace(cur_name,new_name)
-        new_folderpath = folderpath.parent / new_dirname
 
         with et_micc.logger.log(self.logger.info, f'Renaming folder "{cur_dirname}" -> "{new_dirname}"'):
+            # first rename the folder
+            new_folderpath = folderpath.parent / new_dirname
             os.rename(folderpath, new_folderpath)
-            # rename folder names:
-            folder_list = []
+
+            # rename subfolder names:
+            folder_list = [] # list of tuples with (oldname,newname)
             for root, folders, files in os.walk(str(new_folderpath)):
+                _filter(folders) # in place modification of the list of folders to traverse
                 for folder in folders:
-                    if folder in ['.venv']:
-                        continue
                     new_folder = folder.replace(cur_name,new_name)
                     folder_list.append((os.path.join(root,folder), os.path.join(root,new_folder)))
+
+            # rename subfolder names:
             for tpl in folder_list:
                 old_folder = tpl[0]
                 new_folder = tpl[1]
@@ -1069,6 +1067,7 @@ class Project:
                     if file.endswith('.lock'):
                         continue
                     self.replace_in_file(Path(root) / file, cur_name, new_name)
+                _filter(folders) # in place modification of the list of folders to traverse
 
 
     def remove_file(self,path):
@@ -1114,5 +1113,27 @@ class Project:
             self.logger.info(f'Writing modified file contents to {new_path}: ')
             with open(new_path,'w') as f:
                 f.write(new_contents)
+
+
+def _filter(folders):
+    """"In place modification of the list of folders to traverse.
+
+    see https://docs.python.org/3/library/os.html
+
+    ...
+
+    When topdown is True, the caller can modify the dirnames list in-place
+    (perhaps using del or slice assignment), and walk() will only recurse
+    into the subdirectories whose names remain in dirnames; this can be used
+    to prune the search, impose a specific order of visiting, or even to
+    inform walk() about directories the caller creates or renames before it
+    resumes walk() again. Modifying dirnames when topdown is False has no
+    effect on the behavior of the walk, because in bottom-up mode the
+    directories in dirnames are generated before dirpath itself is generated.
+
+    ...
+    """
+    exclude_folders = ['.venv', '.git', '_build', '_cmake_build', '__pycache__']
+    folders[:] = [f for f in folders if not f in exclude_folders]
 
 # eof
