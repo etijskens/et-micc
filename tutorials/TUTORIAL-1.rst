@@ -3,15 +3,16 @@ Tutorial 1: Getting started with micc
 
 .. note::
 
-   All tutorial sections start with the bare essentials, followed by
-   background sections, containing extra information that is usefull
-   in general, or for advanced usage. Background sections have an explicit
-   *[background]* tag in the title, e.g. *1.1.1 What's in a name [background]*.
+   All tutorial sections start with the bare essentials, which should get you
+   up and running. They are often followed by more detailed subsections that
+   provide extra information that is usefull in general, or for advanced usage.
+   These sections have an explicit *[intermediate]* or *[advanced]* tag in the
+   title, e.g. *1.1.1 What's in a name [intermediate]*.
    Background sections can be skipped on first reading, but the user
    is encouraged to read them at some point.
 
-1.1 Creating a new project
---------------------------
+1.1 Creating your first project
+-------------------------------
 Creating a new project is simple::
 
     > micc create path/to/my_first_project
@@ -24,62 +25,153 @@ Typically, the new project is created in the current directory::
 Note that the directory  ``path/to/my_first_project`` must either not exist,
 or be empty.
 
+Micc_ commands can be most easily used by making the project directory the
+current working directory. Any micc command is then automatically applied
+to the current project, as determined by the current working directory. See
+:ref:`micc-project-path` for applying micc_ commands to projects that do not
+correspond to the current working directory.
+
 The above command creates a project for a simple Python module, that is, the
 project directory will contain - among others - a file ``my_first_project.py``::
 
     my_first_project          # the project directory
-     +- my_first_project.py   # the Python module
+     +- my_first_project.py   # the Python module, this is where your code goes
 
 Note that the module name is (automatically) taken from the project name.
 
-The module project type is suited for problems that can be solved with a single
-Python file. For more complex problems a *package* structure is more appropriate.
-The module consists than of a directory ``my_first_project`` containing an
-``__init__.py`` file::
+The module project type above is suited for problems that can be solved with a single
+Python file. For more complex problems a *package* structure is more appropriate. To
+learn more about the use of Python modules vs packages, check out section
+:ref:`modules-and-packages`.
 
-    my_first_project          # the project directory
-     +- my_first_project      # the Python package
-     |   +- __init__.py       # file with the Python code
+1.1.1 What's in a name [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This type of project can accommodate:
+    The name you choose for your project has many consequences. Ideally,
+    this project name is
 
-* binary extension modules written in C++ or Fortran,
-* command line interfaces (CLIs), or extra Python submodules (CLI),
-* Python submodules.
+    * descriptive
+    * unique
+    * short
 
-If you created a project with a module structure and over time you discover that
-a package structure is necessary because you need one of these components, you
-can easily convert it::
+    Although one might think of even more requirements, such as being easy to type,
+    satisfying these three is already hard enough.
+    E.g. *my_nifty_module* may possibly be unique, but it is neither descriptive,
+    neither short. On the other hand, *dot_product* is descriptive, reasonably
+    descriptive, but probably not unique. Even *my_dot_product* is probably not
+    unique, and, in addition, confusing to any user that might want to adopt your
+    *my_dot_product*. A unique name - or at least a name that has not been taken
+    before - becomes really important when you want to publish your code for others
+    to use it. The standard place to publish Python code is the
+    `Python Package Index <https://pypi.org>`_ where you find hundreds of thousands
+    of projects, many of which are really interesting and of high quality. Even if
+    you have only a few colleagues that maywant to use your code, you make your/their
+    life easier when you publish your *my_nifty_module* at PyPI_ as they will only
+    need to type::
+
+       > pip install my_nifty_module
+
+    (The name *my_nifty_module* is not used so far, but nevertheless we recommend to
+    choose a better name). Micc_ will help you publishing your work at PyPI_  with as
+    little effort as possible, provided your name has not been used sofar. Note that
+    the ``micc create`` command has a ``--publish`` flag that checks if the name you
+    want to use for your project is still available on PyPI_, and, if not, refuses to
+    create the project and asks you to use another name for your project.
+
+    As there are indeed hundreds of thousands of Python packages published on PyPI_,
+    finding a good name has become quite hard. Personally, I often use a simple and
+    short descriptive name, prefixed by my initials, ``et-``, which generally makes
+    the name unique. It has the advantage that all my published modules are grouped
+    in the PyPI_ listing.
+
+    Another point of attention is that in principle project names can be anything
+    supported by your OS, we insist that module and package names adhere to the
+    `PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_.
+    The package (or module) name is derived from the project name:
+
+    * capitals are replaced by lower-case
+    * hyphens``'-'`` are replaced by underscores ``'_'``
+
+    If the resulting module name is not PEP8 compliant, you get an informative error
+    message::
+
+        > micc create 1proj
+        [ERROR]
+        Invalid project name (1proj):
+          project name must start with char, and contain only chars, digits, hyphens and underscores.
 
 
+.. _modules-and-packages:
 
-1.1.1 What's in a name [background]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The first thing we need to start a new project is a project name. Ideally,
-this project name is
+1.1.2. Modules and packages [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* descriptive
-* unique
-* short
+    A *Python module* is the simplest Python project we can create. It is meant for rather
+    small projects that fit in a single file. More complex projects have a *package*
+    structure, that is, a directory with the same name as the module, i.e.
+    :file:`my_first_project`, containing a :file:`__init__.py` file. This file marks the
+    parent directory as a Python *package* and contains the statements that are executed when
+    the module is imported.
 
-Although one might think of even more requirements, satisfying these three
-is already hard enough.
-E.g. *my_nifty_module* may possibly be unique, but it is neither descriptive,
-neither short. On the other hand, *dot_product* is descriptive, reasonably
-descriptive, but probably not unique. Even *my_dot_product* is probably not
-unique, and, in addition, confusing to any user that might want to adopt your
-*my_dot_product*. A unique name - or at least one that has not been taken
-before - becomes really important when you want to publish your code for others
-to use it. The standard place to publish Python code is the
-`Python Package Index <https://pypi.org>`_ where you find hundreds of thousands
-of projects ready to be used. Even if you have only a few colleagues that may
-want to use your code, you make their life easier when you publish your
-*my_nifty_module* at PyPI_ as they will only need to type::
+    If you want micc_ to create a project with a *package* structure, rather than the
+    default *module* structure you must append the ``--package`` flag (or ``-p``) to
+    to the ``micc create`` command:
 
-   > pip install my_nifty_module
+    .. code-block:: bash
 
-(The name *my_nifty_module* is not used so far, but, please, choose a better name).
-Micc_ will help you publishing your work at PyPI_  with as little effort as possible.
+       > micc create my_first_project --package
+
+       [INFO]           [ Creating project (my_first_project):
+       [INFO]               Python package (my_first_project): structure = (my_first_project/my_first_project/__init__.py)
+       ...
+       [INFO]           ] done.
+
+    The output of the command clearly shows the *package* structure.
+
+    Alternatively, you can easily convert a *module* structure project to a *package* structure
+    project at any time. E.g., first create a *module* project:
+
+    .. code-block:: bash
+
+       > micc create my_first_project
+       [INFO]           [ Creating project (my_first_project):
+       [INFO]               Python module (my_first_project): structure = (my_first_project/my_first_project.py)
+       ...
+       [INFO]           ] done.
+
+    Then, ``cd`` into the project directory and run::
+
+       > cd my_first_project
+       > micc convert-to-package
+       Converting simple Python project my_first_project to general Python project.
+       [WARNING]        Pre-existing files in /Users/etijskens/software/dev/workspace/my_first_project that would be overwritten:
+       [WARNING]          /Users/etijskens/software/dev/workspace/my_first_project/docs/index.rst
+          Aborting because 'overwrite==False'.
+            Rerun the command with the '--backup' flag to first backup these files (*.bak).
+            Rerun the command with the '--overwrite' flag to overwrite these files without backup.
+          Aborting.
+       [CRITICAL]       Exiting (-3) ...
+       [WARNING]        It is normally ok to overwrite 'index.rst' as you are not supposed
+                        to edit the '.rst' files in '/Users/etijskens/software/dev/workspace/ET-dot/docs.'
+                        If in doubt: rerun the command with the '--backup' flag,
+                          otherwise: rerun the command with the '--overwrite' flag,
+
+    Because we do not want to replace existing files inadvertently, this command will
+    always fail, unless you add either the ``--backup`` flag, in which case micc_ makes
+    a backup of all files it wants to replace, or the ``--overwrite``, in which case
+    those files will be overwritten. Micc_ will always produce a list of files it wants
+    to replace. Unless you deliberately modified one of the files in the list, you can
+    safely use ``--overwrite``. If you did, use the ``--backup`` flag and manually copy
+    the the changes from the :file:`.bak` file to the new file.
+
+    .. code-block:: bash
+
+       > micc convert-to-package --overwrite
+       Converting simple Python project ET-dot to general Python project.
+       [WARNING]        '--overwrite' specified: pre-existing files in /Users/etijskens/software/dev/workspace will be overwritten WITHOUT backup:
+       [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
+
+
 
 So, let us call the project *ET-dot*. *ET* denote my initials, which helps
 to be unique, remains descriptive, and is certainly short. First, ``cd`` into a
@@ -90,7 +182,7 @@ like this:
 .. code-block:: bash
 
    > cd ~/software/dev/workspace
-   > micc -p ET-dot create
+   > micc create ET-dot
 
 The ``-p`` option (which is short for ``--project-path``) tells micc_ where we
 want the project to be created. Here, we request a project directory :file:`ET-dot` in
@@ -155,60 +247,7 @@ software development, independent of whether your are the only developer, or the
 an entire team working on it from different places in the world. You find more
 information about how micc_ uses git_ in *Tutorial 4*.
 
-Modules and packages
-^^^^^^^^^^^^^^^^^^^^
-
-A *Python module* is the simplest Python project we can create. It is meant for rather
-small projects that fit in a single file. More complex projects have a *package*
-structure, that is, a directory with the same name as the module, i.e. :file:`et_dot`,
-containing a :file:`__init__.py` file. The :file:`__init__.py` file marks the
-directory as a Python *package* and contains the statements that are executed when
-the module is imported. The *module* structure is the default structure. When creating
-a project you can opt for a *package* structure by appending the flag ``-p`` or
-``--package`` to the ``micc create`` command:
-
-.. code-block:: bash
-
-   > micc -p ET-dot create --package
-
-   [INFO]           [ Creating project (ET-dot):
-   [INFO]               Python package (et_dot): structure = (ET-dot/et_dot/__init__.py)
-   ...
-   [INFO]           ] done.
-
-Alternatively, you can easily convert a *module* structure project to a *package* structure
-project at any time:
-
-.. code-block:: bash
-
-   > micc -p ET-dot convert-to-package
-   Converting simple Python project ET-dot to general Python project.
-   [WARNING]        Pre-existing files in /Users/etijskens/software/dev/workspace that would be overwritten:
-   [WARNING]          /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
-      Aborting because 'overwrite==False'.
-        Rerun the command with the '--backup' flag to first backup these files (*.bak).
-        Rerun the command with the '--overwrite' flag to overwrite these files without backup.
-      Aborting.
-   [CRITICAL]       Exiting (-3) ...
-   [WARNING]        It is normally ok to overwrite 'index.rst' as you are not supposed
-                    to edit the '.rst' files in '/Users/etijskens/software/dev/workspace/ET-dot/docs.'
-                    If in doubt: rerun the command with the '--backup' flag,
-                      otherwise: rerun the command with the '--overwrite' flag,
-
-Because we do not want to replace existing files inadvertently, this command will
-always fail, unless you add either the ``--backup`` flag, in which case micc_ makes
-a backup of all files it wants to replace, or the ``--overwrite``, in which case
-those files will be overwritten. Micc_ will always produce a list of files it wants
-to replace. Unless you deliberately modified one of the files in the list, you can
-safely use ``--overwrite``. If you did, use the ``--backup`` flag and manually copy
-the the changes from the :file:`.bak` file to the new file.
-
-.. code-block:: bash
-
-   > micc convert-to-package --overwrite
-   Converting simple Python project ET-dot to general Python project.
-   [WARNING]        '--overwrite' specified: pre-existing files in /Users/etijskens/software/dev/workspace will be overwritten WITHOUT backup:
-   [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
+.. _micc-project-path:
 
 The project path in in micc
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
