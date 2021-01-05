@@ -1,5 +1,5 @@
-Tutorial 1: a simple project
-============================
+Tutorial 1: Getting started with micc
+====================================
 
 1.1 Getting started with micc
 -----------------------------
