@@ -200,7 +200,7 @@ class Project:
 
     def module_to_package_cmd(self):
         """Convert a module project (:file:`module.py`) to a package project (:file:`package/__init__.py`)."""
-        if self.package:
+        if self.structure == 'package':
             self.warning(f"Project ({self.project_name}) is already a package ({self.package}).")
             return
 

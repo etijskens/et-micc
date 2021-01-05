@@ -225,7 +225,7 @@ def convert_to_package(ctx, overwrite, backup):
         project.module_to_package_cmd()
 
         if project.exit_code == et_micc.expand.EXIT_OVERWRITE:
-            et_micc.logger.get_micc_logger(ctx.obj).warning(
+            options.logger.warning(
                 f"It is normally ok to overwrite 'index.rst' as you are not supposed\n"
                 f"to edit the '.rst' files in '{options.project_path}{os.sep}docs.'\n"
                 f"If in doubt: rerun the command with the '--backup' flag,\n"

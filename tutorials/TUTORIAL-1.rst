@@ -1,8 +1,60 @@
 Tutorial 1: Getting started with micc
-====================================
+=====================================
 
-1.1 Getting started with micc
------------------------------
+.. note::
+
+   All tutorial sections start with the bare essentials, followed by
+   background sections, containing extra information that is usefull
+   in general, or for advanced usage. Background sections have an explicit
+   *[background]* tag in the title, e.g. *1.1.1 What's in a name [background]*.
+   Background sections can be skipped on first reading, but the user
+   is encouraged to read them at some point.
+
+1.1 Creating a new project
+--------------------------
+Creating a new project is simple::
+
+    > micc create path/to/my_first_project
+
+This creates a new project *my_first_project* in folder ``path/to``.
+Typically, the new project is created in the current directory::
+
+    > micc create my_first_project
+
+Note that the directory  ``path/to/my_first_project`` must either not exist,
+or be empty.
+
+The above command creates a project for a simple Python module, that is, the
+project directory will contain - among others - a file ``my_first_project.py``::
+
+    my_first_project          # the project directory
+     +- my_first_project.py   # the Python module
+
+Note that the module name is (automatically) taken from the project name.
+
+The module project type is suited for problems that can be solved with a single
+Python file. For more complex problems a *package* structure is more appropriate.
+The module consists than of a directory ``my_first_project`` containing an
+``__init__.py`` file::
+
+    my_first_project          # the project directory
+     +- my_first_project      # the Python package
+     |   +- __init__.py       # file with the Python code
+
+This type of project can accommodate:
+
+* binary extension modules written in C++ or Fortran,
+* command line interfaces (CLIs), or extra Python submodules (CLI),
+* Python submodules.
+
+If you created a project with a module structure and over time you discover that
+a package structure is necessary because you need one of these components, you
+can easily convert it::
+
+
+
+1.1.1 What's in a name [background]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The first thing we need to start a new project is a project name. Ideally,
 this project name is
 
