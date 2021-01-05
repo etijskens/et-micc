@@ -25,7 +25,7 @@ __template_help = "Ordered list of Cookiecutter templates, or a single Cookiecut
     , help="The path to the project directory. "
            "The default is the current working directory."
     , default='.'
-    , type=Path
+    , type=str
 )
 @click.option('--clear-log'
     , help="If specified clears the project's ``et_micc.log`` file."
@@ -54,7 +54,8 @@ def main(ctx, verbosity, project_path, clear_log):
 
     ctx.obj = SimpleNamespace(
         verbosity=verbosity,
-        project_path=project_path.resolve(),
+        project_path=Path(project_path).resolve(),
+        default_project_path=(project_path=='.'),
         clear_log=clear_log,
         template_parameters={},
     )
@@ -94,8 +95,10 @@ def main(ctx, verbosity, project_path, clear_log):
     , help="If specified allows to nest a project inside another project."
     , default=False, is_flag=True
 )
+@click.argument('name', type=str, default='')
 @click.pass_context
 def create(ctx
+           , name
            , package
            , micc_file
            , description
@@ -123,6 +126,21 @@ def create(ctx
     unless ``--allow-nesting`` is soecified.
     """
     options = ctx.obj
+
+    if name:
+        if not options.default_project_path:
+            # global option -p and argument name were both specified.
+            print( "ERROR: you specified both global option -p and argument 'name':"
+                  f"         -p -> {options.project_path}"
+                  f"         name -> {name}"
+                   "       You must choose one or the other, not both."
+                 )
+            ctx.exit(-1)
+        else:
+            # overwrite the -p global option so the project will be created:
+            options.project_path = Path(name).resolve()
+            options.default_project_path = False
+
     options.create = True
     options.micc_file = micc_file
     # options.structure = 'package' if package else 'module'
