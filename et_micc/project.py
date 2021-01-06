@@ -114,13 +114,19 @@ class Project:
                 p = p.parent
 
         project_name = self.project_path.name
-        if not et_micc.utils.verify_project_name(project_name):
-            self.error(f"Invalid project name ({project_name}):\n"
-                       f"  project name must start with char, and contain only chars, digits, hyphens and underscores."
-                       )
-            return
         self.project_name = project_name
-        self.package_name = et_micc.utils.pep8_module_name(project_name)
+        if not self.options.module_name:
+            if not et_micc.utils.verify_project_name(project_name):
+                self.error(f"The project name ({project_name}) does not yield a PEP8 compliant module name:\n"
+                           f"  The project name must start with char, and contain only chars, digits, hyphens and underscores."
+                           f"  Alternatively, provide an explicit module name with the --module-name=<name>"
+                           )
+                return
+            else:
+                self.package_name = et_micc.utils.pep8_module_name(project_name)
+        else:
+            self.package_name = self.options.module_name
+
         try:
             relative_project_path = self.project_path.relative_to(Path.cwd())
         except ValueError:

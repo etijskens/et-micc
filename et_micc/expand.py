@@ -177,7 +177,7 @@ def expand_templates(options):
     
         if existing_files:
             if options.backup:
-                micc_logger.warning(f"Pre-existing files in {output_dir} will be backed up ('--backup' specified):\n")
+                micc_logger.warning("Pre-existing files that will be backed up ('--backup' specified):\n")
                 micc_logger.indent(2)
                 for files in existing_files.values():
                     for src in files:
@@ -188,7 +188,7 @@ def expand_templates(options):
                 micc_logger.dedent()
                 
             elif not options.overwrite:
-                micc_logger.warning(f"Pre-existing files in {output_dir} that would be overwrtitten:\n")
+                micc_logger.warning("Pre-existing files that would be overwritten:\n")
                 micc_logger.indent(2)
                 for files in existing_files.values():
                     for src in files:
@@ -202,7 +202,7 @@ def expand_templates(options):
                            )
                 return EXIT_OVERWRITE
             else:
-                micc_logger.warning(f"'--overwrite' specified: pre-existing files in {output_dir} will be overwritten WITHOUT backup:\n")
+                micc_logger.warning(f"'--overwrite' specified: pre-existing files will be overwritten WITHOUT backup:\n")
                 for files in existing_files.values():
                     for src in files:
                         micc_logger.warning(f"     overwriting {src}")

@@ -95,11 +95,16 @@ def main(ctx, verbosity, project_path, clear_log):
     , help="If specified allows to nest a project inside another project."
     , default=False, is_flag=True
 )
+@click.option('--module-name'
+    , help="use this name for the module, rather than deriving it from the project name."
+    , default=''
+)
 @click.argument('name', type=str, default='')
 @click.pass_context
 def create(ctx
            , name
            , package
+           , module_name
            , micc_file
            , description
            , python
@@ -143,9 +148,9 @@ def create(ctx
 
     options.create = True
     options.micc_file = micc_file
-    # options.structure = 'package' if package else 'module'
     options.package = package
     options.publish = publish
+    options.module_name = module_name
 
     if not template:  # default, empty list
         if options.package:

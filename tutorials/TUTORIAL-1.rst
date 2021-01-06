@@ -5,113 +5,113 @@ Tutorial 1: Getting started with micc
 
    All tutorial sections start with the bare essentials, which should get you
    up and running. They are often followed by more detailed subsections that
-   provide extra information that is usefull in general, or for advanced usage.
-   These sections have an explicit *[intermediate]* or *[advanced]* tag in the
-   title, e.g. *1.1.1 What's in a name [intermediate]*.
+   provide useful background information that is needed for intermediate or
+   advanced usage. These sections have an explicit *[intermediate]* or
+   *[advanced]* tag in the title, e.g. :ref:`modules-and-packages`.
    Background sections can be skipped on first reading, but the user
    is encouraged to read them at some point.
 
-1.1 Creating your first project
--------------------------------
+1.1 Creating a project
+----------------------
 Creating a new project is simple::
 
     > micc create path/to/my_first_project
 
 This creates a new project *my_first_project* in folder ``path/to``.
-Typically, the new project is created in the current directory::
-
-    > micc create my_first_project
-
 Note that the directory  ``path/to/my_first_project`` must either not exist,
 or be empty.
 
-Micc_ commands can be most easily used by making the project directory the
-current working directory. Any micc command is then automatically applied
-to the current project, as determined by the current working directory. See
-:ref:`micc-project-path` for applying micc_ commands to projects that do not
-correspond to the current working directory.
+Typically, the new project is created in the current working directory:
 
-The above command creates a project for a simple Python module, that is, the
-project directory will contain - among others - a file ``my_first_project.py``::
+    .. code-block:: bash
+
+       > cd path/to
+       > micc create my_first_project
+       [INFO]           [ Creating project (my_first_project):
+       [INFO]               Python module (my_first_project): structure = (my_first_project/my_first_project.py)
+       ...
+       [INFO]           ] done.
+
+After creating the project, we ``cd`` into the project directory because any
+further micc_ commands will then automatically act on the project in the current
+working directory::
+
+       > cd my_first_project
+
+To apply a micc_ command to a project that is not in the current working directory
+see :ref:`micc-project-path`.
+
+The above command creates a project for a simple Python *module*, that is, the
+project directory will contain - among others - a file ``my_first_project.py`` in
+which represents the Python module::
 
     my_first_project          # the project directory
-     +- my_first_project.py   # the Python module, this is where your code goes
+    └── my_first_project.py   # the Python module, this is where your code goes
 
-Note that the module name is (automatically) taken from the project name.
+When some client code imports this module:
+
+    .. code-block:: python
+
+        import my_first_module
+
+the code in ``my_first_module.py`` is executed.
+
+Note that the name of the Python module name is (automatically) taken from the project name
+that with gave in the ``micc create`` command. If you want project and module names to
+differ from each other, check out the :ref:`project-and-module-naming` section.
 
 The module project type above is suited for problems that can be solved with a single
-Python file. For more complex problems a *package* structure is more appropriate. To
-learn more about the use of Python modules vs packages, check out section
-:ref:`modules-and-packages`.
-
-1.1.1 What's in a name [intermediate]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    The name you choose for your project has many consequences. Ideally,
-    this project name is
-
-    * descriptive
-    * unique
-    * short
-
-    Although one might think of even more requirements, such as being easy to type,
-    satisfying these three is already hard enough.
-    E.g. *my_nifty_module* may possibly be unique, but it is neither descriptive,
-    neither short. On the other hand, *dot_product* is descriptive, reasonably
-    descriptive, but probably not unique. Even *my_dot_product* is probably not
-    unique, and, in addition, confusing to any user that might want to adopt your
-    *my_dot_product*. A unique name - or at least a name that has not been taken
-    before - becomes really important when you want to publish your code for others
-    to use it. The standard place to publish Python code is the
-    `Python Package Index <https://pypi.org>`_ where you find hundreds of thousands
-    of projects, many of which are really interesting and of high quality. Even if
-    you have only a few colleagues that maywant to use your code, you make your/their
-    life easier when you publish your *my_nifty_module* at PyPI_ as they will only
-    need to type::
-
-       > pip install my_nifty_module
-
-    (The name *my_nifty_module* is not used so far, but nevertheless we recommend to
-    choose a better name). Micc_ will help you publishing your work at PyPI_  with as
-    little effort as possible, provided your name has not been used sofar. Note that
-    the ``micc create`` command has a ``--publish`` flag that checks if the name you
-    want to use for your project is still available on PyPI_, and, if not, refuses to
-    create the project and asks you to use another name for your project.
-
-    As there are indeed hundreds of thousands of Python packages published on PyPI_,
-    finding a good name has become quite hard. Personally, I often use a simple and
-    short descriptive name, prefixed by my initials, ``et-``, which generally makes
-    the name unique. It has the advantage that all my published modules are grouped
-    in the PyPI_ listing.
-
-    Another point of attention is that in principle project names can be anything
-    supported by your OS, we insist that module and package names adhere to the
-    `PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_.
-    The package (or module) name is derived from the project name:
-
-    * capitals are replaced by lower-case
-    * hyphens``'-'`` are replaced by underscores ``'_'``
-
-    If the resulting module name is not PEP8 compliant, you get an informative error
-    message::
-
-        > micc create 1proj
-        [ERROR]
-        Invalid project name (1proj):
-          project name must start with char, and contain only chars, digits, hyphens and underscores.
-
+Python file (``my_first_project.py`` in the above case). For more complex problems a
+*package* structure is more appropriate. To learn more about the use of Python modules
+vs packages, check out the :ref:`modules-and-packages` section below.
 
 .. _modules-and-packages:
 
-1.1.2. Modules and packages [intermediate]
+1.1.1. Modules and packages [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     A *Python module* is the simplest Python project we can create. It is meant for rather
-    small projects that fit in a single file. More complex projects have a *package*
-    structure, that is, a directory with the same name as the module, i.e.
-    :file:`my_first_project`, containing a :file:`__init__.py` file. This file marks the
+    small projects that conveniently fit in a single file. More complex projects have a
+    *package* structure: instead of the file ``my_first_project`` there is a directory
+    ``my_first_project``, containing a ``__init__.py`` file. This file marks the
     parent directory as a Python *package* and contains the statements that are executed when
-    the module is imported.
+    the module is imported. So, the structure of a package project looks like this::
+
+        my_first_project          # the project directory
+        └── my_first_project      # the package directory
+            └── __init__.py       # the file where your code goes
+
+    Typically, the package directory will contain several other Python files that together
+    make up your Python package.
+
+    Alternatively, you can easily convert a *module* structure project to a *package* structure
+    project at any time. E.g., first create a *module* project:
+
+    Then, ``cd`` into the project directory and run::
+
+       > cd my_first_project
+       > micc convert-to-package
+       [INFO]           Converting Python module project my_first_project to Python package project.
+       [WARNING]        Pre-existing files that would be overwritten:
+       [WARNING]          /Users/etijskens/software/dev/workspace/p1/docs/index.rst
+       Aborting because 'overwrite==False'.
+         Rerun the command with the '--backup' flag to first backup these files (*.bak).
+         Rerun the command with the '--overwrite' flag to overwrite these files without backup.
+
+    Because we do not want to replace existing files inadvertently, this command will
+    always fail, unless you add either the ``--backup`` flag, in which case micc_ makes
+    a backup of all files it wants to replace, or the ``--overwrite`` flag, in which case
+    those files will be overwritten. Micc_ will always produce a list of files it wants
+    to replace. Unless you deliberately modified one of the files in the list, you can
+    safely use ``--overwrite``. If you did, use the ``--backup`` flag and manually copy
+    the the changes from the :file:`.bak` file to the new file.
+
+    .. code-block:: bash
+
+       > micc convert-to-package --overwrite
+       Converting simple Python project my_first_project to general Python project.
+       [WARNING]        '--overwrite' specified: pre-existing files will be overwritten WITHOUT backup:
+       [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
 
     If you want micc_ to create a project with a *package* structure, rather than the
     default *module* structure you must append the ``--package`` flag (or ``-p``) to
@@ -128,124 +128,112 @@ learn more about the use of Python modules vs packages, check out section
 
     The output of the command clearly shows the *package* structure.
 
-    Alternatively, you can easily convert a *module* structure project to a *package* structure
-    project at any time. E.g., first create a *module* project:
+.. _project-and-module-naming:
 
-    .. code-block:: bash
+1.1.2 What's in a name [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-       > micc create my_first_project
+    The name you choose for your project has many consequences. Ideally, a project
+    name is
+
+    * descriptive
+    * unique
+    * short
+
+    Although one might think of even more requirements, such as being easy to type,
+    satisfying these three is already hard enough.
+    E.g. *my_nifty_module* may possibly be unique, but it is neither descriptive,
+    neither short. On the other hand, *dot_product* is descriptive, reasonably
+    short, but probably not unique. Even *my_dot_product* is probably not
+    unique, and, in addition, confusing to any user that might want to adopt your
+    *my_dot_product*. A unique name - or at least a name that has not been taken
+    before - becomes really important when you want to publish your code for others
+    to use it. The standard place to publish Python code is the
+    `Python Package Index <https://pypi.org>`_, where you find hundreds of thousands
+    of projects, many of which are really interesting and of high quality. Even if
+    there are only a few colleagues that you want to share your code with, you make
+    their life (as well as yours) easier when you publish your *my_nifty_module* at
+    PyPI_. To install your ``my_nifty_module`` they will only need to type::
+
+       > pip install my_nifty_module
+
+    (The name *my_nifty_module* is not used so far, but nevertheless we recommend to
+    choose a better name). Micc_ will help you publishing your work at PyPI_  with as
+    little effort as possible, provided your name has not been used sofar. Note that
+    the ``micc create`` command has a ``--publish`` flag that checks if the name you
+    want to use for your project is still available on PyPI_, and, if not, refuses to
+    create the project and asks you to use another name for your project.
+
+    As there are indeed hundreds of thousands of Python packages published on PyPI_,
+    finding a good name has become quite hard. Personally, I often use a simple and
+    short descriptive name, prefixed by my initials, ``et-``, which generally makes
+    the name unique. It has the advantage that all my published modules are grouped
+    in the PyPI_ listing.
+
+    Another point of attention is that although in principle project names can be anything
+    supported by your OS, as they are just the name of a directory, micc_
+    insists that module and package names comply with the
+    `PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_.
+    The package (or module) name is derived from the project name as follows:
+
+    * capitals are replaced by lower-case
+    * hyphens``'-'`` are replaced by underscores ``'_'``
+
+    If the resulting module name is not PEP8 compliant, you get an informative error
+    message::
+
+        > micc create 1proj
+        [ERROR]
+        Invalid project name (1proj):
+          project name must start with char, and contain only chars, digits, hyphens and underscores.
+
+
+1.1.3 Version control [advanced]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Although version control is extremely important for any software project
+    with a lifetime of more a day, we mark it as an advanced topic as it does
+    not affect the development itself. Micc_ facilitates version control by
+    automatically creating a local git_ repository in your project directory.
+    If you do not want to use it, you may ignore it or even delete it.
+
+    Git_ is a version control system that solves many practical problems related
+    to the process software development, independent of whether your are the only
+    developer, or there is an entire team working on it from different places in
+    the world. You find more information about how micc_ uses git_ in *Tutorial 4*.
+
+    Let's take a close look at the output of the ``micc create my_first_project``
+    command. The first line tells us that a project directory is being created::
+
        [INFO]           [ Creating project (my_first_project):
+
+    The next line explains the structure of the project, module or package::
+
        [INFO]               Python module (my_first_project): structure = (my_first_project/my_first_project.py)
-       ...
+
+    Next we are informed that a local git_ repository is being created::
+
+       [INFO]               [ Creating git repository
+
+    Micc_ tries to push this local repository to a remote repository at
+    https://github.com/yourgitaccount. If you did not create a remote git_
+    repository on beforehand, this gives rise to some warnings::
+
+       [WARNING]                    > git push -u origin master
+       [WARNING]                    (stderr)
+                                    remote: Repository not found.
+                                    fatal: repository 'https://github.com/yourgitaccount/my_first_project/' not found
+
+    Micc_ is unable to push the local repo to github, if the remote repo does
+    not exist. The local repo is for many purposes sufficient, but the remote
+    repo enables sharing your work with others and provides a backup of your work.
+
+    Finally, micc_ informs us that the tasks are finished.
+
+       [INFO]               ] done.
        [INFO]           ] done.
-
-    Then, ``cd`` into the project directory and run::
-
-       > cd my_first_project
-       > micc convert-to-package
-       Converting simple Python project my_first_project to general Python project.
-       [WARNING]        Pre-existing files in /Users/etijskens/software/dev/workspace/my_first_project that would be overwritten:
-       [WARNING]          /Users/etijskens/software/dev/workspace/my_first_project/docs/index.rst
-          Aborting because 'overwrite==False'.
-            Rerun the command with the '--backup' flag to first backup these files (*.bak).
-            Rerun the command with the '--overwrite' flag to overwrite these files without backup.
-          Aborting.
-       [CRITICAL]       Exiting (-3) ...
-       [WARNING]        It is normally ok to overwrite 'index.rst' as you are not supposed
-                        to edit the '.rst' files in '/Users/etijskens/software/dev/workspace/ET-dot/docs.'
-                        If in doubt: rerun the command with the '--backup' flag,
-                          otherwise: rerun the command with the '--overwrite' flag,
-
-    Because we do not want to replace existing files inadvertently, this command will
-    always fail, unless you add either the ``--backup`` flag, in which case micc_ makes
-    a backup of all files it wants to replace, or the ``--overwrite``, in which case
-    those files will be overwritten. Micc_ will always produce a list of files it wants
-    to replace. Unless you deliberately modified one of the files in the list, you can
-    safely use ``--overwrite``. If you did, use the ``--backup`` flag and manually copy
-    the the changes from the :file:`.bak` file to the new file.
-
-    .. code-block:: bash
-
-       > micc convert-to-package --overwrite
-       Converting simple Python project ET-dot to general Python project.
-       [WARNING]        '--overwrite' specified: pre-existing files in /Users/etijskens/software/dev/workspace will be overwritten WITHOUT backup:
-       [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
+       >
 
 
-
-So, let us call the project *ET-dot*. *ET* denote my initials, which helps
-to be unique, remains descriptive, and is certainly short. First, ``cd`` into a
-directory that you want to use as a workspace for storing your Python projects
-(I am using ``~/software/dev/workspace``). Then ask micc_ to create a project,
-like this:
-
-.. code-block:: bash
-
-   > cd ~/software/dev/workspace
-   > micc create ET-dot
-
-The ``-p`` option (which is short for ``--project-path``) tells micc_ where we
-want the project to be created. Here, we request a project directory :file:`ET-dot` in
-the current working directory, here :file:`~/software/dev/workspace`. This creates a
-project directory with, among quite a bit of other stuff, a Python module :file:`et_dot.py`
-
-Let's take a look at the output of the *micc create* command:
-
-.. code-block:: bash
-
-   > micc -p ET-dot create
-
-   [INFO]           [ Creating project (ET-dot):
-   [INFO]               Python module (et_dot): structure = (ET-dot/et_dot.py)
-   [INFO]               [ Creating git repository
-   [WARNING]                    > git push -u origin master
-   [WARNING]                    (stderr)
-                                remote: Repository not found.
-                                fatal: repository 'https://github.com/etijskens/ET-dot/' not found
-   [INFO]               ] done.
-   [INFO]           ] done.
-   >
-
-The first line:
-
-.. code-block:: bash
-
-   [INFO]           [ Creating project (ET-dot):
-
-tells us that micc_ indeed created a Python project in project directory
-:file:`ET-dot`. The second line:
-
-.. code-block:: bash
-
-   [INFO]               Python module (et_dot): structure = (ET-dot/et_dot.py)
-
-explains that inside our project directory micc_ created a
-Python module :file:`et_dot.py`. Note that the name of the module is perhaps
-not exactly what you expected: it is named :file:`et_dot.py`, rather than
-:file:`ET-dot.py`. The reason why micc_ decided to rename the module, is that our
-project name :file:`ET-dot` does not comply with the
-`PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_.
-To make it compliant, micc_ replaced all capitals with lowercase, and all spaces ``' '``
-and dashes ``'-'`` with underscores ``'_'``. If we had choosen a PEP8 compliant
-name for the project directory, the project directory and the module name would
-be the same.
-
-Finally, the lines
-
-.. code-block:: bash
-
-   [INFO]               [ Creating git repository
-   [WARNING]                    > git push -u origin master
-   [WARNING]                    (stderr)
-                                remote: Repository not found.
-                                fatal: repository 'https://github.com/etijskens/ET-dot/' not found
-   [INFO]               ] done.
-
-tell us that micc created a `git <https://git-scm.com/>`_ repository. Git_ is a
-version control system that solves many practical problems related to the process of
-software development, independent of whether your are the only developer, or there is
-an entire team working on it from different places in the world. You find more
-information about how micc_ uses git_ in *Tutorial 4*.
 
 .. _micc-project-path:
 
