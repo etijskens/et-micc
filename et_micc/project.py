@@ -248,15 +248,14 @@ class Project:
                        )
 
         if self.options.verbosity >= 2:
-            if self.module:
+            source = self.src_file
+            if self.structure == 'module':
                 kind = " (Python module)"
-                source = str(self.module)
             else:
                 kind = " (Python package)"
-                source = str(self.package)
             click.echo("  structure: " + click.style(source, fg='green') + kind)
 
-        if self.options.verbosity >= 3 and self.package:
+        if self.options.verbosity >= 3 and self.structure == 'package':
             package_path = self.project_path / self.package_name
             files = []
             files.extend(package_path.glob('**/*.py'))
