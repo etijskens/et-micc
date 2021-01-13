@@ -7,9 +7,37 @@ Tutorial 1: Getting started with micc
    up and running. They are often followed by more detailed subsections that
    provide useful background information that is needed for intermediate or
    advanced usage. These sections have an explicit *[intermediate]* or
-   *[advanced]* tag in the title, e.g. :ref:`modules-and-packages`.
-   Background sections can be skipped on first reading, but the user
-   is encouraged to read them at some point.
+   *[advanced]* tag in the title, e.g. :ref:`modules-and-packages` and they are
+   indented. Background sections can be skipped on first reading, but the user
+   is encouraged to read them at some point. The tutorials are rather extensive
+   as they interlaced with many good practices advises.
+
+Micc_ wants to provide a practical interface to the many aspects of managing a
+Python project: setting up a new project in a standardized way, adding documentation,
+version control, publishing the code to PyPI_, building binary extension modules in C++
+or Fortran, dependency management, ... For all these aspect there are tools available,
+yet i found myself struggling get everything right and looking up the details each time.
+Micc_ is an attempt to wrap all the details by providing the user with a standardized
+yet flexible workflow for managing a Python project. Standardizing is a great way to
+increase productivity. For many aspects the tools used by Micc_ are completely hidden
+from the user, e.g. project setup, adding components, building binary extensions, ...
+For other aspects Micc_ provides just the necessary setup for you to use other tools
+as you need them. Learning to use the following tools is certainly beneficial:
+
+* Poetry_: for dependency management, virtual environment creation, and
+  publishing the project to PyPI_ (and a lot more, if you like). Although
+  extremely handy on a desktop machine or a laptop, it does not play well with
+  the module system that is used on the VSC clusters for accessing applications.
+  A workaround is provided in Tutorial 6.
+
+* Git_: for version control. Its use is optional
+  but highly recommended. See Tutorial 4 for some git_ coverage.
+
+* Pytest_: for (unit) testing. Also optional and also highly recommended.
+
+* Sphinx_: for building documentation. Optional but recommended.
+
+The basic commands for theese tools are covered in these tutorials.
 
 1.1 Creating a project
 ----------------------
@@ -71,23 +99,48 @@ vs packages, check out the :ref:`modules-and-packages` section below.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     A *Python module* is the simplest Python project we can create. It is meant for rather
-    small projects that conveniently fit in a single file. More complex projects have a
-    *package* structure: instead of the file ``my_first_project`` there is a directory
-    ``my_first_project``, containing a ``__init__.py`` file. This file marks the
-    parent directory as a Python *package* and contains the statements that are executed when
-    the module is imported. So, the structure of a package project looks like this::
+    small projects that conveniently fit in a single (Python) file. More complex projects
+    require a *package* structure. They are created by adding the ``--package`` flag on the
+    command line::
+
+        > micc create my_first_project --package
+        [INFO]           [ Creating project (my_first_project):
+        [INFO]               Python package (my_first_project): structure = (my_first_project/my_first_project/__init__.py)
+        [INFO]               [ Creating git repository
+                               ...
+        [INFO]               ] done.
+        [WARNING]            Run 'poetry install' in the project directory to create a virtual environment and install its dependencies.
+        [INFO]           ] done.
+
+    The output shows a different file structure of the project than for a module. Instead
+    of the file ``my_first_project.py`` there is a directory ``my_first_project``, containing
+    a ``__init__.py`` file. So, the structure of a package project looks like this::
 
         my_first_project          # the project directory
         └── my_first_project      # the package directory
             └── __init__.py       # the file where your code goes
 
     Typically, the package directory will contain several other Python files that together
-    make up your Python package.
+    make up your Python package. When some client code imports a module with a package
+    structure,
 
-    Alternatively, you can easily convert a *module* structure project to a *package* structure
-    project at any time. E.g., first create a *module* project:
+    .. code-block:: python
 
-    Then, ``cd`` into the project directory and run::
+        import my_first_module
+
+    it is the code in ``my_first_module/__init__.py`` that is executed. The
+    ``my_first_module/__init__.py`` file is the equivalent of the ``my_first_module.py``
+    in a module structure.
+
+    The distinction between a module structure and a package structure is also important
+    when you publish the module. When installing a Python package with a module structure,
+    only the ''my_first_project.py'' will be installed, while with the package structure
+    the entire ``my_first_project`` directory will be installed.
+
+    If you created a projected with a module structure and discover over time that its
+    complexity has grown beyond the limits of a simple module, you can easily convert
+    it to a *package* structure project at any time. First ``cd`` into the project
+    directory and run::
 
        > cd my_first_project
        > micc convert-to-package
@@ -171,10 +224,10 @@ vs packages, check out the :ref:`modules-and-packages` section below.
     in the PyPI_ listing.
 
     Another point of attention is that although in principle project names can be anything
-    supported by your OS, as they are just the name of a directory, micc_
+    supported by your OS file system, as they are just the name of a directory, micc_
     insists that module and package names comply with the
     `PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_.
-    The package (or module) name is derived from the project name as follows:
+    Micc_ derives the package (or module) name from the project name as follows:
 
     * capitals are replaced by lower-case
     * hyphens``'-'`` are replaced by underscores ``'_'``
@@ -184,154 +237,66 @@ vs packages, check out the :ref:`modules-and-packages` section below.
 
         > micc create 1proj
         [ERROR]
-        Invalid project name (1proj):
-          project name must start with char, and contain only chars, digits, hyphens and underscores.
+        The project name (1proj) does not yield a PEP8 compliant module name:"
+          The project name must start with char, and contain only chars, digits, hyphens and underscores."
+          Alternatively, provide an explicit module name with the --module-name=<name>"
 
+    The last line indicates that you can specify an explicit module name, unrelated to
+    the project name. In that case PEP8 compliance is not checked. The responsability
+    then is all yours.
 
-1.1.3 Version control [advanced]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    Although version control is extremely important for any software project
-    with a lifetime of more a day, we mark it as an advanced topic as it does
-    not affect the development itself. Micc_ facilitates version control by
-    automatically creating a local git_ repository in your project directory.
-    If you do not want to use it, you may ignore it or even delete it.
-
-    Git_ is a version control system that solves many practical problems related
-    to the process software development, independent of whether your are the only
-    developer, or there is an entire team working on it from different places in
-    the world. You find more information about how micc_ uses git_ in *Tutorial 4*.
-
-    Let's take a close look at the output of the ``micc create my_first_project``
-    command. The first line tells us that a project directory is being created::
-
-       [INFO]           [ Creating project (my_first_project):
-
-    The next line explains the structure of the project, module or package::
-
-       [INFO]               Python module (my_first_project): structure = (my_first_project/my_first_project.py)
-
-    Next we are informed that a local git_ repository is being created::
-
-       [INFO]               [ Creating git repository
-
-    Micc_ tries to push this local repository to a remote repository at
-    https://github.com/yourgitaccount. If you did not create a remote git_
-    repository on beforehand, this gives rise to some warnings::
-
-       [WARNING]                    > git push -u origin master
-       [WARNING]                    (stderr)
-                                    remote: Repository not found.
-                                    fatal: repository 'https://github.com/yourgitaccount/my_first_project/' not found
-
-    Micc_ is unable to push the local repo to github, if the remote repo does
-    not exist. The local repo is for many purposes sufficient, but the remote
-    repo enables sharing your work with others and provides a backup of your work.
-
-    Finally, micc_ informs us that the tasks are finished.
-
-       [INFO]               ] done.
-       [INFO]           ] done.
-       >
-
-
+1.2 First steps in micc
+-----------------------
 
 .. _micc-project-path:
 
-The project path in in micc
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1.2.1. The project path in micc
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The project path (``-p path``) is a parameter that is accepted by all micc_ commands.
-Its default value is the current directory. So, once the project is created it is
-convenient to ``cd`` into it and you can leave out the ``-p`` option:
+    All micc_ commands accept the global ``--project-path=<path>`` parameter. Global
+    parameters appear before the subcommand name. E.g. the command::
 
-.. code-block:: bash
+        > micc --project-path path/to/my_first_project info
+        Project my_first_project located at path/to/my_first_project.
+          package: my_first_project
+          version: 0.0.0
+          structure: my_first_project.py (Python module)
 
-   > micc -p ET-dot create
-   ...
-   > micc -p ET-dot info
-   Project ET-dot located at /Users/etijskens/software/dev/workspace/ET-dot
-     package: et_dot
-     version: 0.0.0
-     structure: et_dot.py (Python module)
+    prints some info on the project at ``path/to/my_first_project``. This can conveniently be
+    abbreviated as::
 
-   > cd ET-dot
-   > micc info
-   Project ET-dot located at /Users/etijskens/software/dev/workspace/ET-dot
-     package: et_dot
-     version: 0.0.0
-     structure: et_dot.py (Python module)
+        > micc -p path/to/my_first_project info
 
-The *micc info* command shows information about a project.
+    Even the ``create`` command accepts the global ``--project-path=<path>`` parameter::
 
-This is a bit more practical as you do not have to type the ``-p ET-dot`` at every
-micc_ command. This approach works even with the ``micc create`` command. If you
-create an empty directory and ``cd`` into it, you can just run ``micc create``:
-project like this:
+        > micc -p path/to/my_second_project create
 
-.. code-block:: bash
+    will create project ``my_second_project`` in the specified location. The command is
+    identical to::
 
-   > mkdir ET-dot
-   > cd ET-dot
-   > micc create
-   [INFO]           [ Creating project (ET-dot):
-   [INFO]               Python package (et_dot): structure = (ET-dot/et_dot/__init__.py)
-   ...
-   [INFO]           ] done.
+        > micc create path/to/my_second_project
 
-.. warning::
-   Micc_ refuses to create a new project in a non-empty directory.
+    The default value for the project path is the current working directory, so::
 
-.. note:: In the rest of the tutorial we assume that the current working directory
-   is the project directory.
+        > micc info
 
-Managing the Python version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Your operating system typically comes with a Python version that is used OS tasks.
-It is, obviously good practice to isolate your system Python from your own developments:
-wrecking the system Python can indeed give you headaches. In addition, the system
-Python is often still 2.7.x, which is about to retire in 2020. Using a more recent
-Python version, or even several different Python versions may be very useful when
-you are working on many different projects. That is offered conveniently by
-`pyenv <https://github.com/pyenv/pyenv>`_. On my work laptop I usually keep the
-latest minor recent Python versions, along with the Pythonversion that came with
-the OS. At the time of writing that was:
+    will print info about the project in the current working directory.
 
-.. code-block:: bash
+    Hence, while working on a project, it is convenient to cd into the project directory
+    and execute your micc_ commands from there, without the the global ``--project-path=<path>``
+    parameter.
 
-   > pyenv versions
-     system
-     3.6.9
-     3.7.5
-   * 3.8.0 (set by /Users/etijskens/.pyenv/version)
+    This approach works even with the ``micc create`` command. If you create an empty
+    directory and ``cd`` into it, you can just run ``micc create`` and it will create
+    the project in the current working directory, taking the project name from the name
+    of the current working directory.
 
-The asterisk marks the default Python. You can set the default Python version as
-``pyenv global <version>``. It is good practice not to make the system Python
-default. In that way you cannot accidentally wreck your system Python.
+1.2.2 Virtual environments
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Virtual environments enable you to quickly set up a Python environment that isolated
+from the installed Python on your system. In this way you can easily cope with different
+dependencies between your Python projects.
 
-Since Python 3.8.0 is the default Python, without any special measures, if you launch
-Python, it will be 3.8.0. If you want to carry out the development of the ET-dot
-project in another version, e.g. 3.7.5, you must set a local python version in the
-project directory:
-
-.. code-block:: bash
-
-   > cd ET-dot
-   > pyenv local 3.7.5
-   > pyenv version
-   3.7.5 (set by /Users/etijskens/software/dev/ET-dot/.python-version)
-   > pyenv versions
-     system
-     3.6.9
-   * 3.7.5 (set by /Users/etijskens/software/dev/ET-dot/.python-version)
-     3.8.0
-
-Now, if you launch Python in the project-directory (or any of its subdirectories
-that does not have its own :file:`.python-version`), it will be Python 3.7.5. In all
-othern directories where ``pyenv local`` was not run, it will still be the default
-Python 3.8.0.
-
-Virtual environments
-^^^^^^^^^^^^^^^^^^^^
 For a detailed introduction to virtual environments see
 `Python Virtual Environments: A Primer <https://realpython.com/python-virtual-environments-a-primer/>`_.
 
@@ -353,8 +318,10 @@ virtual environments::
 
    > python -m venv my_virtual_environment
 
-This creates a directory :file:`my_virtual_environment` containing a complete and
-isolated Python environment. This virtual environment can be activated sa::
+This creates a directory :file:`my_virtual_environment` in the current working directory
+which is a complete isolated Python environment. The Python version in this virtual
+environment is the same as that of the ``python`` command with which the virtual
+environment was created. To use this virtual environment you must activate it::
 
    > source my_virtual_environment/bin/activate
    (my_virtual_environment) >
@@ -378,8 +345,16 @@ installs all dependencies in it. We first choose the Python version to use for t
 project::
 
    > pyenv local 3.7.5
+   > python --version
+   Python 3.7.5
+   > which python
+   /Users/etijskens/.pyenv/shims/python
+
+Next, create use poetry_ to create the virtual environment and install all its
+dependencies specified in ``pyproject.toml``::
+
    > poetry install
-   Creating virtualenv et-dot in /Users/etijskens/software/dev/ET-dot/.venv
+   Creating virtualenv et-dot in /Users/etijskens/software/dev/my_first_project/.venv
    Updating dependencies
    Resolving dependencies... (0.8s)
 
@@ -414,11 +389,10 @@ reused and all installations pertain to that virtual environment.
 To use the just created virtual environment of our project, we must activate it::
 
    > source .venv/bin/activate
+   (.venv)> python --version
+   Python 3.7.5
    (.venv) > which python
    /Users/etijskens/software/dev/ET-dot/.venv/bin/python
-   (.venv)> python --version
-   > python --version
-   Python 3.7.5
 
 The location of the virtual environment's Python and its version are as expected.
 
@@ -432,28 +406,31 @@ To deactivate a script just run ``deactivate``::
    /Users/etijskens/.pyenv/shims/python
 
 The ``(.venv)`` notice disappears, and the active python is no longer that in the
-virtual environment.
+virtual environment, but the Python specified by pyenv_
 
 If something is wrong with a virtual environment, you can simply delete it::
 
    > rm -rf .venv
 
-and create a new one. Sometimes it is necessary to delete the :file:`poetry.lock` as well::
+and create it again. Sometimes it is necessary to delete the :file:`poetry.lock` as well::
 
    > rm poetry.lock
 
-Modules and scripts
-^^^^^^^^^^^^^^^^^^^
-Note that micc_ always creates fully functional examples, complete with test code and
-documentation generation, so that you can inspect the files and see as much as
-possible how things are supposed to work. E.g. here is the :file`ET-dot/et_dot.py` module:
+.. _modules-and-scripts:
+
+1.2.3 Modules and scripts
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Micc_ always creates fully functional examples, complete with test code and
+documentation, so that you can inspect the files and see as much as
+possible how things are supposed to work. The ``my_first_project/my_first_project.py``
+module contains a simple *hello world* method, called ``hello``:
 
 .. code-block:: python
 
    # -*- coding: utf-8 -*-
    """
-   Package et_dot
-   ==============
+   Package my_first_project
+   ========================
 
    A 'hello world' example.
    """
@@ -470,16 +447,16 @@ following commands:
 
 .. code-block:: bash
 
-   > cd path/to/ET-dot
+   > cd path/to/my_first_project
    > source .venv/bin/activate
    (.venv) > python
    Python 3.8.0 (default, Nov 25 2019, 20:09:24)
    [Clang 11.0.0 (clang-1100.0.33.12)] on darwin
    Type "help", "copyright", "credits" or "license" for more information.
-   >>> import et_dot
-   >>> et_dot.hello()
+   >>> import my_first_project
+   >>> my_first_project.hello()
    'Hello world'
-   >>> et_dot.hello("student")
+   >>> my_first_project.hello("student")
    'Hello student'
    >>>
 
@@ -487,7 +464,7 @@ following commands:
 
 Using an interactive python session to verify that a module does indeed what
 you expect is a bit cumbersome. A quicker way is to modify the module so that it
-can also behave as a script. Add the following lines to :file:`ET-dot/et_dot.py`
+can also behave as a script. Add the following lines to ``my_first_project/my_first_project.py``
 at the end of the file:
 
 .. code-block:: python
@@ -500,7 +477,7 @@ and execute it on the command line:
 
 .. code-block:: bash
 
-   (.venv) > python et_dot.py
+   (.venv) > python my_first_project.py
    Hello world
    Hello student
 
@@ -523,7 +500,7 @@ When you now execute the script, you should see:
 
 .. code-block:: bash
 
-   (.venv) > python et_dot.py
+   (.venv) > python my_first_project.py
    -*# success #*-
 
 When you develop your code in an IDE like `eclipse+pydev <https://www.pydev.org>`_ or
@@ -536,8 +513,8 @@ side. If the module code and the tests become more involved, however,the file wi
 become cluttered with test code and a more scalable way to organise your tests is needed.
 Micc_ has already taken care of this.
 
-Testing your code
-^^^^^^^^^^^^^^^^^
+1.2.4 Testing your code
+^^^^^^^^^^^^^^^^^^^^^^^
 `Test driven development <https://en.wikipedia.org/wiki/Test-driven_development>`_ is a
 software development process that relies on the repetition of a very short development cycle:
 requirements are turned into very specific test cases, then the code is improved so that the
@@ -549,24 +526,24 @@ Ned Batchelder's very good introduction to `testing with pytest <https://nedbatc
 
 When micc_ creates a new project, or when you add components to an existing project,
 it immediately adds a test script for each component in the :file:`tests` directory.
-The test script for the :py:mod:`et_dot` module is in file :file:`ET-dot/tests/test_et_dot.py`.
+The test script for the :py:mod:`my_first_project` module is in file :file:`ET-dot/tests/test_my_first_project.py`.
 Let's take a look at the relevant section:
 
 .. code-block:: python
 
    # -*- coding: utf-8 -*-
-   """Tests for et_dot package."""
+   """Tests for my_first_project package."""
 
-   import et_dot
+   import my_first_project
 
    def test_hello_noargs():
-       """Test for foo.hello()."""
-       s = foo.hello()
+       """Test for my_first_project.hello()."""
+       s = my_first_project.hello()
        assert s=="Hello world"
 
    def test_hello_me():
-       """Test for foo.hello('me')."""
-       s = foo.hello('me')
+       """Test for my_first_project.hello('me')."""
+       s = my_first_project.hello('me')
        assert s=="Hello me"
 
 Tests like this are very useful to ensure that during development the changes to
@@ -605,14 +582,14 @@ If a test would fail you get a detailed report to help you find the cause of the
 error and fix it.
 
 Debugging test code
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 When the report provided by pytest_ does not yield a clue on the
 cause of the failing test, you must use debugging and execute the failing test step
 by step to find out what is going wrong where. From the viewpoint of pytest_, the
 files in the :file:`tests` directory are modules. Pytest_ imports them and collects
-the test methods, and executes them. Micc_ makes every test module executable using
-the technique described in `Modules and scripts`_. At the end of every test file you
-will find some extra code
+the test methods, and executes them. Micc_ also makes every test module executable using
+the technique described in :ref:`modules-and-scripts`. At the end of every test file you
+will find some extra code:
 
 .. code-block:: python
 
@@ -624,13 +601,14 @@ will find some extra code
        print('-*# finished #*-')
 
 On the first line of the ``if __name__ == "__main__":`` body, the variable
-:py:obj:`the_test_you_want_to_debug` is set to the name of some test method in our
-test file :file:`test_et_dot.py`, here :py:obj:`test_hello_noargs`. The variable
-:py:obj:`the_test_you_want_to_debug` is now just another variable pointing to the
-very same function object as :py:obj:`test_hello_noargs` and behaves exactly the
+``the_test_you_want_to_debug`` is set to the name of some test method in our
+test file ``test_et_dot.py``, here ``test_hello_noargs``, which refers to the *hello world*
+that was in the ``et_dot.py`` file originally. The variable
+``the_test_you_want_to_debug`` is now just another variable pointing to the
+very same function object as ``test_hello_noargs`` and behaves exactly the
 same (see `Functions are first class objects <https://www.geeksforgeeks.org/first-class-functions-python/>`_).
 The next statement prints a start message that tells you that ``__main__`` is running that
-test method, after which the test method is called through the :py:obj:`the_test_you_want_to_debug`
+test method, after which the test method is called through the ``the_test_you_want_to_debug``
 variable, and finally another message is printed to let you know that the script finished.
 Here is the output you get when running this test file as a script:
 
@@ -641,18 +619,13 @@ Here is the output you get when running this test file as a script:
    -*# finished #*-
 
 The execution of the test does not produce any output. Now you can use your favourite
-Python debugger to execute this script and step into the :py:obj:`test_hello_noargs`
-test method and from there into :py:obj:`foo.hello` to examine if everything goes as
+Python debugger to execute this script and step into the ``test_hello_noargs``
+test method and from there into `et_dot.hello` to examine if everything goes as
 expected. Thus, to debug a failing test, you assign its name to the
 :py:obj:`the_test_you_want_to_debug` variable and debug the script.
 
-.. note::
-
-   As test code is also code, it can contain bugs. More often than not, it happens
-   that the code tested is correct, but the test is flawed.
-
-Generating documentation
-^^^^^^^^^^^^^^^^^^^^^^^^
+1.2.5 Generating documentation [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Documentation is extracted from the source code using `Sphinx <http://www.sphinx-doc.org/en/master/>`_.
 It is almost completely generated automatically from the doc-strings in your code. Doc-strings are the
 text between triple double quote pairs in the examples above, e.g. ``"""This is a doc-string."""``.
@@ -779,7 +752,7 @@ To see a list of possible documentation formats, just run ``make`` without argum
 
    .. image:: ../tutorials/im1-1.png
 
-   If your expand the **API** tab on the left, you get to see the :py:mod:`et_dot`
+   If your expand the **API** tab on the left, you get to see the :py:mod:`my_first_project`
    module documentation, as it generated from the doc-strings:
 
    .. image:: ../tutorials/im1-2.png
@@ -827,8 +800,57 @@ command line interfaces (CLI, or console scripts) based on
 `click <https://click.palletsprojects.com/en/7.x/>`_ the documentation is generated
 neatly from the :py:obj:`help` strings of options and the doc-strings of the commands.
 
-The license file
-^^^^^^^^^^^^^^^^
+1.2.6 Version control [advanced]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Although version control is extremely important for any software project
+    with a lifetime of more a day, we mark it as an advanced topic as it does
+    not affect the development itself. Micc_ facilitates version control by
+    automatically creating a local git_ repository in your project directory.
+    If you do not want to use it, you may ignore it or even delete it.
+
+    Git_ is a version control system that solves many practical problems related
+    to the process software development, independent of whether your are the only
+    developer, or there is an entire team working on it from different places in
+    the world. You find more information about how micc_ uses git_ in *Tutorial 4*.
+
+    Let's take a close look at the output of the ``micc create my_first_project``
+    command. The first line tells us that a project directory is being created::
+
+       [INFO]           [ Creating project (my_first_project):
+
+    The next line explains the structure of the project, module or package::
+
+       [INFO]               Python module (my_first_project): structure = (my_first_project/my_first_project.py)
+
+    Next we are informed that a local git_ repository is being created::
+
+       [INFO]               [ Creating git repository
+
+    Micc_ tries to push this local repository to a remote repository at
+    https://github.com/yourgitaccount. If you did not create a remote git_
+    repository on beforehand, this gives rise to some warnings::
+
+       [WARNING]                    > git push -u origin master
+       [WARNING]                    (stderr)
+                                    remote: Repository not found.
+                                    fatal: repository 'https://github.com/yourgitaccount/my_first_project/' not found
+
+    Micc_ is unable to push the local repo to github, if the remote repo does
+    not exist. The local repo is for many purposes sufficient, but the remote
+    repo enables sharing your work with others and provides a backup of your work.
+
+    Finally, micc_ informs us that the tasks are finished.
+
+       [INFO]               ] done.
+       [INFO]           ] done.
+       >
+
+    Note that the name of the remote git repo is the project name, not the module name.
+
+1.3 Miscellaneous
+-----------------
+1.3.1 The license file [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The project directory contains a :file:`LICENCE` file, a :file:`text` file
 describing the licence applicable to your project. You can choose between
 
@@ -852,8 +874,8 @@ You can select the license file when you create the project:
 Of course, the project depends in no way on the license file, so it can
 be replaced manually at any time by the license you desire.
 
-The Pyproject.toml file
-^^^^^^^^^^^^^^^^^^^^^^^
+1.3.2 The Pyproject.toml file [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The file :file:`pyproject.toml` (located in the project directory) is the
 modern way to describe the build system requirements of the project:
 `PEP 518 <https://www.python.org/dev/peps/pep-0518/>`_. Although most of
@@ -890,8 +912,8 @@ The :file:`pyproject.toml` file is rather human-readable::
    requires = ["poetry>=0.12"]
    build-backend = "poetry.masonry.api"
 
-The log file Micc.log
-^^^^^^^^^^^^^^^^^^^^^
+1.3.3 The log file Micc.log [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The project directory also contains a log file :file:`micc.log`. All micc_ commands
 that modify the state of the project leave a trace in this file, So you can look up
 what happened when to your project. Should you think that the log file has become
@@ -913,8 +935,8 @@ project, the log file will only contain the log messages from the last subcomman
    > ll micc.log
    ls: micc.log: No such file or directory
 
-Adjusting micc to your needs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1.3.4 Adjusting micc to your needs [advanced]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Micc_ is based on a series of additive Cookiecutter_ templates which generate the
 boilerplate code. If you like, you can tweak these templates in the
 :file:`site-packages/et_micc/templates` directory of your micc_ installation. When you
@@ -924,25 +946,27 @@ boilerplate code. If you like, you can tweak these templates in the
 
 where :file`pythonX.Y` is the python version you installed micc_ with.
 
-1.2 Your first project
-----------------------
+1.4 A first real project
+------------------------
 
 Let's start with a simple problem: a Python module that computes the
-`dot product of two arrays <https://en.wikipedia.org/wiki/Dot_product>`_.
+`scalar product of two arrays <https://en.wikipedia.org/wiki/Dot_product>`_,
+generally referred to as the *dot product*.
 Admittedly, this not a very rewarding goal, as there are already many Python
 packages, e.g. Numpy_, that solve this problem in an elegant and efficient way.
 However, because the dot product is such a simple concept in linear algebra,
 it allows us to illustrate the usefulness of Python as a language for High
 Performance Computing, as well as the capabilities of Micc_.
 
-If you haven't carried out the steps in `1.1 Getting started with micc`_, set up a new
-project (you are of course encouraged to change the project name as to make it unique) :
+First, set up a new project for this *dot* project, which i named *ET-dot*, *ET*
+being my initials. Not knowing beforehand how involved this project will become,
+we create a simple *module* project:
 
 .. code-block:: bash
 
     > micc -p ET-dot create
     [INFO]           [ Creating project (ET-dot):
-    [INFO]               Python module (et_dot): structure = (ET-dot/et_dot.py
+    [INFO]               Python module (my_first_project): structure = (ET-dot/et_dot.py
     [INFO]               [ Creating git repository
     [WARNING]                    > git push -u origin master
     [WARNING]                    (stderr)
@@ -953,7 +977,10 @@ project (you are of course encouraged to change the project name as to make it u
     [INFO]           ] done.
     > cd ET-dot
 
-Next, we create a virtual environment for the project and activate it:
+As the output shows the module name is converted from the project name and made compliant with the
+`PEP8 module naming rules <https://www.python.org/dev/peps/pep-0008/#package-and-module-names>`_:
+*et_dot*. Next, we create a virtual environment for the project with all the standard micc_
+dependencies:
 
 .. code-block:: bash
 
@@ -978,10 +1005,15 @@ Next, we create a virtual environment for the project and activate it:
       - Installing wcwidth (0.1.7)
       - Installing pytest (4.6.7)
       - Installing ET-dot (0.0.0)
+    >
+
+Next, activate the virtual environment:
+
     > source .venv/bin/activate
     (.venv) >
 
-Open module file :file:`et_dot.py` in your favourite editor and change it as follows:
+Open module file :file:`et_dot.py` in your favourite editor and code a dot product
+method (naievely) as follows:
 
 .. code-block:: python
 
@@ -1360,7 +1392,7 @@ of random numbers.
 
 .. code-block:: python
 
-   """file ET_dot/prof/run1.py"""
+   """file et_dot/prof/run1.py"""
    import random
    from et_dot import dot
 
@@ -1410,7 +1442,7 @@ Using the :py:class:`Stopwatch` class to time pieces of code is simple:
 
 .. code-block:: python
 
-   """file ET_dot/prof/run1.py"""
+   """file et_dot/prof/run1.py"""
    from et_stopwatch import Stopwatch
 
    ...
@@ -1449,7 +1481,7 @@ our code.
 
 .. code-block:: python
 
-   """file ET_dot/prof/run1.py"""
+   """file et_dot/prof/run1.py"""
    import numpy as np
 
    ...

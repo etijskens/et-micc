@@ -21,7 +21,7 @@ from et_micc import cli_micc
 #===============================================================================
 # test scenario blocks
 #===============================================================================
-def run(runner,arguments,input_=None):
+def run(runner, arguments, input_=None):
     """
     create a project 
     """

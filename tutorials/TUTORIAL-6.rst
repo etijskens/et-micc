@@ -2,14 +2,14 @@
 This document walks you through the differences of using micc_ to manage your
 python+C++/Fortran projects on the VSC clusters. If you are already familiar with
 the use of HPC environments, the only relevant part of this tutorial is section
-`7.2 Using Poetry on the cluster`_. Otherwise, it is recommended to go through
+`6.2 Using Poetry on the cluster`_. Otherwise, it is recommended to go through
 the entire tutorial.
 
 .. note:: This tutorial uses the Leibniz cluster of the University of Antwerp for the
     examples. The principles pertain, however, to all VSC clusters, and most probably
     also to other clusters using a module system for exposing its software stack.
 
-Tutorial 7 - Using micc projects on the VSC clusters
+Tutorial 6 - Using micc projects on the VSC clusters
 ====================================================
 
 Most differences between using your local machine or a cluster stem from
@@ -27,7 +27,7 @@ The tools we need are, typically:
 * CMake, as the build system for C++ binary extensions.
 * git, for version control, if we are developing code on the cluster.
 
-7.1 Using modules
+6.1 Using modules
 -----------------
 The cluster's operating system exposes some of these tools, but, they lag
 many versions behind and, although very reliable, they are **not** fit for
@@ -159,10 +159,10 @@ You can unload all modules::
 To learn the details about the VSC clusters' module system, consult
 `Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_.
 
-7.2 Using Poetry on the cluster
+6.2 Using Poetry on the cluster
 -------------------------------
 
-7.2.1 Installing Poetry
+6.2.1 Installing Poetry
 ^^^^^^^^^^^^^^^^^^^^^^^
 Poetry_ is, sofar, not available as a cluster module. You must install it yourself. The
 installation method recommended by the poetry_documentation_ is also applicable on the
@@ -177,7 +177,7 @@ might want to use. So, internally, poetry_ commands use the system Python which 
 but your projects can use any Python version that is made avaible by loading a cluster module, or,
 that you installed yourself.
 
-7.2.2 Using pre-installed Python packages
+6.2.2 Using pre-installed Python packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 As the cluster modules generally come with pre-installed Python packages which are built
 to achieve optimal performance in a HPC environment, e.g. Numpy_, `Scipy <https://scipy.org/>`_,
@@ -191,7 +191,7 @@ there is a way to tell Poetry_ that it must use pre-installed Python packages::
 (If the name of your project's virtual environment is not ``.venv``, replace it with the
 name of your project's virtual environment).
 
-7.3 Using micc_ on the cluster
+6.3 Using micc_ on the cluster
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 First, we make sure to load a modern Python version for our project. The VSC clusters have many
 Python versions available, and come in different flavours, depending on the toolchain that was

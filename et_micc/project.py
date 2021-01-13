@@ -118,8 +118,8 @@ class Project:
         if not self.options.module_name:
             if not et_micc.utils.verify_project_name(project_name):
                 self.error(f"The project name ({project_name}) does not yield a PEP8 compliant module name:\n"
-                           f"  The project name must start with char, and contain only chars, digits, hyphens and underscores."
-                           f"  Alternatively, provide an explicit module name with the --module-name=<name>"
+                           f"  The project name must start with char, and contain only chars, digits, hyphens and underscores.\n"
+                           f"  Alternatively, provide an explicit module name with the --module-name=<name>."
                            )
                 return
             else:
