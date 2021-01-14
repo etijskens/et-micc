@@ -13,13 +13,11 @@ import json
 from pathlib import Path
 import subprocess
 from operator import xor
-from types import SimpleNamespace
+import requests
 
 import click
 import semantic_version
-from sphinx.cmd.build import main as sphinx_build
 
-from et_micc.tomlfile import TomlFile
 import et_micc.utils
 import et_micc.expand
 import et_micc.logger
@@ -135,18 +133,27 @@ class Project:
             relative_project_path = self.project_path
 
         if self.options.publish:
-            is_publishable = et_micc.utils.is_publishable(self.package_name,verbose=self.options.verbosity>1)
-            if is_publishable is None:
-                self.error(f"    Could not verify availability of name '{self.package_name}' on PyPI.\n"
-                           f"    Are you online?\n"
-                           f"    The project is not created."
-                )
-                return
-            elif not is_publishable:
-                self.error(
-                    f"    The name '{self.package_name}' is already in use on PyPI.\n"
-                    f"    The project is not created. You must choose another name if you want to publish."
-                )
+            rv = et_micc.utils.existsOnPyPI(self.package_name)
+            if rv is False:
+                pass # the name is not yet in use
+            else:
+                if rv is True:
+                    self.error(
+                        f"    The name '{self.package_name}' is already in use on PyPI.\n"
+                        f"    The project is not created.\n"
+                        f"    You must choose another name if you want to publish your code on PyPI."
+                    )
+                elif isinstance(rv, requests.exceptions.ConnectionError):
+                    self.error(f"    ConnectionError: Check your internect connection.\n"
+                               f"    The availability of name '{self.package_name}' on PyPI could not be verified. \n"
+                               f"    The project is not created."
+                    )
+                else: # unknown error
+                    self.error(f"    {type(rv)}\n"
+                               f"    {str(rv)}\n"
+                               f"    The availability of name '{self.package_name}' on PyPI could not be verified. \n"
+                               f"    The project is not created."
+                               )
                 return
 
         structure, source_file = ('package', f'({relative_project_path}{os.sep}{self.package_name}{os.sep}__init__.py)') \

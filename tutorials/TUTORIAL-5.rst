@@ -1,3 +1,5 @@
+.. _tutorial-5:
+
 Tutorial 5 - Publishing your code
 =================================
 Publishing your code is an easy way to make your code available to other users.

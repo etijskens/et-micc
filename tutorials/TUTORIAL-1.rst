@@ -39,9 +39,9 @@ as you need them. Learning to use the following tools is certainly beneficial:
 
 The basic commands for theese tools are covered in these tutorials.
 
-1.1 Creating a project
-----------------------
-Creating a new project is simple::
+1.1 Creating a project with micc
+--------------------------------
+Creating a new project with micc_ is simple::
 
     > micc create path/to/my_first_project
 
@@ -60,9 +60,8 @@ Typically, the new project is created in the current working directory:
        ...
        [INFO]           ] done.
 
-After creating the project, we ``cd`` into the project directory because any
-further micc_ commands will then automatically act on the project in the current
-working directory::
+After creating the project, we ``cd`` into the project directory because then any further
+micc_ commands will automatically act on the project in the current working directory::
 
        > cd my_first_project
 
@@ -82,7 +81,8 @@ When some client code imports this module:
 
         import my_first_module
 
-the code in ``my_first_module.py`` is executed.
+Python reads and executes the code in ``my_first_module.py``. (Typically, this registers
+the methods and classes defined in the module file. Also some variables, may be set up).
 
 Note that the name of the Python module name is (automatically) taken from the project name
 that with gave in the ``micc create`` command. If you want project and module names to
@@ -128,13 +128,13 @@ vs packages, check out the :ref:`modules-and-packages` section below.
 
         import my_first_module
 
-    it is the code in ``my_first_module/__init__.py`` that is executed. The
+    Python reads the code in ``my_first_module/__init__.py`` and executes it. The
     ``my_first_module/__init__.py`` file is the equivalent of the ``my_first_module.py``
     in a module structure.
 
     The distinction between a module structure and a package structure is also important
     when you publish the module. When installing a Python package with a module structure,
-    only the ''my_first_project.py'' will be installed, while with the package structure
+    only the ``my_first_project.py`` will be installed, while with the package structure
     the entire ``my_first_project`` directory will be installed.
 
     If you created a projected with a module structure and discover over time that its
@@ -155,9 +155,10 @@ vs packages, check out the :ref:`modules-and-packages` section below.
     always fail, unless you add either the ``--backup`` flag, in which case micc_ makes
     a backup of all files it wants to replace, or the ``--overwrite`` flag, in which case
     those files will be overwritten. Micc_ will always produce a list of files it wants
-    to replace. Unless you deliberately modified one of the files in the list, you can
-    safely use ``--overwrite``. If you did, use the ``--backup`` flag and manually copy
-    the the changes from the :file:`.bak` file to the new file.
+    to replace. You can safely use ``--overwrite``, unless you deliberately modified one
+    of the files in the list (which is rarely needed). If you did change one of the listed
+    files, however, use the ``--backup`` flag and manually copy the the changes from the :file:`.bak`
+    file to the new file.
 
     .. code-block:: bash
 
@@ -166,20 +167,15 @@ vs packages, check out the :ref:`modules-and-packages` section below.
        [WARNING]        '--overwrite' specified: pre-existing files will be overwritten WITHOUT backup:
        [WARNING]        overwriting /Users/etijskens/software/dev/workspace/ET-dot/docs/index.rst
 
-    If you want micc_ to create a project with a *package* structure, rather than the
-    default *module* structure you must append the ``--package`` flag (or ``-p``) to
-    to the ``micc create`` command:
+    and run the ``info`` command to verify the result:
 
     .. code-block:: bash
 
-       > micc create my_first_project --package
-
-       [INFO]           [ Creating project (my_first_project):
-       [INFO]               Python package (my_first_project): structure = (my_first_project/my_first_project/__init__.py)
-       ...
-       [INFO]           ] done.
-
-    The output of the command clearly shows the *package* structure.
+       > micc info
+       Project my_first_project located at /Users/etijskens/software/dev/workspace/my_first_project
+         package: my_first_project
+         version: 0.0.0
+         structure: my_first_project/__init__.py (Python package)
 
 .. _project-and-module-naming:
 
@@ -187,18 +183,18 @@ vs packages, check out the :ref:`modules-and-packages` section below.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     The name you choose for your project has many consequences. Ideally, a project
-    name is
+    name is:
 
-    * descriptive
-    * unique
-    * short
+    * descriptive,
+    * unique,
+    * short.
 
     Although one might think of even more requirements, such as being easy to type,
     satisfying these three is already hard enough.
     E.g. *my_nifty_module* may possibly be unique, but it is neither descriptive,
     neither short. On the other hand, *dot_product* is descriptive, reasonably
     short, but probably not unique. Even *my_dot_product* is probably not
-    unique, and, in addition, confusing to any user that might want to adopt your
+    unique, and, in addition, confusing to any user that might want to adopt *your*
     *my_dot_product*. A unique name - or at least a name that has not been taken
     before - becomes really important when you want to publish your code for others
     to use it. The standard place to publish Python code is the
@@ -210,18 +206,25 @@ vs packages, check out the :ref:`modules-and-packages` section below.
 
        > pip install my_nifty_module
 
-    (The name *my_nifty_module* is not used so far, but nevertheless we recommend to
-    choose a better name). Micc_ will help you publishing your work at PyPI_  with as
-    little effort as possible, provided your name has not been used sofar. Note that
+    while having internet access, obviously. The name *my_nifty_module* is not used
+    so far, but nevertheless we recommend to choose a better name. Micc_ will help
+    you publishing your code at PyPI_  with as little effort as possible (see
+    :ref:`tutorial-5`), provided your name has not been used sofar. Note that
     the ``micc create`` command has a ``--publish`` flag that checks if the name you
     want to use for your project is still available on PyPI_, and, if not, refuses to
-    create the project and asks you to use another name for your project.
+    create the project and asks you to use another name for your project::
+
+        > micc create oops --publish
+        [ERROR]
+            The name 'oops' is already in use on PyPI.
+            The project is not created.
+            You must choose another name if you want to publish your code.
 
     As there are indeed hundreds of thousands of Python packages published on PyPI_,
     finding a good name has become quite hard. Personally, I often use a simple and
-    short descriptive name, prefixed by my initials, ``et-``, which generally makes
-    the name unique. It has the advantage that all my published modules are grouped
-    in the PyPI_ listing.
+    short descriptive name, prefixed by my initials, ``et-``, which usually makes
+    the name unique. This has the additional advantage that all my published modules
+    are grouped in the PyPI_ listing.
 
     Another point of attention is that although in principle project names can be anything
     supported by your OS file system, as they are just the name of a directory, micc_
@@ -250,8 +253,8 @@ vs packages, check out the :ref:`modules-and-packages` section below.
 
 .. _micc-project-path:
 
-1.2.1. The project path in micc
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1.2.1. The project path in micc [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     All micc_ commands accept the global ``--project-path=<path>`` parameter. Global
     parameters appear before the subcommand name. E.g. the command::

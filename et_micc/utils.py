@@ -20,8 +20,8 @@ import semantic_version as sv
 
 from et_micc.tomlfile import TomlFile
 import et_micc.logger
-# import io
-# from contextlib import redirect_stdout
+
+from pypi_simple import PyPISimple
 
 
 def operator_version(version_constraint_string):
@@ -169,54 +169,72 @@ def pep8_module_name(name):
     return valid_module_name
 
 
-def is_publishable(package_name, verbose=True):
-    """Is the name <package_name> available for publishing on PyPI?
+def existsOnPyPI(package):
+    """Does package exist already on PyPI?
 
-    This is achieved by running ``pip search <package_name>`` and examining the output. If
-    <package_name> is in use, it will appear in the output.
+    :return: True|False|Exception`
 
-    :param str package_name: name of the package for which we want to verify the availability.
-    :param bool verbose: show the output of ``pip search <package_name>`` and the examination
-        process.
-
-    :returns: the answer as a bool, if the command ``pip search <package_name>`` was successful,
-        and None otherwise (e.g. because of no connection).
+    In case of an exception, the result is inconclusive.
     """
-
-    # We are using subprocess to run 'pip search' because if we use pip as a module
-    # the output cannot be suppressed in case of an error
-
-    cmd = ['pip', 'search', package_name]
-    if verbose:
-        print(
-            f"Verifying the availability of name '{package_name}' on PyPI.\n"
-            f"  Running: '{' '.join(cmd)}'"
-        )
     try:
-        # python >=3.7
-        completed_process = subprocess.run(cmd, capture_output=True)
-    except:
-        # python <3.7, e.g 3.6.9:
-        #   capture_output parameter does not exist.
-        completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        with PyPISimple() as client:
+            requests_page = client.get_project_page(package)
 
-    if completed_process.returncode:
-        if verbose:
-            print(completed_process.stderr.decode('utf-8'))
-            print(f"\nRunning: '{' '.join(cmd)}' FAILED!")
-        return None
+    except Exception as e:
+        return e
 
-    if verbose:
-        print(f"  Examining the output of 'pip search {package_name}':")
-    lines = completed_process.stdout.decode('utf-8').split('\n')
-    for line in lines:
-        words = line.split(' ')
-        package = words[0]
-        if verbose:
-            print(f"    found '{package}' : {package_name==package}")
-        if package_name == package:
-            return False
-    return True
+    return not requests_page is None
+
+# 'pip search name' will soon disappear
+# seehttps://stackoverflow.com/questions/65307988/error-using-pip-search-pip-search-stopped-working
+# def is_publishable(package_name, verbose=True):
+#     """Is the name <package_name> available for publishing on PyPI?
+#
+#     This is achieved by running ``pip search <package_name>`` and examining the output. If
+#     <package_name> is in use, it will appear in the output.
+#
+#     :param str package_name: name of the package for which we want to verify the availability.
+#     :param bool verbose: show the output of ``pip search <package_name>`` and the examination
+#         process.
+#
+#     :returns: the answer as a bool, if the command ``pip search <package_name>`` was successful,
+#         and None otherwise (e.g. because of no connection).
+#     """
+#
+#     # We are using subprocess to run 'pip search' because if we use pip as a module
+#     # the output cannot be suppressed in case of an error
+#
+#     cmd = ['pip', 'search', package_name]
+#     if verbose:
+#         print(
+#             f"Verifying the availability of name '{package_name}' on PyPI.\n"
+#             f"  Running: '{' '.join(cmd)}'"
+#         )
+#     try:
+#         # python >=3.7
+#         completed_process = subprocess.run(cmd, capture_output=True)
+#     except:
+#         # python <3.7, e.g 3.6.9:
+#         #   capture_output parameter does not exist.
+#         completed_process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#
+#     if completed_process.returncode:
+#         if verbose:
+#             print(completed_process.stderr.decode('utf-8'))
+#             print(f"\nRunning: '{' '.join(cmd)}' FAILED!")
+#         return None
+#
+#     if verbose:
+#         print(f"  Examining the output of 'pip search {package_name}':")
+#     lines = completed_process.stdout.decode('utf-8').split('\n')
+#     for line in lines:
+#         words = line.split(' ')
+#         package = words[0]
+#         if verbose:
+#             print(f"    found '{package}' : {package_name==package}")
+#         if package_name == package:
+#             return False
+#     return True
 
 
 def is_project_directory(path,project=None):

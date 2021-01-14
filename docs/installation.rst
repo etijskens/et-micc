@@ -1,5 +1,8 @@
 .. highlight:: shell
 
+.. _micc: https://micc.readthedocs.io
+.. _micc-build: https://micc.readthedocs.io
+
 ************
 Installation
 ************
