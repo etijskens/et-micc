@@ -223,8 +223,8 @@ vs packages, check out the :ref:`modules-and-packages` section below.
     As there are indeed hundreds of thousands of Python packages published on PyPI_,
     finding a good name has become quite hard. Personally, I often use a simple and
     short descriptive name, prefixed by my initials, ``et-``, which usually makes
-    the name unique. This has the additional advantage that all my published modules
-    are grouped in the PyPI_ listing.
+    the name unique. E.g ``et-oops`` does not exist. This has the additional advantage
+    that all my published modules are grouped in the alphabetic PyPI_ listing.
 
     Another point of attention is that although in principle project names can be anything
     supported by your OS file system, as they are just the name of a directory, micc_
@@ -248,8 +248,8 @@ vs packages, check out the :ref:`modules-and-packages` section below.
     the project name. In that case PEP8 compliance is not checked. The responsability
     then is all yours.
 
-1.2 First steps in micc
------------------------
+1.2 First steps in project management (using micc)
+--------------------------------------------------
 
 .. _micc-project-path:
 
@@ -296,47 +296,70 @@ vs packages, check out the :ref:`modules-and-packages` section below.
 
 1.2.2 Virtual environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-Virtual environments enable you to quickly set up a Python environment that isolated
-from the installed Python on your system. In this way you can easily cope with different
+Virtual environments enable you to set up a Python environment that isolated
+from the installed Python on your system. In this way you can easily cope with varying
 dependencies between your Python projects.
 
 For a detailed introduction to virtual environments see
 `Python Virtual Environments: A Primer <https://realpython.com/python-virtual-environments-a-primer/>`_.
 
-When you are developing or using several Python projects it can become difficult
+When you are developing or using several Python projects it can indeed become difficult
 for a single Python environment to satisfy all the dependency requirements of these
-projects simultaneously. Dependencies conflict can easily arise.
+projects simultaneously. Dependency conflicts can easily arise.
 Python promotes and facilitates code reuse and as a consequence Python tools typically
 depend on tens to hundreds of other modules. If toolA and toolB both need moduleC, but
 each requires a different version of it, there is a conflict because it is impossible
 to install two versions of the same module in a Python environment. The solution that
 the Python community has come up with for this problem is the construction of *virtual
-environments*, which isolates the dependencies of a single project to a single
+environments*, which isolates the dependencies of a single project in a single
 environment.
 
 Creating virtual environments
 """""""""""""""""""""""""""""
 Since Python 3.3 Python comes with a :py:mod:`venv` module for the creation of
-virtual environments::
+virtual environments. To set up a virtual environment, you first select the Python
+version you want to use, e.g. using pyenv_::
+
+    > pyenv local 3.7.5
+    > python --version
+    Python 3.7.5
+    > which python
+    /Users/etijskens/.pyenv/shims/python
+
+Next, create the virtual environment ``my_virtual_environment``::
 
    > python -m venv my_virtual_environment
 
 This creates a directory :file:`my_virtual_environment` in the current working directory
-which is a complete isolated Python environment. The Python version in this virtual
-environment is the same as that of the ``python`` command with which the virtual
-environment was created. To use this virtual environment you must activate it::
+which contains a complete isolated Python environment. To use the virtual environment, you
+must *activate* it::
 
-   > source my_virtual_environment/bin/activate
-   (my_virtual_environment) >
+    > source my_virtual_environment/bin/activate
+    (my_virtual_environment) >
 
 Activating a virtual environment modifies the command prompt to remind you constantly
-that you are working in a virtual environment. The virtual environment is based on the
-current Python - by preference set by pyenv_. If you install new packages, they will
-be installed in the virtual environment only. The virtual environment can be deactivated
-by running ::
+that you are now working in virtual environment ``my_virtual_environment``. You can
+verify the Python version and its location:
 
-   (my_virtual_environment) > deactivate
-   >
+    (my_virtual_environment) > python --version
+    Python 3.7.5
+    (my_virtual_environment) > which python
+    path/to/my_virtual_environment/bin/python
+
+If you now install new packages, they will be installed in the virtual environment **only**.
+The virtual environment can be *deactivated* by running ::
+
+    (my_virtual_environment) > deactivate
+    >
+
+after which the ``(my_virtual_environment)`` in the prompt disappears, and you are
+back to where you created the virtual environment::
+
+    > python --version
+    Python 3.7.5
+    > which python
+    /Users/etijskens/.pyenv/shims/python
+    >
 
 Creating virtual environments with Poetry
 """""""""""""""""""""""""""""""""""""""""
@@ -344,8 +367,8 @@ Poetry_ uses the above mechanism to manage virtual environment on a per project
 basis, and can install all the dependencies of that project, as specified in the
 :file:`pyproject.toml` file, using the ``install`` command. Since our project does
 not have a virtual environment yet, Poetry_ creates one, named :file:`.venv`, and
-installs all dependencies in it. We first choose the Python version to use for the
-project::
+installs all dependencies in it. Again, we first choose the Python version to use
+for the project::
 
    > pyenv local 3.7.5
    > python --version
@@ -353,16 +376,16 @@ project::
    > which python
    /Users/etijskens/.pyenv/shims/python
 
-Next, create use poetry_ to create the virtual environment and install all its
-dependencies specified in ``pyproject.toml``::
+Next, we ``cd`` into the project directory and use poetry_ to create the virtual environment
+and at the same install all the project's dependencies aa specified in ``pyproject.toml``::
 
+   > cd path/to/my_first_project
    > poetry install
    Creating virtualenv et-dot in /Users/etijskens/software/dev/my_first_project/.venv
    Updating dependencies
    Resolving dependencies... (0.8s)
 
    Writing lock file
-
 
    Package operations: 10 installs, 0 updates, 0 removals
 
@@ -376,40 +399,33 @@ dependencies specified in ``pyproject.toml``::
      - Installing py (1.8.0)
      - Installing wcwidth (0.1.7)
      - Installing pytest (4.6.6)
-     - Installing ET-dot (0.0.0)
+     - Installing my_first_project (0.0.0)
 
 The installed packages are all dependencies of pytest which we require for testing
-our code. The last package is ET-dot itself, which is installed in so-called
+our code. The last package is my_first_project itself, which is installed in so-called
 *development mode*. This means that any changes in the source code are immediately
 visible in the virtual environment. Adding/removing dependencies is easily achieved
 by running ``poetry add some_module`` and ``poetry remove some_other_module``.
-Consult the poetry_documentation_ for details
+Consult the poetry_documentation_ for details.
 
-If the virtual environment already exists, or if some virtual environment is activated
-(not necessarily that of the project itself - be warned), that virtual environment is
-reused and all installations pertain to that virtual environment.
-
-To use the just created virtual environment of our project, we must activate it::
+To use the just created virtual environment of our project, we must activate it,
+as before::
 
    > source .venv/bin/activate
-   (.venv)> python --version
-   Python 3.7.5
-   (.venv) > which python
-   /Users/etijskens/software/dev/ET-dot/.venv/bin/python
+   (.venv) >
 
-The location of the virtual environment's Python and its version are as expected.
+Poetry_ always names the virtual environment of a project :file:`.venv`. So, when
+working on several projects at the same time, you can sometimes get confused which
+project's virtual environment is actually activated. Just run::
 
-.. note:: Whenever you see a command prompt like ``(.venv) >`` the local virtual environment
-   of the project has been activated. If you want to try yourself, you must activate it too.
+    (.venv) > which python
+    path/to/my_first-project/.venv/bin/python
+    (.venv) >
 
-To deactivate a script just run ``deactivate``::
+If you no longer need the virtual environment, deactivate it::
 
    (.venv) > deactivate
-   > which python
-   /Users/etijskens/.pyenv/shims/python
-
-The ``(.venv)`` notice disappears, and the active python is no longer that in the
-virtual environment, but the Python specified by pyenv_
+   >
 
 If something is wrong with a virtual environment, you can simply delete it::
 
@@ -423,9 +439,8 @@ and create it again. Sometimes it is necessary to delete the :file:`poetry.lock`
 
 1.2.3 Modules and scripts
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-Micc_ always creates fully functional examples, complete with test code and
-documentation, so that you can inspect the files and see as much as
-possible how things are supposed to work. The ``my_first_project/my_first_project.py``
+Micc_ always creates fully functional examples, complete with test code and documentation,
+so that you can inspect the files and learn how things are working. The :file:`my_first_project.py`
 module contains a simple *hello world* method, called ``hello``:
 
 .. code-block:: python
@@ -467,7 +482,7 @@ following commands:
 
 Using an interactive python session to verify that a module does indeed what
 you expect is a bit cumbersome. A quicker way is to modify the module so that it
-can also behave as a script. Add the following lines to ``my_first_project/my_first_project.py``
+can also behave as a script. Add the following lines to :file:`my_first_project.py`
 at the end of the file:
 
 .. code-block:: python
@@ -484,8 +499,9 @@ and execute it on the command line:
    Hello world
    Hello student
 
-The body of the ``if`` statement is only executed if the file is executed as
-a script. When the file is imported, it is ignored.
+The body of the ``if __name__=="__main__":`` statement is only executed if the file
+is executed as a script. When the file is imported, the condition is ``False``, and
+the body (the script part) is ignored.
 
 While working on a single-file project it is sometimes handy to put your tests
 the body of ``if __name__=="__main__":``, as below:
@@ -499,9 +515,7 @@ the body of ``if __name__=="__main__":``, as below:
 
 The last line makes sure that you get a message that all tests went well if they
 did, otherwise an :py:exc:`AssertionError` will be raised.
-When you now execute the script, you should see:
-
-.. code-block:: bash
+When you now execute the script, you should see::
 
    (.venv) > python my_first_project.py
    -*# success #*-
