@@ -248,12 +248,7 @@ class Project:
                        )
 
         if self.options.verbosity >= 2:
-            source = self.src_file
-            if self.structure == 'module':
-                kind = " (Python module)"
-            else:
-                kind = " (Python package)"
-            click.echo("  structure: " + click.style(source, fg='green') + kind)
+            click.echo("  structure: " + click.style(self.src_file, fg='green') + f' (Python {self.structure})')
 
         if self.options.verbosity >= 3 and self.structure == 'package':
             package_path = self.project_path / self.package_name
@@ -330,16 +325,16 @@ class Project:
                 # update __version__
                 look_for = f'__version__ = "{current_semver}"'
                 replace_with = f'__version__ = "{new_semver}"'
-                if self.module:
+                if self.structure == 'module':
                     # update in <package_name>.py
-                    et_micc.utils.replace_in_file(self.project_path / self.module, look_for, replace_with)
+                    et_micc.utils.replace_in_file(self.project_path / self.src_file, look_for, replace_with)
                 else:
                     # update in <package_name>/__init__.py
                     p = self.project_path / self.package_name / "__version__.py"
                     if p.exists():
                         et_micc.utils.replace_in_file(p, look_for, replace_with)
                     else:
-                        p = self.project_path / self.package
+                        p = self.project_path / self.package_name / '__init__.py'
                         et_micc.utils.replace_in_file(p, look_for, replace_with)
 
                 self.logger.info(f"({self.project_name})> micc version ({current_semver}) -> ({new_semver})")
@@ -391,7 +386,7 @@ class Project:
         * :py:meth:`add_cpp_module`
         """
         if self.structure == 'module':
-            self.error(f"Cannot add to a module project ({self.module}).\n"
+            self.error(f"Cannot add to a module project ({self.project_name}).\n"
                        f"  Use `micc convert-to-package' on this project to convert it to a package project."
                        )
             return
