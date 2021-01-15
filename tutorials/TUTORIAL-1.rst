@@ -3,6 +3,10 @@ Tutorial 1: Getting started with micc
 
 .. note::
 
+   These tutorials focus not just on how to use micc_. Rather they describe a workflow
+   for how you might set up a python project and develop it using best practises, with
+   the help of micc_.
+
    All tutorial sections start with the bare essentials, which should get you
    up and running. They are often followed by more detailed subsections that
    provide useful background information that is needed for intermediate or
@@ -572,10 +576,10 @@ driven development. Here, we use `Pytest <https://pytest.org/en/latest/>`_:
    > pytest
    =============================== test session starts ===============================
    platform darwin -- Python 3.7.4, pytest-4.6.5, py-1.8.0, pluggy-0.13.0
-   rootdir: /Users/etijskens/software/dev/workspace/foo
+   rootdir: /Users/etijskens/software/dev/workspace/my_first_project
    collected 2 items
 
-   tests/test_foo.py ..                                                        [100%]
+   tests/test_my_first_project.py ..                                                        [100%]
 
    ============================ 2 passed in 0.05 seconds =============================
 
@@ -612,34 +616,25 @@ will find some extra code:
 
    if __name__ == "__main__":
        the_test_you_want_to_debug = test_hello_noargs
-
        print("__main__ running", the_test_you_want_to_debug)
        the_test_you_want_to_debug()
        print('-*# finished #*-')
 
-On the first line of the ``if __name__ == "__main__":`` body, the variable
-``the_test_you_want_to_debug`` is set to the name of some test method in our
-test file ``test_et_dot.py``, here ``test_hello_noargs``, which refers to the *hello world*
-that was in the ``et_dot.py`` file originally. The variable
-``the_test_you_want_to_debug`` is now just another variable pointing to the
-very same function object as ``test_hello_noargs`` and behaves exactly the
-same (see `Functions are first class objects <https://www.geeksforgeeks.org/first-class-functions-python/>`_).
-The next statement prints a start message that tells you that ``__main__`` is running that
-test method, after which the test method is called through the ``the_test_you_want_to_debug``
-variable, and finally another message is printed to let you know that the script finished.
-Here is the output you get when running this test file as a script:
-
-.. code-block:: bash
+On the first line of the ``if __name__ == "__main__":`` body, the name of the test method
+we want to debug is set to variable ``the_test_you_want_to_debug``, here ``test_hello_noargs``.
+The variable thus becomes an alias for the test method. Line 2 prints a message with the name
+of the test method being debugged::
 
    (.venv) > python tests/test_et_dot.py
-   __main__ running <function test_hello_noargs at 0x1037337a0>
-   -*# finished #*-
+   __main__ running <function test_hello_noargs at 0x1037337a0>     # output of line 2
+   -*# finished #*-                                                 # output of line 4
 
-The execution of the test does not produce any output. Now you can use your favourite
-Python debugger to execute this script and step into the ``test_hello_noargs``
-test method and from there into `et_dot.hello` to examine if everything goes as
-expected. Thus, to debug a failing test, you assign its name to the
-:py:obj:`the_test_you_want_to_debug` variable and debug the script.
+Line 3 actually calls the test method. Finally, line 4  prints a message to let the user know
+that the script is finished.
+
+You can use your favourite Python debugger to execute this script and step into the
+``test_hello_noargs`` test method and from there into ``my_first_project.hello`` to
+examine if everything goes as expected.
 
 1.2.5 Generating documentation [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -651,7 +646,7 @@ Important doc-strings are:
 * *module* doc-strings: at the beginning of the module. Provides an overview of what the
   module is for.
 * *class* doc-strings: right after the ``class`` statement: explains what the class is for.
-  (Usually, the doc-string of the __init__ method is put here as well, as dunder methods
+  (Usually, the doc-string of the __init__ method is put here as well, as *dunder* methods
   (starting and ending with a double underscore) are not automatically considered by sphinx_.
 
 * *method* doc-strings: right after a ``def`` statement.
@@ -669,14 +664,14 @@ E.g. a typical method doc-string looks like this:
          blablabla...
 
          :param str who: an explanation of the who parameter. You should
-             mention its default value.
+             mention e.g. its default value.
          :returns: a description of what hello_world returns (if relevant).
          :raises: which exceptions are raised under what conditions.
          """
 
 Here, you can find some more `examples <http://queirozf.com/entries/python-docstrings-reference-examples>`_.
 
-Thus, if you take good care writing doc-strings, helpfule documentation follows automatically.
+Thus, if you take good care writing doc-strings, helpful documentation follows automatically.
 
 Micc sets up al the necessary components for documentation generation in sub-directory
 :file:`et-dot/docs/`. There, you find a :file:`Makefile` that provides a simple interface
@@ -693,7 +688,6 @@ The last line produces documentation in html format.
 
 Let's explain the steps
 
-
 #. ``cd`` into the project directory::
 
       > cd path/to/et-dot
@@ -703,6 +697,8 @@ Let's explain the steps
 
       > source .venv/bin/activate
       (.venv) >
+
+   This is necessary because the tools for documentation generation are installed there.
 
 #. ``cd`` into the docs subdirectory::
 
@@ -778,13 +774,12 @@ To see a list of possible documentation formats, just run ``make`` without argum
 
       (.venv) > make latexpdf
 
-   This will generation documentation in :file:et-dot/docs/_build/latex/et-dot.pdf`. Note that
-   **it is essential that this command executes in the project's virtual environment**.
+   This will generation documentation in :file:et-dot/docs/_build/latex/et-dot.pdf`.
    You can view it in your favorite pdf viewer::
 
         (.venv) > open _build/latex/et-dot.pdf      # on macosx
 
-or::
+   or::
 
         (.venv) > xdg-open _build/latex/et-dot.pdf      # on ubuntu
 
@@ -795,8 +790,8 @@ or::
    If needed you can add dependencies using the ``poetry add`` command.
 
 The boilerplate code for documentation generation is in the ``docs`` directory, just as
-if it were generated by hand using ``sphinx-quickstart``. (In fact, it was generated using
-``sphinx-quickstart``, but then turned into a
+if it were generated by hand using the ``sphinx-quickstart`` command. (In fact, it was
+generated using ``sphinx-quickstart``, but then turned into a
 `Cookiecutter <https://github.com/audreyr/cookiecutter-pypackage>`_ template.)
 those files is not recommended, and only rarely needed. Then there are a number
 of :file:`.rst` files with **capitalized** names in the **project directory**:
@@ -868,66 +863,66 @@ neatly from the :py:obj:`help` strings of options and the doc-strings of the com
 -----------------
 1.3.1 The license file [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The project directory contains a :file:`LICENCE` file, a :file:`text` file
-describing the licence applicable to your project. You can choose between
+    The project directory contains a :file:`LICENCE` file, a :file:`text` file
+    describing the licence applicable to your project. You can choose between
 
-* MIT license (default),
-* BSD license,
-* ISC license,
-* Apache Software License 2.0,
-* GNU General Public License v3 and
-* Not open source.
+    * MIT license (default),
+    * BSD license,
+    * ISC license,
+    * Apache Software License 2.0,
+    * GNU General Public License v3 and
+    * Not open source.
 
-MIT license is a very liberal license and the default option. If you’re unsure which
-license to choose, you can use resources such as `GitHub’s Choose a License <https://choosealicense.com>`_
+    MIT license is a very liberal license and the default option. If you’re unsure which
+    license to choose, you can use resources such as `GitHub’s Choose a License <https://choosealicense.com>`_
 
-You can select the license file when you create the project:
+    You can select the license file when you create the project:
 
-.. code-block:: bash
+    .. code-block:: bash
 
-   > cd some_empty_dir
-   > micc create --license BSD
+       > cd some_empty_dir
+       > micc create --license BSD
 
-Of course, the project depends in no way on the license file, so it can
-be replaced manually at any time by the license you desire.
+    Of course, the project depends in no way on the license file, so it can
+    be replaced manually at any time by the license you desire.
 
-1.3.2 The Pyproject.toml file [intermediate]
+1.3.2 The pyproject.toml file [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The file :file:`pyproject.toml` (located in the project directory) is the
-modern way to describe the build system requirements of the project:
-`PEP 518 <https://www.python.org/dev/peps/pep-0518/>`_. Although most of
-this file's content is generated automatically by micc_ and poetry_ some
-understanding of it is useful, consult https://poetry.eustace.io/docs/pyproject/.
+    The file :file:`pyproject.toml` (located in the project directory) is the
+    modern way to describe the build system requirements of the project:
+    `PEP 518 <https://www.python.org/dev/peps/pep-0518/>`_. Although most of
+    this file's content is generated automatically by micc_ and poetry_ some
+    understanding of it is useful, consult https://poetry.eustace.io/docs/pyproject/.
 
-The :file:`pyproject.toml` file is rather human-readable::
+    The :file:`pyproject.toml` file is rather human-readable::
 
-   > cat pyproject.toml
-   [tool.poetry]
-   name = "ET-dot"
-   version = "1.0.0"
-   description = "<Enter a one-sentence description of this project here.>"
-   authors = ["Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>"]
-   license = "MIT"
+       > cat pyproject.toml
+       [tool.poetry]
+       name = "ET-dot"
+       version = "1.0.0"
+       description = "<Enter a one-sentence description of this project here.>"
+       authors = ["Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>"]
+       license = "MIT"
 
-   readme = 'README.rst'
+       readme = 'README.rst'
 
-   repository = "https://github.com/etijskens/ET-dot"
-   homepage = "https://github.com/etijskens/ET-dot"
+       repository = "https://github.com/etijskens/ET-dot"
+       homepage = "https://github.com/etijskens/ET-dot"
 
-   keywords = ['packaging', 'poetry']
+       keywords = ['packaging', 'poetry']
 
-   [tool.poetry.dependencies]
-   python = "^3.7"
-   et-micc-build = "^0.10.10"
+       [tool.poetry.dependencies]
+       python = "^3.7"
+       et-micc-build = "^0.10.10"
 
-   [tool.poetry.dev-dependencies]
-   pytest = "^4.4.2"
+       [tool.poetry.dev-dependencies]
+       pytest = "^4.4.2"
 
-   [tool.poetry.scripts]
+       [tool.poetry.scripts]
 
-   [build-system]
-   requires = ["poetry>=0.12"]
-   build-backend = "poetry.masonry.api"
+       [build-system]
+       requires = ["poetry>=0.12"]
+       build-backend = "poetry.masonry.api"
 
 1.3.3 The log file Micc.log [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -954,18 +949,17 @@ project, the log file will only contain the log messages from the last subcomman
 
 1.3.4 Adjusting micc to your needs [advanced]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Micc_ is based on a series of additive Cookiecutter_ templates which generate the
-boilerplate code. If you like, you can tweak these templates in the
-:file:`site-packages/et_micc/templates` directory of your micc_ installation. When you
-``pipx`` installed micc_, that is typically something like:
+    Micc_ is based on a series of additive Cookiecutter_ templates which generate the
+    boilerplate code. If you like, you can tweak these templates in the
+    :file:`site-packages/et_micc/templates` directory of your micc_ installation. When you
+    ``pipx`` installed micc_, that is typically something like:
 
-   :file:`~/.local/pipx/venvs/et-micc/lib/pythonX.Y/site-packages/et_micc`,
+       :file:`~/.local/pipx/venvs/et-micc/lib/pythonX.Y/site-packages/et_micc`,
 
-where :file`pythonX.Y` is the python version you installed micc_ with.
+    where :file`pythonX.Y` is the python version you installed micc_ with.
 
 1.4 A first real project
 ------------------------
-
 Let's start with a simple problem: a Python module that computes the
 `scalar product of two arrays <https://en.wikipedia.org/wiki/Dot_product>`_,
 generally referred to as the *dot product*.
@@ -1088,9 +1082,13 @@ We could use the dot method in a script as follows:
      a C++ library for linear algebra that is neatly exposed to Python by
      pybind11_.
 
+   However, starting out with a simple and naive implementation is not a bad idea at all.
+   Once it is correct, it can serve as reference implementation to test any improvements
+   against it.
+
 In order to verify that our implementation of the dot product is correct, we write a
-test. For this we open the file ``tests/test_et_dot.py``. Remove the original tests,
-and add a new one:
+test. For this we open the file ``tests/test_et_dot.py``. Remove the original tests put in
+by micc_, and add a new one:
 
 .. code-block:: python
 
@@ -1157,7 +1155,7 @@ You can easily verify that this test works too. We increment the version string 
 There is however a risk in using
 arrays of random numbers. Maybe we were just lucky and got random numbers that satisfy
 the test by accident. Also the test is not reproducible anymore. The next time we run
-pytest_ we will get other random numbers, and may be the test will fail. That would
+pytest_ we will get other random numbers, and maybe the test will fail. That would
 represent a serious problem: since we cannot reproduce the failing test, we have no way
 finding out what went wrong. For random numbers we can fix the seed at the beginning of
 the test. Random number generators are deterministic, so fixing the seed makes the code
@@ -1322,7 +1320,7 @@ So, how do we cope with the failing test? Here is a way using :py:meth:`math.isc
        # assert result==expected
        assert math.isclose(result, expected, abs_tol=10.0)
 
-This is a reasonable solution if we accept that when dealing with numbers as big as ``1e19``,
+This is a reasonable solution if we accept that when dealing with numbers as big as ``1e16``,
 an absolute difference of ``10`` is negligible.
 
 Another aspect that should be tested is the behavior of the code in exceptional circumstances.
