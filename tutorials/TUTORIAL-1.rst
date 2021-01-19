@@ -298,6 +298,8 @@ vs packages, check out the :ref:`modules-and-packages` section below.
     the project in the current working directory, taking the project name from the name
     of the current working directory.
 
+.. _venv:
+
 1.2.2 Virtual environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 Virtual environments enable you to set up a Python environment that isolated
@@ -1086,8 +1088,8 @@ We could use the dot method in a script as follows:
    Once it is correct, it can serve as reference implementation to test any improvements
    against it.
 
-In order to verify that our implementation of the dot product is correct, we write a
-test. For this we open the file ``tests/test_et_dot.py``. Remove the original tests put in
+In order to proof that our implementation of the dot product is correct, we write some
+tests. For this we open the file ``tests/test_et_dot.py``. Remove the original tests put in
 by micc_, and add a new one:
 
 .. code-block:: python
@@ -1378,27 +1380,38 @@ At this point we want to produce a git tag of the project::
     [INFO] Creating git tag v0.0.7 for project ET-dot
     [INFO] Done.
 
-The tag is a label for the current code base of our project.
+The tag is a label for the current code base of our project. It marks a specific
+point in the development of a code, in this case the point where our (first)
+implementation is considered correct. That is, however, not to say that the tests
+are now useless and can be thrown away. Every time we need to change the implemention,
+to improve the user interface or the efficiency, or add a feature, we should run the
+tests again to make sure that the changes did not break the code. of course, we should
+also extend the test suite to cover the new properties of the code.
 
 1.3 Improving efficiency
 ------------------------
-There are times when a correct solution - i.e. a code that solves the problem correctly -
-is sufficient. Very often, however, there are constraints on the time to solution, and
-the computing resources (number of cores and nodes, memory, ..) are requested to be used
-efficiently. Especially in scientific computing and high performance computing, where
-compute tasks may run for many days using hundreds of compute nodes and resources are
-to be shared with many researchers, using the resources efficiently is of utmost importance.
+There are times when a just a correct solution to the problem at hand
+is sufficient. If ``ET-dot`` is meant to compute a few dot products of small
+arrays, the naive implementation above will probably be sufficient.
+However, if it is to be used many times and for large arrays and the uses
+is impatiently waiting for the answer, or if your computing resources are
+scarse, a more efficient implementation is needed. Especially in scientific
+computing and high performance computing, where compute tasks may run for days
+using hundreds or even thousands of of compute nodes and resources are
+to be shared with many researchers, using the resources efficiently is
+of utmost importance and efficient implementations are therefore indispensable.
 
 However important efficiency may be, it is nevertheless a good strategy for developing a
-new piece of code, to start out with a simple, even naive implementation in Python, neglecting
-all efficiency considerations, but focussing on correctness. Python has a reputation of being
-an extremely productive programming language. Once you have proven the correctness of this first
-version it can serve as a reference solution to verify the correctness of later efficiency
-improvements. In addition, the analysis of this version can highlight the sources of
-inefficiency and help you focus your attention to the parts that really need it.
+new piece of code, to start out with a simple, even naive implementation, neglecting
+efficiency considerations totally, instead focussing on correctness. Python has a
+reputation of being an extremely productive programming language. Once you have
+proven the correctness of this first version it can serve as a reference solution
+to verify the correctness of later more efficient implementations. In addition,
+the analysis of this version can highlight the sources of inefficiency and help
+you focus your attention to the parts that really need it.
 
-Timing your code
-^^^^^^^^^^^^^^^^
+1.3.1 Timing your code
+^^^^^^^^^^^^^^^^^^^^^^
 The simplest way to probe the efficiency of your code is to time it: write a simple script
 and record how long it takes to execute. Let us first look at the structure of a Python script.
 
@@ -1412,7 +1425,7 @@ of random numbers.
    from et_dot import dot
 
    def random_array(n=1000):
-       """Initialize an array with n random numbers in [0,1[."""
+       """Create an array with n random numbers in [0,1[."""
        # Below we use a list comprehension (a Python idiom for creating a list from an iterable object).
        a = [random.random() for i in range(n)]
        return a
@@ -1423,10 +1436,9 @@ of random numbers.
        print(dot(a,b))
        print('-*# done #*-')
 
-We store this file, which we rather simply called :file:`run1.py`, in a directory :file:`prof`
-in the project directory where we intend to keep all our profiling work.
-You can execute the script from the command line (with the project directory as the current
-working directory:
+We store this file, which we rather simply called :file:`run1.py`, e.g. in a directory
+:file:`prof` where we intend to keep all our profiling work. You can execute the script
+from the command line (with the project directory as the current working directory:
 
 .. code-block:: bash
 
@@ -1439,7 +1451,7 @@ working directory:
 We are now ready to time our script. There are many ways to achieve this. Here is a
 `particularly good introduction <https://realpython.com/python-timer/>`_. The
 `et-stopwatch project <https://pypi.org/project/et-stopwatch/>`_ takes this a little
-further. We add it as a development dependency of our project::
+further. We add it as a development dependency (``-D``) of our project::
 
     (.venv) > poetry add et_stopwatch -D
     Using version ^0.3.0 for et_stopwatch
@@ -1450,8 +1462,8 @@ further. We add it as a development dependency of our project::
       - Installing et-stopwatch (0.3.0)
     (.venv) >
 
-.. note:: A development dependency is a package that is not needed for using the package
-    at hand, bit only needed for developing it.
+A development dependency is a package that is not needed for using the package
+at hand, bit only needed during development.
 
 Using the :py:class:`Stopwatch` class to time pieces of code is simple:
 
@@ -1470,9 +1482,9 @@ Using the :py:class:`Stopwatch` class to time pieces of code is simple:
            dot(a,b)
        print('-*# done #*-')
 
-When the script is exectuted the two print statements will print the duration of the
-initalisation of *a* and *b* and of the computation of the dot product of *a* and *b*.
-Finally, upon exit the :py:obj:`Stopwatch` will print the total time.
+When the script is exectuted the two ``with`` blocks will print the time it takes
+to execytre their body. The first ``with`` block times the initialisation if the arrays,
+and the second dot product computation.
 
 .. code-block:: bash
 
@@ -1485,8 +1497,8 @@ Finally, upon exit the :py:obj:`Stopwatch` will print the total time.
 Note that the initialization phase took longer than the computation. Random number
 generation is rather expensive.
 
-Comparing to Numpy
-^^^^^^^^^^^^^^^^^^
+1.3.2 Comparing to Numpy
+^^^^^^^^^^^^^^^^^^^^^^^^
 As said earlier, our implementation of the dot product is rather naive. If you want
 to become a good programmer, you should understand that you are probably not the
 first researcher in need of a dot product implementation. For most linear algebra
@@ -1544,17 +1556,23 @@ Obviously, Numpy_ does significantly better than our naive dot product implement
 The reasons for this improvement are:
 
 *   Numpy_ arrays are contiguous data structures of floating point numbers, unlike Python's
-    :py:class:`list`. Contiguous memory access is far more efficient.
+    :py:class:`list`, where every item can in fact point to an arbitrary Python object.
+    Contiguous memory access is far more efficient. In addition, the memory footprint of
+    a numpy array is significantly lower that that of a plain Python list.
 *   The loop over Numpy_ arrays is implemented in a low-level programming languange.
     This allows to make full use of the processors hardware features, such as *vectorization*
     and *fused multiply-add* (FMA).
 
-Conclusion
-^^^^^^^^^^
+1.3.3 Conclusion
+^^^^^^^^^^^^^^^^
 There are three important generic lessons to be learned from this tutorial:
 
 #.  Always start your projects with a simple and straightforward implementation which
-    can be easily be proven to be correct. Write test code for proving correctness.
+    can be easily be proven to be correct, even if you know that it will not satisfy
+    your efficiency constraints. You should use it as a reference to prove the correctness
+    of future more efficient implementations.
+
+#.  Write test code for proving correctness.
 
 #.  Time your code to understand which parts are time consuming and which not. Optimize
     bottlenecks first and do not waste time optimizing code that does not contribute
@@ -1564,5 +1582,9 @@ There are three important generic lessons to be learned from this tutorial:
 #.  Before you write code, in this case our dot product implementation, spent some time
     searching the internet to see what is already available. Especially in the field of
     scientific and high performance computing there are many excellent libraries available
-    which are hard to beat. Use your precious time for new stuff.
+    which are hard to beat. Use your precious time for new stuff. Consider adding new features
+    to an existing codebase, rather than starting from scratch. It will gain you time,
+    improve your programming skills. It might also give your code more visibility, and more
+    users, because you provide them with and extra feature on top of something they are
+    already used to.
 

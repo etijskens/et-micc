@@ -1,11 +1,15 @@
+.. _tutorial-2:
+
 Tutorial 2: Binary extensions
 =============================
 
+2.1 Introduction - High Performance Python
+------------------------------------------
 Suppose for a moment that Numpy_ did not have a dot product implementation and that
 the implementation provided in Tutorial-1 is way too slow to be practical for your
 research project. Consequently, you are forced to accelarate your dot product code
 in some way or another. There are several approaches for this. Here are a number of
-interesting links covering them:
+highly recommended links covering them:
 
 * `Why you should use Python for scientific research <https://developer.ibm.com/dwblog/2018/use-python-for-scientific-research/>`_
 * `Performance Python: Seven Strategies for Optimizing Your Numerical Code <https://www.youtube.com/watch?v=zQeYx87mfyw>`_
@@ -14,48 +18,93 @@ interesting links covering them:
 * `High performance Python 3 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-3>`_
 * `High performance Python 4 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-4>`_
 
-Most of these approaches do not require special support from Micc_ to get you going, and
-we encourage you to go try out the *High Performance Python* series 1-3 for the ET-dot
-project. Two of the approaches discussed involve rewriting your code in Modern Fortran or
-C++ and generate a shared library that can be imported in Python just as any Python module.
+Two of the approaches discussed in the *High Performance Python* series involve rewriting
+your code in Modern Fortran or C++ and generate a shared library that can be imported in
+Python just as any Python module. This is exactly the approach taken in important HPC
+Python modules, such as Numpy_, pyTorch_ and pandas_.
 Such shared libraries are called *binary extension modules*. Constructing binary extension
 modules is by far the most scalable and flexible of all current acceleration strategies, as
-these languages are designed to squeeze the maximum of performance out of a CPU. However,
-figuring out how to make this work is a bit of a challenge, especially in the case of C++.
+these languages are designed to squeeze the maximum of performance out of a CPU.
 
-This is in fact one of the main reasons why Micc_ was designed: facilitating the construction
-of binary extension modules and enabling the developer to create high performance tools with
-ease.
+However, figuring out how to build such binary extension modules is a bit of a challenge,
+especially in the case of C++. This is in fact one of the main reasons why Micc_ was designed:
+facilitating the construction of binary extension modules and enabling the developer to create
+high performance tools with ease.
+To that end, Micc_ provides boilerplate code for binary extensions as well a practical wrapper
+around top-notch tools for building the binary extensions from Fortran and C++ source. This
+wrapper is called micc-build_. It uses CMake_ to pass the necessary parameters to the compiler.
+In between the compiler and CMake_ there is a tool that tells how a Python module is to be
+constructed from the source code. For Fortran that is f2py_ (which comes with Numpy_), and
+for C++ it is pybind11_. This is illustrated in the figure below:
 
-2.1 Binary extensions in Micc_ projects
----------------------------------------
-Micc_ provides boilerplate code for binary extensions as well as some practical wrappers
-around top-notch tools for building binary extensions from Fortran and C++. Fortran code
-is compiled into a Python module using `f2py <https://docs.scipy.org/doc/numpy/f2py/>`_
-(which comes with Numpy_). For C++ we use Pybind11_ and `CMake <https://cmake.org>`_.
+   .. image:: ../tutorials/im-building.png
 
-Adding a binary extension is as simple as:
+There is a difference in how f2py_ and pybind11_ operate. F2py_ is an *executable* that inspects
+the Fortran source and create wrappers for the subprograms it finds and uses the compiler to
+build the extension module. (The wrappers are in C, so f2py_ needs a C compiler as well).
+Pybind11_ is a *C++ template library* that is used to express what needs to be exposed in the
+binary extension module.
 
-.. code-block:: bash
+2.1.1 Choosing between Fortran and C++ for binary extension modules [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Here are a number of arguments that you may wish to take into account for choosing the
+    programming language for your binary extension modules:
 
-   > micc add foo --f90   # add a binary extension 'foo' written in (Modern) Fortran
-   > micc add bar --cpp   # add a binary extension 'bar' written in C++
+    * Fortran is a simpler language than C++.
+    * It is easier to write efficient code in Fortran than C++.
+    * C++ is a general purpose language (as is Python), whereas Fortran is meant for scientific
+      computing. Consequently, C++ is a much more expressive language.
+    * C++ comes with a huge standard library, providing lots of data structures and algorithms
+      that are hard to match in Fortran. If the standard library is not enough, there are also
+      the highly recommended `Boost <https://boost.org>`_ libraries and many other high
+      qualityh domain specific libraries. There are also domain specific libraries in Fortran,
+      but their count differs by an order of magnitude at least.
+    * With Pybind11_ you can almost expose anything from the C++ side to Python, not just
+      functions.
+    * Modern Fortran is (imho) not as good documented as C++. Useful place to look for
+      language features and idioms are:
 
-.. note::
-    For the ``micc add`` command to be valid, your project must have a package
-    structure (see `Modules and packages`_).
+      * https://www.fortran90.org/
+      * http://www.cplusplus.com/
+      * https://en.cppreference.com/w/
 
-Enter your own code in the generated source code files and execute :
+    In short, C++ provides much more possibilities, but it is not for the novice.
+    As to my own experience, I discovered that working on projects of moderate complexity
+    I progressed significantly faster using Fortran rather than C++, despite the fact that
+    my knowledge of Fortran is quite limited compared to C++. However, your mileage may vary.
 
-.. code-block:: bash
+2.2 Adding Binary extensions to a Micc_ project
+-----------------------------------------------
 
+Adding a binary extension to your current project is as simple as::
+
+    > micc add foo --f90   # add a binary extension 'foo' written in (Modern) Fortran
+    ...
+    > micc add bar --cpp   # add a binary extension 'bar' written in C++
+    ...
+
+You can add as many binary extensions to your code as you want. However, the project
+must have a *package* structure (see :ref:`modules-and-packages`m for how to convert
+a project with a *module* structure).
+
+Enter your own code in the generated source code files. The output of the ``micc add``
+commands will have a line like::
+
+    [INFO]               - Fortran source in       <my_project>/<my_package>/f90_foo/foo.f90.
+
+or::
+
+    [INFO]               - Fortran source in       <my_project>/<my_package>/cpp_bar/bar.cpp.
+
+where ``<my_project>`` is the project directory and ``<my_package>`` is the package directory.
+This tells you where to add your code. After entering yor code, activate your project's virtual
+environment, and run ``micc-build``::
+
+   > source .venv/bin/activate
    (.venv) > micc-build
+   ...                      # a lot of output
 
-.. note::
-    The virtual environment must be activated to execute the ``micc-build``
-    command (see `Virtual environments`_).
-
-If there are no syntax errors your binary extensions will be built, and you
+If there are no syntax errors all your binary extensions will be built, and you
 will be able to import the  modules :py:mod:`foo` and :py:mod:`bar` in your
 project and use their subroutines and functions. Because :py:mod:`foo` and
 :py:mod:`bar` are submodules of your micc_ project, you must import them as::
@@ -69,68 +118,35 @@ project and use their subroutines and functions. Because :py:mod:`foo` and
     # call barfun in my_package.bar
     my_package.bar.barfun(...)
 
-where :py:mod:`my_package` is the name of the top package of your micc_ project.
-
-Choosing between Fortran and C++ for binary extension modules
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Here are a number of arguments that you may wish to take into account for choosing the
-programming language for your binary extension modules:
-
-* Fortran is a simpler language than C++
-* It is easier to write efficient code in Fortran than C++.
-* C++ is a much more expressive language
-* C++ comes with a huge standard library, providing lots of data structures and algorithms
-  that are hard to match in Fortran. If the standard library is not enough, there is also
-  the highly recommended `Boost <https://boost.org>`_ libraries and many other domain
-  specific libraries. There are also domain specific libraries in Fortran, but the amount
-  differs by an order of magnitude at least.
-* With Pybind11_ you can almost expose anything from the C++ side to Python, not just
-  functions.
-* Modern Fortran is (imho) not as good documented as C++. Useful place to look for
-  language features and idioms are:
-
-  * https://www.fortran90.org/
-  * http://www.cplusplus.com/
-  * https://en.cppreference.com/w/
-
-In short, C++ provides much more possibilities, but it is not for the novice.
-As to my own experience, I discovered that working on projects of moderate complexity
-I progressed significantly faster using Fortran rather than C++, despite the fact that
-my knowledge of Fortran is quite limited compared to C++. However, your mileage may vary.
+Now that the general principles are laid out, we can go into the details.
 
 2.2 Building binary extensions from Fortran
 -------------------------------------------
-Binary extension modules based on Fortran are called *f90 modules*. Micc_ uses
-the f2py_ tool to build these binary extension modules from Fortran. F2py_ is part of
-Numpy_.
+Let us add a binary extension module for a dot product version written in Fortran.
+First, we verify that our ``ET-dot`` project has a package structure (assuming that
+the current working directory is the project directory :file:`ET-dot`)::
 
-.. note::
-    To be able to add a binary extension module (as well as any other component supported
-    by micc_, such as Python modules or CLI applications) to a micc_ project, your project
-    must have a package structure. This is easily checked by running the ``micc info`` command::
+    > micc info
+    Project ET-dot located at /home/bert/software/workspace/ET-dot
+      package: et_dot
+      version: 0.0.0
+      structure: et_dot/__init__.py (Python package)
+    >
 
-        > micc info
-        Project ET-dot located at /home/bert/software/workspace/ET-dot
-          package: et_dot
-          version: 0.0.0
-          structure: et_dot/__init__.py (Python package)
-        >
+If the last line reads::
 
-    If it does, the *structure* line of the output will read as above. If, however, the
-    *structure* line reads::
+   ...
+     structure: et_dot.py (Python module)
 
-        structure: et_dot.py (Python module)
+you must convert the project::
 
-    you should convert it by running::
+     > micc convert-to-package --overwrite
+     ...
 
-        > micc convert-to-package --overwrite
+(See :ref:`modules-and-packages` for details).
 
-    See `Modules and packages`_ for details.
-
-We are now ready to create a f90 module for a Fortran implementation fof the
-dot product, say :py:mod:`dotf`, where the ``f``, obviously, stands for Fortran:
-
-.. code-block:: bash
+We are now ready to create a f90 module for a Fortran implementation of the
+dot product, say ``dotf``, where the ``f``, obviously, is for Fortran::
 
     > micc add dotf --f90
     [INFO]           [ Adding f90 module dotf to project ET-dot.
@@ -141,36 +157,12 @@ dot product, say :py:mod:`dotf`, where the ``f``, obviously, stands for Fortran:
     [INFO]           ] done.
 
 The output tells us where to enter the Fortran source code, the test code and the documentation.
-Enter the Fortran implementation of the dot product below in the Fortran source file
-:file:`ET-dot/et_dot/f90_dotf/dotf.f90` (using your favourite editor or an IDE):
+These files contain already working example code.
 
-.. code-block:: fortran
-
-   function dotf(a,b,n)
-     ! Compute the dot product of a and b
-     !
-       implicit none
-     !-------------------------------------------------------------------------------------------------
-       integer*4              , intent(in)    :: n
-       real*8   , dimension(n), intent(in)    :: a,b
-       real*8                                 :: dotf
-     !-------------------------------------------------------------------------------------------------
-     ! declare local variables
-       integer*4 :: i
-     !-------------------------------------------------------------------------------------------------
-       dotf = 0.
-       do i=1,n
-           dotf = dotf + a(i) * b(i)
-       end do
-   end function dotf
-
-The output of the ``micc add dotf --f90`` command above also shows a warning::
-
-    [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
-
-Micc_ is telling you that it added some dependencies to your project. In order to be able to build the binary
-extension *dotf* these dependencies must be installed in the virtual environment of our project by running
-``poetry update``.
+The warning in the output above tells us that micc_ added some development dependencies
+to our project. These dependencies provide the machinery to build binary extension
+modules and must be installed in the virtual environment of our project. The easy
+way to do this is by running ``poetry update``, as is mentioned in the warning.
 
 .. code-block:: bash
 
@@ -179,7 +171,6 @@ extension *dotf* these dependencies must be installed in the virtual environment
     Resolving dependencies... (2.5s)
 
     Writing lock file
-
 
     Package operations: 40 installs, 0 updates, 0 removals
 
@@ -225,20 +216,53 @@ extension *dotf* these dependencies must be installed in the virtual environment
       - Installing et-micc-build (0.10.10)
 
 Note from the last lines in the output that `micc-build <https://github.com/etijskens/et-micc-build>`_,
-which is a companion of Micc_ that encapsulates the machinery that does the hard work of building the
-binary extensions, depends on pybind11_, Numpy_, and on micc_ itself. As a consaequence, micc_ is now
-also installed in the projects virtual environment. Therefore, when the project's virtual environment
-is activated, the active ``micc`` is the one in the project's virtual environment::
+which is a companion of Micc_ that encapsulates the machinery for building the binary
+extensions, depends on pybind11_, Numpy_, and on micc_ itself. As a consequence, micc_
+is now also installed in the projects virtual environment. Therefore, when the project's
+virtual environment is activated, the active ``micc`` is the one in the project's virtual
+environment::
 
     > source .venv/bin/activate
     (.venv) > which micc
     path/to/ET-dot/.venv/bin/micc
     (.venv) >
 
-We might want to increment the minor component of the version string by now::
+If you do not want to use poetry_ to install the dependencies, you can lookup the
+dependencies in :file:`pyproject.toml` and run ``pip install`` for each of them.
 
-    (.venv) > micc version -m
-    [INFO]           (ET-dot)> micc version (0.0.7) -> (0.1.0)
+
+Replace the existing code in the Fortran source
+file :file:`ET-dot/et_dot/f90_dotf/dotf.f90` (using your favourite editor or an IDE) with:
+
+.. code-block:: fortran
+
+   function dotf(a,b,n)
+     ! Compute the dot product of a and b
+     !
+       implicit none
+     !-------------------------------------------------------------------------------------------------
+       integer*4              , intent(in)    :: n
+       real*8   , dimension(n), intent(in)    :: a,b
+       real*8                                 :: dotf
+     !-------------------------------------------------------------------------------------------------
+     ! declare local variables
+       integer*4 :: i
+     !-------------------------------------------------------------------------------------------------
+       dotf = 0.
+       do i=1,n
+           dotf = dotf + a(i) * b(i)
+       end do
+   end function dotf
+
+The output of the ``micc add dotf --f90`` command above also shows a warning::
+
+    [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
+
+Micc_ is telling you that it added some dependencies to your project. In order to be able
+to build the binary extension *dotf* these dependencies must be installed in the virtual
+environment of our project. The easy way to do this is by running ``poetry update``, as
+is mentioned in the warning.
+
 
 The binary extension module can now be built::
 
@@ -267,6 +291,12 @@ failed to build. If the source file does not have any syntax errors, you will se
     The extension of the module :file:`dotf.cpython-37m-darwin.so` will depend on the Python
     version (c.q. 3.7) you are using, and on your operating system (c.q. MacOS).
 
+We might want to increment the minor component of the version string by now to
+mark the successful build of the Fortran version of the dot product::
+
+    (.venv) > micc version -m
+    [INFO]           (ET-dot)> micc version (0.0.7) -> (0.1.0)
+
 Since our binary extension is built, we can test it. Here is some test code. Enter it in file
 :file:`ET-dot/tests/test_f90_dotf.py`:
 
@@ -285,13 +315,14 @@ Since our binary extension is built, we can test it. Here is some test code. Ent
 The astute reader will notice the magic that is happening here: *a* is a numpy array,
 which is passed as is to our :py:meth:`et_dot.dotf.dotf` function in our binary extension.
 An invisible wrapper function will check the types of the numpy arrays, retrieve pointers
-to the memory of the numpy arrays and feed those pointers into our Fortran function, the
-result of which is stored in a Python variable :py:obj:`a_dotf_a. If you look carefully
-at the output of ``micc-build``, you will see information about the wrappers that f2py
-constructed.
+to the memory of the numpy arrays, as well as the length of the arrays, and feed these
+into our Fortran function, which computes the dot product. The wrapper creates a python
+object and stores the outcome of computation in it, which is finally assigened to the
+Python variable :py:obj:`a_dotf_a. If you look carefully at the output of ``micc-build``,
+you will see information about the wrappers that ``f2py`` constructed.
 
 Passing Numpy arrays directly to Fortran routines is extremely productive.
-Many useful Python packages use numpy for arrays, vectors, matrices, linear algebra, etc.
+Many useful Python packages use numpy_ for arrays, vectors, matrices, linear algebra, etc.
 By being able to pass Numpy arrays directly into your own number crunching routines
 relieves you from conversion between array types. In addition you can do the memory
 management of your arrays and their initialization in Python.
@@ -375,7 +406,7 @@ the ``c`` referring to C++.
     To add binary extension modules to a project, it must have a package structure.
     To check, you may run the ``micc info`` command and verify the structure line.
     If it mentions ``Python module``, you must convert the structure by running
-    ``micc convert-to-package --overwrite``. See `Modules and packages`_ for details.
+    ``micc convert-to-package --overwrite``. See :ref:`modules-and-packages` for details.
 
 Use the ``micc add`` command to add a cpp module:
 
@@ -742,8 +773,9 @@ As we have seen, binary extension modules can be programmed in Fortran and C++.
 Micc_ provides convenient wrappers to build such modules. Fortran source code is
 transformed to a python module using f2py_, and C++ source using Pybind11_ and
 CMake_. Obviously, in both cases there is a compiler under the hood doing the
-hard work. By default these tools use the compiler they find on the path, but
-you may as well specify your favorite compiler.
+hard work and compiler options can be passed in the ``CMakeLists.txt`` file. By
+default these tools use the compiler they find on the path, but you may as well
+specify your favorite compiler.
 
 .. note::
     Compiler options are distinct for f2py modules and cpp modules.
