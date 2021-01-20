@@ -320,6 +320,8 @@ the Python community has come up with for this problem is the construction of *v
 environments*, which isolates the dependencies of a single project in a single
 environment.
 
+.. _virtual-environments:
+
 Creating virtual environments
 """""""""""""""""""""""""""""
 Since Python 3.3 Python comes with a :py:mod:`venv` module for the creation of
@@ -1128,6 +1130,7 @@ and requests incrementing the patch component of the version string)::
     (.venv) > micc version -p
     [INFO]           (ET-dot)> micc version (0.0.0) -> (0.0.1)
 
+You can read more about the ``micc version`` command in section :ref:`version-management`.
 
 Obviously, our test tests only one particular case.
 A clever way of testing is to focus on properties. From mathematics we now that

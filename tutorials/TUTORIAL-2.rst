@@ -1,7 +1,25 @@
+.. _micc-build: https://github.com/etijskens/et-micc-build
+
 .. _tutorial-2:
 
 Tutorial 2: Binary extensions
 =============================
+**Contents**
+
+    * :ref:`intro-HPPython`
+    * :ref:`f90-orr-cpp`
+    * :ref:`add-bin-ext`
+    * :ref:`building-f90`
+    * :ref:`f90-modules`
+    * :ref:`control-build-f90`
+    * :ref:`building-cpp`
+    * :ref:`data-types`
+    * :ref:`corresponding-data-types`
+    * :ref:`return-large`
+    * :ref:``
+    * :ref:``
+
+.. _intro-HPPython:
 
 2.1 Introduction - High Performance Python
 ------------------------------------------
@@ -45,6 +63,8 @@ build the extension module. (The wrappers are in C, so f2py_ needs a C compiler 
 Pybind11_ is a *C++ template library* that is used to express what needs to be exposed in the
 binary extension module.
 
+.. _f90-orr-cpp:
+
 2.1.1 Choosing between Fortran and C++ for binary extension modules [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     Here are a number of arguments that you may wish to take into account for choosing the
@@ -73,6 +93,8 @@ binary extension module.
     I progressed significantly faster using Fortran rather than C++, despite the fact that
     my knowledge of Fortran is quite limited compared to C++. However, your mileage may vary.
 
+.. _add-bin-ext:
+
 2.2 Adding Binary extensions to a Micc_ project
 -----------------------------------------------
 
@@ -84,8 +106,10 @@ Adding a binary extension to your current project is as simple as::
     ...
 
 You can add as many binary extensions to your code as you want. However, the project
-must have a *package* structure (see :ref:`modules-and-packages`m for how to convert
-a project with a *module* structure).
+must have a *package* structure (see :ref:`modules-and-packages` for how to convert
+a project with a *module* structure). Micc_ puts the source files for the foo Fortran
+binary extension in subdirectory :file:`f90_foo` of the package directory, and for the
+C++ binary extension in subdirectory :file:`cpp_bar` of the package directory.
 
 Enter your own code in the generated source code files. The output of the ``micc add``
 commands will have a line like::
@@ -94,9 +118,10 @@ commands will have a line like::
 
 or::
 
-    [INFO]               - Fortran source in       <my_project>/<my_package>/cpp_bar/bar.cpp.
+    [INFO]               - C++ source in       <my_project>/<my_package>/cpp_bar/bar.cpp.
 
 where ``<my_project>`` is the project directory and ``<my_package>`` is the package directory.
+
 This tells you where to add your code. After entering yor code, activate your project's virtual
 environment, and run ``micc-build``::
 
@@ -120,7 +145,46 @@ project and use their subroutines and functions. Because :py:mod:`foo` and
 
 Now that the general principles are laid out, we can go into the details.
 
-2.2 Building binary extensions from Fortran
+.. _micc-build-options:
+
+2.2.3 micc-build options
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here is an overview of micc-build options. The most interesting options are:
+
+    * ``-m <module-to-build>``: build only the specified module, as opposed to
+      all binary extension modules in the project
+    * ``-b <build-type>``: build a ``<build-type>`` version, default=``RELEASE``,
+      otherwise ``DEBUG``, MINSIZEREL, ``RELWITHDEBINFO``.
+    * ``--clean``: perform a clean build
+
+.. code-block:: bash
+
+    > micc-build --help
+    Usage: micc-build [OPTIONS]
+
+      Build binary extension libraries (f90 and cpp modules).
+
+    Options:
+      -v, --verbosity          The verbosity of the program.
+      -p, --project-path PATH  The path to the project directory. The default is
+                               the current working directory.
+
+      -m, --module TEXT        Build only this module. The module kind prefix
+                               (``cpp_`` for C++ modules, ``f90_`` for Fortran
+                               modules) may be omitted.
+
+      -b, --build-type TEXT    build type: any of the standard CMake build types:
+                               DEBUG, MINSIZEREL, RELEASE, RELWITHDEBINFO.
+
+      --clean                  Perform a clean build.
+      --cleanup                Cleanup build directory after successful build.
+      --version                Show the version and exit.
+      --help                   Show this message and exit.
+
+.. _building-f90:
+
+2.3 Building binary extensions from Fortran
 -------------------------------------------
 Let us add a binary extension module for a dot product version written in Fortran.
 First, we verify that our ``ET-dot`` project has a package structure (assuming that
@@ -162,65 +226,53 @@ These files contain already working example code.
 The warning in the output above tells us that micc_ added some development dependencies
 to our project. These dependencies provide the machinery to build binary extension
 modules and must be installed in the virtual environment of our project. The easy
-way to do this is by running ``poetry update``, as is mentioned in the warning.
+way to do this is by running ``poetry install`` as is mentioned in the warning.
+The former will install missing dependencies, the latter will get the latest
+version of all dependencies and install them.
 
 .. code-block:: bash
 
-    > poetry update
+    > poetry install
     Updating dependencies
-    Resolving dependencies... (2.5s)
+    Resolving dependencies... (15.1s)
 
     Writing lock file
 
-    Package operations: 40 installs, 0 updates, 0 removals
+    Package operations: 18 installs, 1 update, 0 removals
 
-      - Installing certifi (2019.11.28)
-      - Installing chardet (3.0.4)
-      - Installing idna (2.8)
-      - Installing markupsafe (1.1.1)
-      - Installing python-dateutil (2.8.1)
-      - Installing pytz (2019.3)
-      - Installing urllib3 (1.25.7)
-      - Installing alabaster (0.7.12)
-      - Installing arrow (0.15.4)
-      - Installing babel (2.7.0)
-      - Installing docutils (0.15.2)
-      - Installing imagesize (1.1.0)
-      - Installing jinja2 (2.10.3)
-      - Installing pygments (2.5.2)
-      - Installing requests (2.22.0)
-      - Installing snowballstemmer (2.0.0)
-      - Installing sphinxcontrib-applehelp (1.0.1)
-      - Installing sphinxcontrib-devhelp (1.0.1)
-      - Installing sphinxcontrib-htmlhelp (1.0.2)
-      - Installing sphinxcontrib-jsmath (1.0.1)
-      - Installing sphinxcontrib-qthelp (1.0.2)
-      - Installing sphinxcontrib-serializinghtml (1.1.3)
-      - Installing binaryornot (0.4.4)
-      - Installing click (7.0)
-      - Installing future (0.18.2)
-      - Installing jinja2-time (0.2.0)
-      - Installing pbr (5.4.4)
-      - Installing poyo (0.5.0)
-      - Installing sphinx (2.2.2)
-      - Installing whichcraft (0.6.1)
-      - Installing cookiecutter (1.6.0)
-      - Installing semantic-version (2.8.3)
-      - Installing sphinx-click (2.3.1)
-      - Installing sphinx-rtd-theme (0.4.3)
-      - Installing tomlkit (0.5.8)
-      - Installing walkdir (0.4.1)
-      - Installing et-micc (0.10.10)
-      - Installing numpy (1.17.4)
-      - Installing pybind11 (2.4.3)
-      - Installing et-micc-build (0.10.10)
+      • Installing python-dateutil (2.8.1)
+      • Installing arrow (0.17.0)
+      • Installing soupsieve (2.1)
+      • Installing text-unidecode (1.3)
+      • Installing beautifulsoup4 (4.9.3)
+      • Installing binaryornot (0.4.4)
+      • Installing jinja2-time (0.2.0)
+      • Installing poyo (0.5.0)
+      • Installing python-slugify (4.0.1)
+      • Installing cookiecutter (1.7.2)
+      • Installing pypi-simple (0.8.0)
+      • Installing semantic-version (2.8.5)
+      • Updating sphinx-rtd-theme (0.5.1 -> 0.4.3)
+      • Installing tomlkit (0.5.11)
+      • Installing walkdir (0.4.1)
+      • Installing et-micc (1.0.12)
+      • Installing numpy (1.19.5)
+      • Installing pybind11 (2.6.1)
+      • Installing et-micc-build (1.0.12)
 
-Note from the last lines in the output that `micc-build <https://github.com/etijskens/et-micc-build>`_,
-which is a companion of Micc_ that encapsulates the machinery for building the binary
-extensions, depends on pybind11_, Numpy_, and on micc_ itself. As a consequence, micc_
-is now also installed in the projects virtual environment. Therefore, when the project's
-virtual environment is activated, the active ``micc`` is the one in the project's virtual
-environment::
+    Installing the current project: ET-dot (0.0.6)
+
+In fact the only dependency added in :file:`pyproject.toml` was micc-build_,
+but that depends on numpy, pybind11 and et-micc, which in turn have their own
+sub-dependencies, all of which are nicely resolved by poetry_ and installed.
+Although micc-build_ also needs CMake_, it is not added as dependency of micc-build_>
+In view of the widespread use of CMake_, it was considered better have a system-wide
+CMake installation (see section :ref:`development-environment`).
+
+The dependency of :file:`et-micc-build` on :file:`et-micc` makes that ``micc`` is now
+also installed in the project's virtual environment. Therefore, when the project's
+virtual environment is activated, the active ``micc`` is the one in the project's
+virtual environment, which might be a more recent version than the system-wide micc::
 
     > source .venv/bin/activate
     (.venv) > which micc
@@ -228,11 +280,14 @@ environment::
     (.venv) >
 
 If you do not want to use poetry_ to install the dependencies, you can lookup the
-dependencies in :file:`pyproject.toml` and run ``pip install`` for each of them.
+dependencies in :file:`pyproject.toml`, see that there is only ``et-micc-build``,
+and run ``pip install et-micc-build`` in the Python environment you want to use
+for your project development. (Using a virtual environment is good practise, see
+:ref:`virtual-environments`).
 
-
-Replace the existing code in the Fortran source
-file :file:`ET-dot/et_dot/f90_dotf/dotf.f90` (using your favourite editor or an IDE) with:
+Let's continue our development of a Fortran version of the dot product. Replace the
+existing code in the Fortran source file :file:`ET-dot/et_dot/f90_dotf/dotf.f90`
+(using your favourite editor or an IDE) with:
 
 .. code-block:: fortran
 
@@ -254,48 +309,52 @@ file :file:`ET-dot/et_dot/f90_dotf/dotf.f90` (using your favourite editor or an 
        end do
    end function dotf
 
-The output of the ``micc add dotf --f90`` command above also shows a warning::
+The binary extension module can now be built by running ``micc-build``. This produces
+a lot of output, most of which is omitted here, except for the build settings discovered
+by CMake_::
 
-    [WARNING]            Dependencies added. Run `poetry update` to update the project's virtual environment.
-
-Micc_ is telling you that it added some dependencies to your project. In order to be able
-to build the binary extension *dotf* these dependencies must be installed in the virtual
-environment of our project. The easy way to do this is by running ``poetry update``, as
-is mentioned in the warning.
-
-
-The binary extension module can now be built::
-
-    (.venv) > micc-build
-    [INFO] [ Building f90 module dotf in directory '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/f90_dotf/build_'
+    [INFO] [ Building f90 module 'dotf':
+    [INFO]           --clean: shutil.removing('/Users/etijskens/software/dev/workspace/ET-dot/et_dot/f90_dotf/_cmake_build').
+    [DEBUG]          [ > cmake -D PYTHON_EXECUTABLE=/Users/etijskens/software/dev/workspace/ET-dot/.venv/bin/python -D CMAKE_BUILD_TYPE=RELEASE ..    ...
     ...
-    [DEBUG]          >>> shutil.copyfile( 'dotf.cpython-37m-darwin.so', '/Users/etijskens/software/dev/workspace/ET-dot/et_dot/dotf.cpython-37m-darwin.so' )
+                       # Build settings ###################################################################################
+                       CMAKE_Fortran_COMPILER: /usr/local/bin/gfortran
+                       CMAKE_BUILD_TYPE      : RELEASE
+                       F2PY_opt              : --opt='-O3'
+                       F2PY_arch             :
+                       F2PY_f90flags         :
+                       F2PY_debug            :
+                       F2PY_defines          : -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION;-DF2PY_REPORT_ON_ARRAY_COPY=1;-DNDEBUG
+                       F2PY_includes         :
+                       F2PY_linkdirs         :
+                       F2PY_linklibs         :
+                       module name           : dotf.cpython-38-darwin.so
+                       module filepath       : /Users/etijskens/software/dev/workspace/ET-dot/et_dot/f90_dotf/_cmake_build/dotf.cpython-38-darwin.so
+                       source                : /Users/etijskens/software/dev/workspace/ET-dot/et_dot/f90_dotf/dotf.f90
+                       python executable     : /Users/etijskens/software/dev/workspace/ET-dot/.venv/bin/python [version=Python 3.8.5]
+                         f2py executable     : /Users/etijskens/software/dev/workspace/ET-dot/.venv/bin/f2py [version=2]
+                       ####################################################################################################
+    ...
+
     [INFO] ] done.
-    [INFO] Check /Users/etijskens/software/dev/workspace/ET-dot/micc-build-f90_dotf.log for details.
-    [INFO] Binary extensions built successfully:
-    [INFO] - ET-dot/et_dot/dotf.cpython-37m-darwin.so
+    [INFO]           Binary extensions built successfully:
+    [INFO]           - /Users/etijskens/software/dev/workspace/ET-dot/et_dot/dotf.cpython-38-darwin.so
     (.venv) >
 
-This command produces a lot of output, most of which is rather uninteresting - except in the
-case of errors. At the end is a summary of all binary extensions that have been built, or
+At the end of the output is a summary of all binary extensions that have been built, or
 failed to build. If the source file does not have any syntax errors, you will see a file like
-:file:`dotf.cpython-37m-darwin.so` in directory :file:`ET-dot/et_dot`::
+:file:`dotf.cpython-38-darwin.so` in directory :file:`ET-dot/et_dot`, Its extension depends on
+the Python version (c.q. 3.8) you are using, and on your operating system (c.q. MacOS).
+
+.. code-block:: bash
 
     (.venv) > ls -l et_dot
     total 8
     -rw-r--r--  1 etijskens  staff  720 Dec 13 11:04 __init__.py
     drwxr-xr-x  6 etijskens  staff  192 Dec 13 11:12 f90_dotf/
-    lrwxr-xr-x  1 etijskens  staff   92 Dec 13 11:12 dotf.cpython-37m-darwin.so@ -> path/to/ET-dot/et_dot/f90_foo/foo.cpython-37m-darwin.so
+    lrwxr-xr-x  1 etijskens  staff   92 Dec 13 11:12 dotf.cpython-38-darwin.so
 
-.. note::
-    The extension of the module :file:`dotf.cpython-37m-darwin.so` will depend on the Python
-    version (c.q. 3.7) you are using, and on your operating system (c.q. MacOS).
-
-We might want to increment the minor component of the version string by now to
-mark the successful build of the Fortran version of the dot product::
-
-    (.venv) > micc version -m
-    [INFO]           (ET-dot)> micc version (0.0.7) -> (0.1.0)
+This file is the binary extension module, which can be imported like any other Python module.
 
 Since our binary extension is built, we can test it. Here is some test code. Enter it in file
 :file:`ET-dot/tests/test_f90_dotf.py`:
@@ -316,16 +375,18 @@ The astute reader will notice the magic that is happening here: *a* is a numpy a
 which is passed as is to our :py:meth:`et_dot.dotf.dotf` function in our binary extension.
 An invisible wrapper function will check the types of the numpy arrays, retrieve pointers
 to the memory of the numpy arrays, as well as the length of the arrays, and feed these
-into our Fortran function, which computes the dot product. The wrapper creates a python
-object and stores the outcome of computation in it, which is finally assigened to the
-Python variable :py:obj:`a_dotf_a. If you look carefully at the output of ``micc-build``,
-you will see information about the wrappers that ``f2py`` constructed.
+into our Fortran function, which computes the dot product. Next, the wrapper creates a
+Python object and stores the outcome of computation in it, which is finally assigened to
+the Python variable :py:obj:`a_dotf_a. If you look carefully at the output of ``micc-build``,
+you will see information about the wrappers that ``f2py`` constructed. These wrappers are
+generated by f2py_ in C code, and thus it needs a C compiler, in addition to the Fortran
+compiler for compilin our :file:`dotf.f90`.
 
-Passing Numpy arrays directly to Fortran routines is extremely productive.
+Passing Numpy arrays directly to Fortran routines is *extremely productive*.
 Many useful Python packages use numpy_ for arrays, vectors, matrices, linear algebra, etc.
-By being able to pass Numpy arrays directly into your own number crunching routines
+Being able to pass Numpy arrays directly into your own number crunching routines
 relieves you from conversion between array types. In addition you can do the memory
-management of your arrays and their initialization in Python.
+management of your arrays and their initialization most conveniently in Python.
 
 As you can see we test the outcome of dotf against the outcome of :py:meth:`numpy.dot`.
 We thrust that outcome, but beware that this test may be susceptible to round-off error
@@ -352,61 +413,170 @@ All our tests passed. Of course we can extend the tests in the same way as we di
 naive Python implementation in the previous tutorial. We leave that as an exercise to the
 reader.
 
-Increment the version string and produce tag::
+Increment the version string and produce a tag::
 
     (.venv) > micc version -p -t
     [INFO]           (ET-dot)> micc version (0.1.0) -> (0.1.1)
     [INFO]           Creating git tag v0.1.1 for project ET-dot
     [INFO]           Done.
 
-.. Note:: If you put your subroutines and functions inside a Fortran module, as in:
+.. _f90-modules:
 
-   .. code-block:: fortran
+2.3.1 Fortran modules [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    If you put your subroutines and functions inside a Fortran module, as in:
 
-      MODULE my_f90_module
+    .. code-block:: fortran
+
+        MODULE my_f90_module
         implicit none
         contains
           function dot(a,b)
             ...
           end function dot
-      END MODULE my_f90_module
+        END MODULE my_f90_module
 
-   then the binary extension module will expose the Fortran module name :py:obj:`my_f90_module`
-   which in turn exposes the function/subroutine names:
+    then f2py will expose the Fortran module name :py:obj:`my_f90_module`
+    which in turn contains the function/subroutine names:
 
-   .. code-block:: Python
+    .. code-block:: Python
 
-      >>> import et_dot
-      >>> a = [1.,2.,3.]
-      >>> b = [2.,2.,2.]
-      >>> et_dot.dot(a,b)
-      >>> AttributeError
-      Module et_dot has no attribute 'dot'.
-      >>> et_dot.my_F90_module.dot(a,b)
-      12.0
+        >>> import et_dot
+        >>> a = [1.,2.,3.]
+        >>> b = [2.,2.,2.]
+        >>> et_dot.dot(a,b) # this is the python version of the dot product
+        12
+        >>> et_dot.dotf.my_F90_module.dotf(a,b)
+        created an array from object
+        created an array from object
+        12.0
 
-   If you are bothered by having to type ``et_dot.my_F90_module.`` every time, use this trick::
+    Note, the ``created an array from object`` warnings that appear when calling the
+    Fortran version of the dot product :py:obj:`dotf`. As :py:obj:`a` and :py:obj:`b` are
+    Python lists and not numpy arrays, the wrapper of ``dotf`` that was created by f2py_
+    has performed a conversion. Though this is sometimes practical, it comes at a cost:
+    a numpy array has to be created and the data in the :py:obj:`lists` are copied to
+    the numpy array which is passed to the Fortran function. When the computation is
+    done the numpy arrays are destroyed. Micc_ instructs f2py_ to issue warnings when
+    potentially expensensive copy operations are performed by specifying the
+    ``F2PY_REPORT_ON_ARRAY_COPY=1`` flag (see the build settings in the output of the
+    ``micc-build`` command.
 
-      >>> import et_dot
-      >>> f90 = et_dot.my_F90_module
-      >>> f90.dot(a,b)
-      12.0
-      >>> fdot = et_dot.my_F90_module.dot
-      >>> fdot(a,b)
-      12.0
+    If you are bothered by having to type ``et_dot.dotf.my_f90_module.`` every time,
+    use this Python trick, which creates an alias for the Fortran object
+    ``et_dot.dotf.my_f90_module``:
 
-2.3 Building binary extensions from C++
+    .. code-block:: Python
+
+        >>> import et_dot
+        >>> f90 = et_dot.dotf.my_f90_module
+        >>> f90.dotf(a,b)
+        12.0
+
+    You can eve create an alias for the :py:obj:`dotf` function itself:
+
+    .. code-block:: Python
+
+        >>> import et_dot
+        >>> dotf = et_dot.dotf.my_f90_module.dotf
+        >>> dotf(a,b)
+        12.0
+
+.. _control-build-f90:
+
+2.3.2 Controlling the build [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    The build parameters for our Fortran binary extension module are detailed in
+    the file :file:`et_dot/f90_dotf/CMakeLists.txt`. It is a rather lengthy file,
+    but most of it is boilerplate code which you should not need to touch. The
+    boilerplate sections are clearly marked. By default this file specifies that
+    a release version is to be built. The file documents a set of CMake variables
+    that can be used to control the build type:
+
+    * CMAKE_BUILD_TYPE : DEBUG | MINSIZEREL | RELEASE* | RELWITHDEBINFO
+    * F2PY_noopt : turn off optimization options
+    * F2PY_noarch : turn off architecture specific optimization options
+    * F2PY_f90flags : additional compiler options
+    * F2PY_arch : architecture specific optimization options
+    * F2PY_opt : optimization options
+
+    In addition you can specify
+
+    * preprocessor macro definitions
+    * include directories
+    * link directories
+    * link libraries
+
+    Here are the sections of :file:`CMakeLists.txt` to control the build. Uncomment
+    the parts you need and modify them to your needs.
+
+    .. code-block:: cmake
+
+        ...
+        # Set the build type:
+        #  - If you do not specify a build type, it is RELEASE by default.
+        #  - Note that the DEBUG build type will trigger f2py's '--noopt --noarch --debug' options.
+        # set(CMAKE_BUILD_TYPE DEBUG | MINSIZEREL | RELEASE | RELWITHDEBINFO)
+
+        #<< begin boilerplate code
+            ...
+        #>> end boilerplate code
+
+        ##################################################################################
+        ####################################################### Customization section ####
+        # Specify compiler options #######################################################
+        # Uncomment to turn off optimization:
+        # set(F2PY_noopt 1)
+
+        # Uncomment to turn off architecture specific optimization:
+        # set(F2PY_noarch 1)
+
+        # Set additional f90 compiler flags:
+        # set(F2PY_f90flags your_flags_here)
+
+        # Set architecture specific optimization compiler flags:
+        # set(F2PY_arch your_flags_here)
+
+        # Overwrite optimization flags
+        # set(F2PY_opt your_flags_here)
+
+        # Add preprocessor macro definitions ###############################################################
+        # add_compile_definitions(
+        #     OPENFOAM=1912                     # set value
+        #     WM_LABEL_SIZE=$ENV{WM_LABEL_SIZE} # set value from environment variable
+        #     WM_DP                             # just define the macro
+        # )
+
+        # Add include directories ##########################################################################
+        # include_directories(
+        #     path/to/dir1
+        #     path/to/dir2
+        # )
+
+        # Add link directories #############################################################################
+        # link_directories(
+        #     path/to/dir1
+        # )
+
+        # Add link libraries (lib1 -> liblib1.so) ##########################################################
+        # link_libraries(
+        #     lib1
+        #     lib2
+        # )
+        ####################################################################################################
+
+        # only boilerplate code below
+        ...
+
+.. _building-cpp:
+
+2.4 Building binary extensions from C++
 ---------------------------------------
 To illustrate building binary extension modules from C++ code, let us also create a
 C++ implementation for the dot product. Such modules are called *cpp modules*.
 Analogously to our :py:mod:`dotf` module we will call the cpp module :py:mod:`dotc`,
 the ``c`` referring to C++.
-
-.. note::
-    To add binary extension modules to a project, it must have a package structure.
-    To check, you may run the ``micc info`` command and verify the structure line.
-    If it mentions ``Python module``, you must convert the structure by running
-    ``micc convert-to-package --overwrite``. See :ref:`modules-and-packages` for details.
 
 Use the ``micc add`` command to add a cpp module:
 
@@ -417,44 +587,22 @@ Use the ``micc add`` command to add a cpp module:
     [INFO]               - C++ source in           ET-dot/et_dot/cpp_dotc/dotc.cpp.
     [INFO]               - module documentation in ET-dot/et_dot/cpp_dotc/dotc.rst (in restructuredText format).
     [INFO]               - Python test code in     ET-dot/tests/test_cpp_dotc.py.
-    [WARNING]            Dependencies added. Run \'poetry update\' to update the project\'s virtual environment.
     [INFO]           ] done.
 
 The output explains you where to add the C++ source code, the test code and the
-documentation.  First take care of the warning::
+documentation.  Note that this time there is no warning about dependencies being
+added, because we took already care of that when we added the Fortran module
+:py:mod:`dotf` above (see :ref:`build-f90`).
 
-    (.venv) > poetry update
-    Updating dependencies
-    Resolving dependencies... (1.7s)
-    No dependencies to install or update
-
-Typically, there will be nothing to install, because micc-build_ was already installed when
-we added the Fortran module :py:mod:`dotf` (see `2.2 Building binary extensions from Fortran`_).
-Sometimes one of the packages you depend on may just have seen a new release and poetry_ will
-perform an upgrade::
-
-    (.venv) > poetry update
-    Updating dependencies
-    Resolving dependencies... (1.6s)
-    Writing lock file
-    Package operations: 0 installs, 1 update, 0 removals
-      - Updating zipp (0.6.0 -> 1.0.0)
-    (.venv) >
-
-Micc_ uses pybind11_ to create Python wrappers for C++ functions. This
+Micc_ uses pybind11_ to create wrappers for C++ functions. This
 is by far the most practical choice for this (see
 https://channel9.msdn.com/Events/CPP/CppCon-2016/CppCon-2016-Introduction-to-C-python-extensions-and-embedding-Python-in-C-Apps
 for a good overview of this topic). It has a lot of 'automagical' features, and
-it has a header-only C++ library - so, thus effectively preventing installation problems.
+it is a header-only C++ library.
 `Boost.Python <https://www.boost.org/doc/libs/1_70_0/libs/python/doc/html/index.html>`_
 offers very similar features, but is not header-only and its library depends on
-the python version you want to use - so you need a different library for every
+the python version you want to use - so you need a build a  different library for every
 Python version you want to use.
-
-This is a good point to increment the minor component of the version string::
-
-    (.venv) > micc version -m
-    [INFO]           (ET-dot)> micc version (0.1.1) -> (0.2.0)
 
 Enter this code in the C++ source file :file:`ET-dot/et_dot/cpp_dotc/dotc.cpp`
 
@@ -492,7 +640,8 @@ Enter this code in the C++ source file :file:`ET-dot/et_dot/cpp_dotc/dotc.cpp`
    }
 
    // describe what goes in the module
-   PYBIND11_MODULE(dotc, m)
+   PYBIND11_MODULE(dotc, m) // m is variable, holding the module description
+                            // dotc is the module's name
    {// optional module docstring:
        m.doc() = "pybind11 dotc plugin";
     // list the functions you want to expose:
@@ -502,10 +651,10 @@ Enter this code in the C++ source file :file:`ET-dot/et_dot/cpp_dotc/dotc.cpp`
 
 Obviously the C++ source code is more involved than its Fortran equivalent in the
 previous section. This is because f2py_ is a program performing clever introspection
-into the Fortran source code, whereas pybind11_ is nothing but a C++ template library.
+into the Fortran source code, whereas pybind11_ is "nothing" but a C++ template library.
 As such it is not capable of introspection and the user is obliged to use
-`pybind11 <https://pybind11.readthedocs.io/>`_ for accessing the arguments passed in
-by Python.
+pybind11_ for accessing the arguments passed in by Python. At the cost of being more
+verbose, it is more flexible.
 
 We can now build the module. Because we do not want to rebuild the :py:mod:`dotf` module
 we add ``-m dotc`` to the command line, to indicate that only module :py:mod:`dotc` must
@@ -553,18 +702,18 @@ The output shows that first ``CMake`` is called, followed by ``make`` and the in
 of the binary extension with a soft link. Finally, lists of modules that have been built
 successfully, and modules that failed to build are output.
 
-As usual the ``micc-build`` command produces a lot of output, most of which is rather uninteresting
-- except in the case of errors. If the source file does not have any syntax errors, and the build
-did not experience any problems, you will see a file like :file:`dotf.cpython-37m-darwin.so` in
-directory :file:`ET-dot/et_dot`::
+As for the Fortran case, the ``micc-build`` command produces a lot of output, most of
+which is rather uninteresting - except in the case of errors. If the source file does
+not have any syntax errors, and the build did not experience any problems, you will
+see a file like :file:`dotf.cpython-38-darwin.so` in directory :file:`ET-dot/et_dot`::
 
     (.venv) > ls -l et_dot
     total 8
     -rw-r--r--  1 etijskens  staff  1339 Dec 13 14:40 __init__.py
     drwxr-xr-x  4 etijskens  staff   128 Dec 13 14:29 __pycache__/
     drwxr-xr-x  7 etijskens  staff   224 Dec 13 14:43 cpp_dotc/
-    lrwxr-xr-x  1 etijskens  staff    93 Dec 13 14:43 dotc.cpython-37m-darwin.so@ -> /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/cpp_dotc/dotc.cpython-37m-darwin.so
-    lrwxr-xr-x  1 etijskens  staff    94 Dec 13 14:27 dotf.cpython-37m-darwin.so@ -> /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/f2py_dotf/dotf.cpython-37m-darwin.so
+    lrwxr-xr-x  1 etijskens  staff    93 Dec 13 14:43 dotc.cpython-38-darwin.so
+    lrwxr-xr-x  1 etijskens  staff    94 Dec 13 14:27 dotf.cpython-38-darwin.so
     drwxr-xr-x  6 etijskens  staff   192 Dec 13 14:43 f90_dotf/
     (.venv) >
 
@@ -619,151 +768,175 @@ create a tag::
     [INFO] Creating git tag v0.3.0 for project ET-dot
     [INFO] Done.
 
-2.4 Data type issues
+
+
+.. _data-types:
+
+2.5 Data type issues
 --------------------
 
-An important point of attention when writing binary extension modules - and a
-common source of problems - is that the data types of the variables passed in from
-Python must match the data types of the Fortran or C++ routines.
+When interfacing several programming languages data types require special care.
 
-Here is a table with the most relevant numeric data types in Python, Fortran and C++.
+.. _corresponding-data-types
 
-================  ============   =========   ====================
-kind              Numpy/Python   Fortran     C++
-================  ============   =========   ====================
-unsigned integer  uint32         N/A         signed long int
-unsigned integer  uint64         N/A         signed long long int
-signed integer    int32          integer*4   signed long int
-signed integer    int64          integer*8   signed long long int
-floating point    float32        real*4      float
-floating point    float64        real*8      double
-complex           complex64      complex*4   std::complex<float>
-complex           complex128     complex*8   std::complex<double>
-================  ============   =========   ====================
+2.5.1 Corresponding data types [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-F2py
-^^^^
-F2py_ is very flexible with respect to data types. In between the
-Fortran routine and Python call is a wrapper function which translates the
-function call, and if it detects that the data type on the Python sides and
-the Fortran sideare different, the wrapper function is allowed to copy/convert
-the variable when passing it to Fortran routine both, and also when passing the
-result back from the Fortran routine to the Python caller. When the input/output
-variables are large arrays copy/conversion operations can have a detrimental
-effect on performance and this is in HPC highly undesirable. Micc_ runs f2py_ with
-the ``-DF2PY_REPORT_ON_ARRAY_COPY=1`` option. This causes your code to produce a
-warning everytime the wrapper decides to copy an array. Basically, this warning
-means that you have to modify your Python data structure to have the same data
-type as the Fortran source code, or vice versa.
+    An important point of attention when writing binary extension modules - and a
+    common source of problems - is that the data types of the variables passed in from
+    Python must match the data types of the Fortran or C++ routines.
 
-Returning large data structures
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The result of a Fortran function and a C++ function is **always** copied back to the
-Python variable that will hold it. As copying large data structures is detrimental
-to performance this shoud be avoided. The solution to this problem is to write
-Fortran functions or subroutines and C++ functions that accept the result variable
-as an argument and modify it in place, so that the copy operaton is avoided. Consider
-this example of a Fortran subroutine that computes the sum of two arrays.
-are some examples of array addition:
+    Here is a table with the most relevant numeric data types in Python, Fortran and C++.
 
-.. code-block:: fortran
+    ================  ============   =========   ====================
+    data type         Numpy/Python   Fortran     C++
+    ================  ============   =========   ====================
+    unsigned integer  uint32         N/A         signed long int
+    unsigned integer  uint64         N/A         signed long long int
+    signed integer    int32          integer*4   signed long int
+    signed integer    int64          integer*8   signed long long int
+    floating point    float32        real*4      float
+    floating point    float64        real*8      double
+    complex           complex64      complex*4   std::complex<float>
+    complex           complex128     complex*8   std::complex<double>
+    ================  ============   =========   ====================
 
-   subroutine add(a,b,sumab,n)
-     ! Compute the sum of arrays a and b and overwrite array sumab with the result
-       implicit none
+    If there is automatic conversion between two data types in Python, e.g. from
+    ``float32`` to ``float64`` the wrappers around our function will perform the
+    conversion automatically. This happens both for Fortran and C++. However, this
+    comes with the cost of copying and converting, which is sometimes not acceptable.
 
-       integer*4              , intent(in)    :: n
-       real*8   , dimension(n), intent(in)    :: a,b
-       real*8   , dimension(n), intent(inout) :: sumab
+.. _return-large:
 
-     ! declare local variables
-       integer*4 :: i
+2.5.2 Returning large data structures [advanced]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    The result of a Fortran function and a C++ function in a binary extension module
+    is **always** copied back to the Python variable that will hold it. As copying
+    large data structures is detrimental to performance this shoud be avoided.
+    The solution to this problem is to write Fortran functions or subroutines and C++
+    functions that accept the result variable as an argument and modify it in place,
+    so that the copy operaton is avoided. Consider this example of a Fortran subroutine
+    that computes the sum of two arrays.
 
-       do i=1,n
-           sumab(i) = a(i) + b(i)
-       end do
-   end subroutine add
+    .. code-block:: fortran
 
-The crucial issue here is that the result array *sumab* has ``intent(inout)``. If
-you qualify the intent of *sumab* as ``in`` you will not be able to overwrite it,
-whereas - surprisingly - qualifying it with ``intent(out)`` will force f2py to consider
-it as a left hand side variable, which implies copying the result on returning.
+       subroutine add(a,b,sumab,n)
+         ! Compute the sum of arrays a and b and overwrite array sumab with the result
+           implicit none
 
-The code below does exactly the same but uses a function, not to return the result
-of the computation, but an error code.
+           integer*4              , intent(in)    :: n
+           real*8   , dimension(n), intent(in)    :: a,b
+           real*8   , dimension(n), intent(inout) :: sumab
 
-.. code-block:: fortran
+         ! declare local variables
+           integer*4 :: i
 
-   function add(a,b,sumab,n)
-     ! Compute the sum of arrays a and b and overwrite array sumab with the result
-       implicit none
+           do i=1,n
+               sumab(i) = a(i) + b(i)
+           end do
+       end subroutine add
 
-       integer*4              , intent(in)    :: n,add
-       real*8   , dimension(n), intent(in)    :: a,b
-       real*8   , dimension(n), intent(inout) :: sumab
+    The crucial issue here is that the result array ``sumab``*`` has ``intent(inout)``,
+    meaning that the ``add`` function has both read and write access to it. If
+    you qualify the intent of *sumab* as ``in`` you will not be able to overwrite it. That
+    is, obviously ok for the input parameters ``a`` and ``b``. On the other hand and rather
+    surprisingly, qualifying it with ``intent(out)`` forces f2py_ to consider the
+    variable as a left hand side variable and define a wrapper like:
 
-     ! declare local variables
-       integer*4 :: i
+    .. code-block:: c
 
-       do i=1,n
-           sumab(i) = a(i) + b(i)
-       end do
+        sumab = wrapper_add(a,b)
 
-       add = ... ! set return value, e.g. an error code.
+    and, consequently, imply copying of the result variable.
+    While ``intent(out)`` would certainly ok in Fortran-only code, and the semantics of
+    the f2py_ interpretation is certainly correct, copying the result variable may have
+    unwanted an performance impact.
 
-   end function add
+    So, the general advice is: use functions to return only variables of small size, like
+    single number, or a tuple, maybe even a small fixed size array, but certainly not a
+    large array. If you have result variables of large size, compute them in place in
+    parameters with ``intent(inout)``. If there is no useful small variable to return,
+    use a subroutine instead of a function.
 
-The same can be accomplished in C++:
+    It is often useful to have functions return an error code, or the CPU time the
+    computation used, as in the code below:
 
-.. code-block:: c++
+    .. code-block:: fortran
 
-   #include <pybind11/pybind11.h>
-   #include <pybind11/numpy.h>
+       function add(a,b,sumab,n)
+         ! Compute the sum of arrays a and b and overwrite array sumab with the result
+         ! Return the CPU time consumed in seconds.
+           implicit none
 
-   namespace py = pybind11;
+           integer*4              , intent(in)    :: n,add
+           real*8   , dimension(n), intent(in)    :: a,b
+           real*8   , dimension(n), intent(inout) :: sumab
 
-   void
-   add ( py::array_t<double> a
-       , py::array_t<double> b
-       , py::array_t<double> sumab
-       )
-   {// request buffer description of the arguments
-       auto buf_a = a.request()
-          , buf_b = b.request()
-          , buf_sumab = sumab.request()
-          ;
-       if( buf_a.ndim != 1
-        || buf_b.ndim != 1
-        || buf_sumab.ndim != 1 )
-       {
-           throw std::runtime_error("Number of dimensions must be one");
+         ! declare local variables
+           integer*4 :: i
+           real*8 :: start, finish
+
+           call cpu_time(start)
+             do i=1,n
+               sumab(i) = a(i) + b(i)
+             end do
+           call cpu_time(finish)
+
+           add = finish-start
+
+       end function add
+
+    The same can be accomplished in C++:
+
+    .. code-block:: c++
+
+       #include <pybind11/pybind11.h>
+       #include <pybind11/numpy.h>
+
+       namespace py = pybind11;
+
+       void
+       add ( py::array_t<double> a
+           , py::array_t<double> b
+           , py::array_t<double> sumab
+           )
+       {// request buffer description of the arguments
+           auto buf_a = a.request()
+              , buf_b = b.request()
+              , buf_sumab = sumab.request()
+              ;
+           if( buf_a.ndim != 1
+            || buf_b.ndim != 1
+            || buf_sumab.ndim != 1 )
+           {
+               throw std::runtime_error("Number of dimensions must be one");
+           }
+
+           if( (buf_a.shape[0] != buf_b.shape[0])
+            || (buf_a.shape[0] != buf_sumab.shape[0]) )
+           {
+               throw std::runtime_error("Input shapes must match");
+           }
+        // because the Numpy arrays are mutable by default, py::array_t is mutable too.
+        // Below we declare the raw C++ arrays for a and b as const to make their intent clear.
+           double const *ptr_a     = static_cast<double const *>(buf_a.ptr);
+           double const *ptr_b     = static_cast<double const *>(buf_b.ptr);
+           double       *ptr_sumab = static_cast<double       *>(buf_sumab.ptr);
+
+           for (size_t i = 0; i < buf_a.shape[0]; i++)
+               ptr_sumab[i] = ptr_a[i] + ptr_b[i];
        }
 
-       if( (buf_a.shape[0] != buf_b.shape[0])
-        || (buf_a.shape[0] != buf_sumab.shape[0]) )
-       {
-           throw std::runtime_error("Input shapes must match");
+
+       PYBIND11_MODULE({{ cookiecutter.module_name }}, m)
+       {// optional module doc-string
+           m.doc() = "pybind11 {{ cookiecutter.module_name }} plugin"; // optional module docstring
+        // list the functions you want to expose:
+        // m.def("exposed_name", function_pointer, "doc-string for the exposed function");
+           m.def("add", &add, "A function which adds two arrays 'a' and 'b' and stores the result in the third, 'sumab'.");
        }
-    // because the Numpy arrays are mutable by default, py::array_t is mutable too.
-    // Below we declare the raw C++ arrays for a and b as const to make their intent clear.
-       double const *ptr_a     = static_cast<double const *>(buf_a.ptr);
-       double const *ptr_b     = static_cast<double const *>(buf_b.ptr);
-       double       *ptr_sumab = static_cast<double       *>(buf_sumab.ptr);
 
-       for (size_t i = 0; i < buf_a.shape[0]; i++)
-           ptr_sumab[i] = ptr_a[i] + ptr_b[i];
-   }
-
-
-   PYBIND11_MODULE({{ cookiecutter.module_name }}, m)
-   {// optional module doc-string
-       m.doc() = "pybind11 {{ cookiecutter.module_name }} plugin"; // optional module docstring
-    // list the functions you want to expose:
-    // m.def("exposed_name", function_pointer, "doc-string for the exposed function");
-       m.def("add", &add, "A function which adds two arrays 'a' and 'b' and stores the result in the third, 'sumab'.");
-   }
-
-Here, care must be taken that when casting ``buf_sumab.ptr`` one does not cast to const.
+    Here, care must be taken that when casting ``buf_sumab.ptr`` one does not cast to const.
 
 2.5 Specifying compiler options for binary extension modules
 ------------------------------------------------------------
@@ -801,39 +974,6 @@ To perform a clean build, add the ``--clean`` flag to the ``micc build`` command
 
 This will remove the previous build directory and as well as the binary extension
 module.
-
-Controlling the build of f90 modules
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-To specify the Fortran compiler, e.g. the GNU fortran compiler:
-
-.. code-block::
-
-   > micc-build --f90exec path/to/gfortran
-
-Note, that this exactly how you would have specified it using f2py_ directly.
-You can specify the Fortran compiler options you want using the ``--f90flags``
-option:
-
-.. code-block::
-
-   > micc-build --f90flags "string with all my favourit options"
-
-In addition f2py_ (and ``micc-build`` for that matter) provides two extra options
-``--opt`` for specifying optimization flags, and ``--arch`` for specifying architecture
-dependent optimization flags. These flags can be turned off by adding ``--noopt`` and
-``--noarch``, respectively. This can be convenient when exploring compile options.
-Finally, the ``--debug`` flag adds debug information during the compilation.
-
-``Micc_ build`` also provides a ``--build-type`` options which accepts ``release`` and
-``debug`` as value (case insensitive). Specifying ``debug`` is equivalent to
-``--debug --noopt --noarch``.
-
-.. note:: ALL f90 modules are built with the same options. To specify separate options
-   for a particular module use the ``-m|--module`` option.
-
-.. note:: Although there are some commonalities between the compiler options of the
-   various compilers, you will most probably have to change the compiler options when
-   you change the compiler.
 
 Controlling the build of cpp modules
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

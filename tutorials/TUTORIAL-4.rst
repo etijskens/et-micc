@@ -1,6 +1,8 @@
 Tutorial 4: Version control and version management
 ==================================================
 
+.. _git-support:
+
 4.1 Git support
 ---------------
 When you create a new project, Micc_ immediately provides a local git_ repository for 
@@ -24,6 +26,8 @@ before you create the project, the new project will be immediately pushed onto
 the remote origin. Otherwise, you get a warning that the remote repository does not
 yet exist. You can create the remote repository whenever you like and push your work
 onto the remote repository using the git_ CLI. 
+
+.. _version-management:
 
 4.2 Version management
 ----------------------

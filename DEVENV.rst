@@ -1,3 +1,5 @@
+.. _pip: https://pypi.org/project/pip/
+
 Principles
 ----------
 
@@ -9,7 +11,7 @@ working well, and then I port the code to the cluster for further testing. I swi
 forth between both environments several times.
 
 There are important differences in managing your environment on your local machine and on the
-cluster. They are described in detail in :ref:`Tutorial-cluster`_.
+cluster. They are described in detail in :ref:`Tutorial-cluster`.
 
 .. warning:: `Micc <https://github.com/etijskens/et-micc>`_ was designed for supporting HPC
     developers, and, consequentially, with Linux systems in mind. We provide support for Linux

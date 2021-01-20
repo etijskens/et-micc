@@ -516,7 +516,7 @@ If there is already a ``boost`` subdirectory::
    
 ... on Linux this works fine. On my Mac however I keep running into problems.
 
-While googling for a solution, I came across `pybind11 <https://github.com/pybind/pybind11>`_.
+While googling for a solution, I came across pybind11.
 These sections in the readme makes me particularly curious:
 
 * pybind11 is a lightweight header-only library that exposes C++ types in 
