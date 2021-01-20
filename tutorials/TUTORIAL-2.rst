@@ -13,11 +13,11 @@ Tutorial 2: Binary extensions
     * :ref:`f90-modules`
     * :ref:`control-build-f90`
     * :ref:`building-cpp`
+    * :ref:`control-build-cpp`
     * :ref:`data-types`
     * :ref:`corresponding-data-types`
     * :ref:`return-large`
-    * :ref:``
-    * :ref:``
+    * :ref:`document-binext`
 
 .. _intro-HPPython:
 
@@ -361,15 +361,18 @@ Since our binary extension is built, we can test it. Here is some test code. Ent
 
 .. code-block:: python
 
-   # import the binary extension and rename the module locally as f90
-   import et_dot.dotf as f90
-   import numpy as np
+    import numpy as np
+    # import the binary extension and rename the module locally as f90
+    import et_dot
+    #create alias to dotf binary extension module
+    f90 = et_dot.dotf
 
-   def test_dotf_aa():
-       a = np.array([0,1,2,3,4],dtype=np.float)
-       expected = np.dot(a,a)
-       a_dotf_a = f90.dotf(a,a)
-       assert a_dotf_a==expected
+    def test_dotf_aa():
+        a = np.array([0,1,2,3,4],dtype=np.float)
+        expected = np.dot(a,a)
+        # call the dotf function in the binary extension module:
+        a_dotf_a = f90.dotf(a,a)
+        assert a_dotf_a==expected
 
 The astute reader will notice the magic that is happening here: *a* is a numpy array,
 which is passed as is to our :py:meth:`et_dot.dotf.dotf` function in our binary extension.
@@ -413,18 +416,34 @@ All our tests passed. Of course we can extend the tests in the same way as we di
 naive Python implementation in the previous tutorial. We leave that as an exercise to the
 reader.
 
-Increment the version string and produce a tag::
+The way in which we accessed the binary extension module in the test code:
 
-    (.venv) > micc version -p -t
-    [INFO]           (ET-dot)> micc version (0.1.0) -> (0.1.1)
-    [INFO]           Creating git tag v0.1.1 for project ET-dot
-    [INFO]           Done.
+.. code-block:: python
+
+    import et_dot
+    #create alias to dotf binary extension module
+    f90 = et_dot.dotf
+
+is only possible because micc_ has taken care for us that the file :file:`et_dot/__init__.py`
+imports the binary extension module :file:`dotf`:
+
+.. code-block:: python
+
+    import et_dot.dotf
+
+In fact, micc_ added a little magic to automatically build the binary extension module
+if it cannot be found.
 
 .. _f90-modules:
 
 2.3.1 Fortran modules [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    If you put your subroutines and functions inside a Fortran module, as in:
+    This may be a bit confusing, as we have been talking about Python modules, so far.
+    Fortran also has *modules*, to group things that belong together. So, these modules
+    are something different than the binary extension modules written in Fortran, which
+    are in fact Python modules.
+    If you put your subroutines and functions inside a Fortran module, that is in a
+    ``MODULE/END MODULE`` block, as in:
 
     .. code-block:: fortran
 
@@ -592,7 +611,7 @@ Use the ``micc add`` command to add a cpp module:
 The output explains you where to add the C++ source code, the test code and the
 documentation.  Note that this time there is no warning about dependencies being
 added, because we took already care of that when we added the Fortran module
-:py:mod:`dotf` above (see :ref:`build-f90`).
+:py:mod:`dotf` above (see :ref:`building-f90`).
 
 Micc_ uses pybind11_ to create wrappers for C++ functions. This
 is by far the most practical choice for this (see
@@ -660,43 +679,36 @@ We can now build the module. Because we do not want to rebuild the :py:mod:`dotf
 we add ``-m dotc`` to the command line, to indicate that only module :py:mod:`dotc` must
 be built::
 
-   (.venv)> micc build -m dotc
+
+    (.venv) > micc build -m dotc
     [INFO] [ Building cpp module 'dotc':
-    [DEBUG]          [ > cmake -D PYTHON_EXECUTABLE=/Users/etijskens/software/dev/workspace/tmp/ET-dot/.venv/bin/python -D pybind11_DIR=/Users/etijskens/software/dev/workspace/tmp/ET-dot/.venv/lib/python3.7/site-packages/et_micc_build/cmake_tools -D CMAKE_BUILD_TYPE=RELEASE ..
+    [DEBUG]          [ > cmake -D PYTHON_EXECUTABLE=/Users/etijskens/software/dev/workspace/ET-dot/.venv/bin/python -D pybind11_DIR=/Users/etijskens/software/dev/workspace/ET-dot/.venv/lib/python3.8/site-packages/pybind11/share/cmake/pybind11 -D CMAKE_BUILD_TYPE=RELEASE ..
     [DEBUG]              (stdout)
-                           -- The CXX compiler identification is AppleClang 11.0.0.11000033
-                           -- Check for working CXX compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
-                           -- Check for working CXX compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -- works
-                           -- Detecting CXX compiler ABI info
-                           -- Detecting CXX compiler ABI info - done
-                           -- Detecting CXX compile features
-                           -- Detecting CXX compile features - done
-                           -- Found PythonInterp: /Users/etijskens/software/dev/workspace/tmp/ET-dot/.venv/bin/python (found version "3.7.5")
-                           -- Found PythonLibs: /Users/etijskens/.pyenv/versions/3.7.5/lib/libpython3.7m.a
-                           -- Performing Test HAS_CPP14_FLAG
-                           -- Performing Test HAS_CPP14_FLAG - Success
-                           -- Performing Test HAS_FLTO
-                           -- Performing Test HAS_FLTO - Success
-                           -- LTO enabled
+                           -- Found pybind11: /Users/etijskens/software/dev/workspace/ET-dot/.venv/lib/python3.8/site-packages/pybind11/include (found version "2.6.1" )
                            -- Configuring done
                            -- Generating done
-                           -- Build files have been written to: /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/cpp_dotc/_cmake_build
+                           -- Build files have been written to: /Users/etijskens/software/dev/workspace/ET-dot/et_dot/cpp_dotc/_cmake_build
+    [DEBUG]              (stderr)
+                           pybind11_DIR : /Users/etijskens/software/dev/workspace/ET-dot/.venv/lib/python3.8/site-packages/pybind11/share/cmake/pybind11
     [DEBUG]          ] done.
     [DEBUG]          [ > make
     [DEBUG]              (stdout)
                            Scanning dependencies of target dotc
                            [ 50%] Building CXX object CMakeFiles/dotc.dir/dotc.cpp.o
-                           [100%] Linking CXX shared module dotc.cpython-37m-darwin.so
+                           [100%] Linking CXX shared module dotc.cpython-38-darwin.so
                            [100%] Built target dotc
     [DEBUG]          ] done.
-    [DEBUG]          >>> os.remove(/Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/cpp_dotc/dotc.cpython-37m-darwin.so)
-    [DEBUG]          >>> shutil.copyfile( '/Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/cpp_dotc/_cmake_build/dotc.cpython-37m-darwin.so', '/Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/cpp_dotc/dotc.cpython-37m-darwin.so' )
-    [DEBUG]          [ > ln -sf /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/cpp_dotc/dotc.cpython-37m-darwin.so /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/cpp_dotc/dotc.cpython-37m-darwin.so
+    [DEBUG]          [ > make install
+    [DEBUG]              (stdout)
+                           [100%] Built target dotc
+                           Install the project...
+                           -- Install configuration: "RELEASE"
+                           -- Installing: /Users/etijskens/software/dev/workspace/ET-dot/et_dot/cpp_dotc/../dotc.cpython-38-darwin.so
     [DEBUG]          ] done.
     [INFO] ] done.
     [INFO]           Binary extensions built successfully:
-    [INFO]           - /Users/etijskens/software/dev/workspace/tmp/ET-dot/et_dot/dotc.cpython-37m-darwin.so
-    (.venv)   >
+    [INFO]           - /Users/etijskens/software/dev/workspace/ET-dot/et_dot/dotc.cpython-38-darwin.so
+    (.venv) >
 
 The output shows that first ``CMake`` is called, followed by ``make`` and the installation
 of the binary extension with a soft link. Finally, lists of modules that have been built
@@ -705,7 +717,8 @@ successfully, and modules that failed to build are output.
 As for the Fortran case, the ``micc-build`` command produces a lot of output, most of
 which is rather uninteresting - except in the case of errors. If the source file does
 not have any syntax errors, and the build did not experience any problems, you will
-see a file like :file:`dotf.cpython-38-darwin.so` in directory :file:`ET-dot/et_dot`::
+also see a file like :file:`dotc.cpython-38-darwin.so` in directory :file:`ET-dot/et_dot`,
+which is the binary extension module that we can import in Python::
 
     (.venv) > ls -l et_dot
     total 8
@@ -717,26 +730,23 @@ see a file like :file:`dotf.cpython-38-darwin.so` in directory :file:`ET-dot/et_
     drwxr-xr-x  6 etijskens  staff   192 Dec 13 14:43 f90_dotf/
     (.venv) >
 
-.. note:: The extension of the module :file:`dotc.cpython-37m-darwin.so`
+.. note:: The extension of the module :file:`dotc.cpython-38-darwin.so`
    will depend on the Python version you are using, and on the operating system.
-
-Although we haven't tested :py:mod:`dotc`, this is a good point to increment the version
-string::
-
-    (.venv) > micc version -p
-    [INFO]           (ET-dot)> micc version (0.2.0) -> (0.2.1)
 
 Here is the test code. It is almost exactly the same as that for the f90 module :py:mod:`dotf`,
 except for the module name. Enter the test code in :file:`ET-dot/tests/test_cpp_dotc.py`:
 
 .. code-block:: python
 
-   import et_dot.dotc as cpp    # import the binary extension
    import numpy as np
+   import et_dot
+   # create alias to dotc binary extension module:
+   cpp = et_dot.dotc
 
    def test_dotc_aa():
        a = np.array([0,1,2,3,4],dtype=np.float)
        expected = np.dot(a,a)
+       # call function dotc in the binary extension module:
        a_dotc_a = cpp.dotc(a,a)
        assert a_dotc_a==expected
 
@@ -761,14 +771,56 @@ Finally, run pytest:
 
    ============================== 9 passed in 0.28 seconds ==============================
 
-All our tests passed, which is a good reason to increment the version string and
-create a tag::
+.. _control-build-cpp:
 
-    (.venv) > micc version -m -t
-    [INFO] Creating git tag v0.3.0 for project ET-dot
-    [INFO] Done.
+2.4.1 Controlling the build [intermediate]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+    The build parameters for our C++ binary extension module are detailed in
+    the file :file:`et_dot/cpp_dotc/CMakeLists.txt`. It contains significantly
+    less boilerplate code (which you should not need to touch), and provides
+    the same functionality as its counterpart for Fortran binary extension
+    modules. By default this file specifies that a release version is to be built.
+    Here is the section of :file:`et_dot/cpp_dotc/CMakeLists.txt` that you might
+    want to adjust to your needs:
 
+    .. code-block:: cmake
+
+        ###############################################################################
+        #################################################### Customization section ####
+        # set compiler:
+        # set(CMAKE_CXX_COMPILER path/to/executable)
+
+        # Set build type:
+        # set(CMAKE_BUILD_TYPE DEBUG | MINSIZEREL | RELEASE | RELWITHDEBINFO)
+
+        # Add compiler options:
+        # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} <additional C++ compiler options>")
+
+        # Add preprocessor macro definitions:
+        # add_compile_definitions(
+        #     OPENFOAM=1912                     # set value
+        #     WM_LABEL_SIZE=$ENV{WM_LABEL_SIZE} # set value from environment variable
+        #     WM_DP                             # just define the macro
+        # )
+
+        # Add include directories
+        #include_directories(
+        #     path/to/dir1
+        #     path/to/dir2
+        # )
+
+        # Add link directories
+        # link_directories(
+        #     path/to/dir1
+        # )
+
+        # Add link libraries (lib1 -> liblib1.so)
+        # link_libraries(
+        #     lib1
+        #     lib2
+        # )
+        ####################################################################################################
 
 .. _data-types:
 
@@ -777,7 +829,7 @@ create a tag::
 
 When interfacing several programming languages data types require special care.
 
-.. _corresponding-data-types
+.. _corresponding-data-types:
 
 2.5.1 Corresponding data types [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -886,7 +938,25 @@ When interfacing several programming languages data types require special care.
 
        end function add
 
-    The same can be accomplished in C++:
+    Note that Python does not require you to store the return value of a function.
+    The above ``add`` function might be called as:
+
+    .. code-block:: python
+
+        import numpy as np
+        import et_dot
+        # create an alias for the add function:
+        add = my_package.binextf90.add
+
+        a = np.array([1.,2.,3.])
+        b = np.array([2.,2.,2.])
+        sumab = np.empty((3,))
+        add(a, b, sumab) # ignore the cpu time returned by add.
+        cput = add(a, b, sumab) # this time don't ignore it.
+        print(cput)
+
+
+    Computing large arrays in placee can be accomplished in C++ quite similarly:
 
     .. code-block:: c++
 
@@ -938,115 +1008,7 @@ When interfacing several programming languages data types require special care.
 
     Here, care must be taken that when casting ``buf_sumab.ptr`` one does not cast to const.
 
-2.5 Specifying compiler options for binary extension modules
-------------------------------------------------------------
-
-[ **Advanced Topic** ]
-As we have seen, binary extension modules can be programmed in Fortran and C++.
-Micc_ provides convenient wrappers to build such modules. Fortran source code is
-transformed to a python module using f2py_, and C++ source using Pybind11_ and
-CMake_. Obviously, in both cases there is a compiler under the hood doing the
-hard work and compiler options can be passed in the ``CMakeLists.txt`` file. By
-default these tools use the compiler they find on the path, but you may as well
-specify your favorite compiler.
-
-.. note::
-    Compiler options are distinct for f2py modules and cpp modules.
-
-Building a single module only
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If you want to build a single binary extension module rather than all binary
-extension modules in the project, add the ``-m|--module`` option:
-
-.. code-block::
-
-   > micc-build --module my_module <build options>
-
-This will only build module *my_module*.
-
-Performing a clean build
-^^^^^^^^^^^^^^^^^^^^^^^^
-To perform a clean build, add the ``--clean`` flag to the ``micc build`` command:
-
-.. code-block::
-
-   > micc-build --clean <other options>
-
-This will remove the previous build directory and as well as the binary extension
-module.
-
-Controlling the build of cpp modules
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The build of C++ modules can be fully controlled by modifying the the module's
-:file:`CMakeLists.txt` file to your needs. Micc_ provides every cpp module with
-a template containing examples of frequently used CMake_ commands commented out.
-These include the specification of :
-
-* compiler options
-* preprocessor macros
-* include directories
-* link directories
-* link libraries
-
-You just need to uncomment them and provide the values you need:
-
-.. code-block:: cmake
-
-   # ...
-
-   # set compiler:
-   # set(CMAKE_CXX_COMPILER path/to/executable)
-
-   # Add compiler options:
-   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} <additional C++ compiler options>")
-
-   # Add preprocessor macro definitions:
-   # add_compile_definitions(
-   #     OPENFOAM=1912                     # set value
-   #     WM_LABEL_SIZE=$ENV{WM_LABEL_SIZE} # set value from environment variable
-   #     WM_DP                             # just define the macro
-   # )
-
-   # Add include directories
-   #include_directories(
-   #     path/to/dir1
-   #     path/to/dir2
-   # )
-
-   #...
-
-CMake_ provides default build options for four build types: DEBUG, MINSIZEREL,
-RELEASE, and RELWITHDEBINFO.
-
-* ``CMAKE_CXX_FLAGS_DEBUG``: ``-g``
-* ``CMAKE_CXX_FLAGS_MINSIZEREL``: ``-Os -DNDEBUG``
-* ``CMAKE_CXX_FLAGS_RELEASE``: ``-O3 -DNDEBUG``
-* ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``: ``-O2 -g -DNDEBUG``
-
-The build type is selected by setting the ``CMAKE_BUILD_TYPE`` variable (default:
-``RELEASE``).
-
-For convenience, micc-build_ provides a command line argument ``--build-type`` for
-specifying the build type.
-
-Save and load build options to/from file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-With the ``--save`` option you can save the current build options to a file in .json
-format. This acts on a per project basis. E.g.:
-
-.. code-block::
-
-   > micc-build <my build options> --save build[.json]
-
-will save the *<my build options>* to the file :file:`build.json` in every binary module
-directory (the .json extension is added if omitted). You can restrict this to a single
-module with the ``--module`` option (see above). The saved options can be reused in a
-later build as:
-
-.. code-block::
-
-   > micc-build --load build[.json]
+.. _document-binext:
 
 2.6 Documenting binary extension modules
 ----------------------------------------
@@ -1054,7 +1016,7 @@ later build as:
 For Python modules the documentation is automatically extracted from the doc-strings
 in the module. However, when it comes to documenting binary extension modules, this
 does not seem a good option. Ideally, the source files :file:`ET-dot/et_dot/f90_dotf/dotf.f90`
-amnd :file:`ET-dot/et_dot/cpp_dotc/dotc.cpp` should document the Fortran functions and
+and :file:`ET-dot/et_dot/cpp_dotc/dotc.cpp` should document the Fortran functions and
 subroutines, and C++ functions, respectively, rahter than the Python interface. Yet
 from the perspective of ET-dot being a Python project, the users is only interested
 in the documentation of the Python interface to those functions and subroutines.
@@ -1149,17 +1111,3 @@ The filepath is made evident from the last output line above.
 This is what the result looks like (html):
 
 .. image:: ../tutorials/img2-1.png
-
-Increment the version string:
-
-    (.venv) > micc version -M -t
-    [ERROR]
-    Not a project directory (/Users/etijskens/software/dev/workspace/tmp/ET-dot/docs).
-    (.venv) > cd ..
-    (.venv) > micc version -M -t
-    [INFO]           (ET-dot)> micc version (0.3.0) -> (1.0.0)
-    [INFO]           Creating git tag v1.0.0 for project ET-dot
-    [INFO]           Done.
-
-Note that we first got an error because we are still in the docs directory, and not in
-the project root directory.

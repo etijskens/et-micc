@@ -1,5 +1,29 @@
 Tutorial 1: Getting started with micc
 =====================================
+**Contents**
+    * :ref:`create-proj`
+    * :ref:`modules-and-packages`
+    * :ref:`project-and-module-naming`
+    * :ref:`first-steps`
+    * :ref:`micc-project-path`
+    * :ref:`virtual-environments`
+    * :ref:`venv`
+    * :ref:`venv-poetry`
+    * :ref:`modules-and-scripts`
+    * :ref:`testing`
+    * :ref:`debug-test-code`
+    * :ref:`generate-doc`
+    * :ref:`version-control`
+    * :ref:`miscellaneous`
+    * :ref:`license`
+    * :ref:`pyproject-toml`
+    * :ref:`log-file`
+    * :ref:`adjusting-micc`
+    * :ref:`first-project`
+    * :ref:`efficiency`
+    * :ref:`timing-code`
+    * :ref:`comparison-numpy`
+    * :ref:`conclusion`
 
 .. note::
 
@@ -42,6 +66,8 @@ as you need them. Learning to use the following tools is certainly beneficial:
 * Sphinx_: for building documentation. Optional but recommended.
 
 The basic commands for theese tools are covered in these tutorials.
+
+.. _create-proj:
 
 1.1 Creating a project with micc
 --------------------------------
@@ -252,6 +278,8 @@ vs packages, check out the :ref:`modules-and-packages` section below.
     the project name. In that case PEP8 compliance is not checked. The responsability
     then is all yours.
 
+.. _first-steps:
+
 1.2 First steps in project management (using micc)
 --------------------------------------------------
 
@@ -298,7 +326,7 @@ vs packages, check out the :ref:`modules-and-packages` section below.
     the project in the current working directory, taking the project name from the name
     of the current working directory.
 
-.. _venv:
+.. _virtual-environments:
 
 1.2.2 Virtual environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -320,10 +348,10 @@ the Python community has come up with for this problem is the construction of *v
 environments*, which isolates the dependencies of a single project in a single
 environment.
 
-.. _virtual-environments:
+.. _venv:
 
-Creating virtual environments
-"""""""""""""""""""""""""""""
+1.2.2.1 Creating virtual environments
+"""""""""""""""""""""""""""""""""""""
 Since Python 3.3 Python comes with a :py:mod:`venv` module for the creation of
 virtual environments. To set up a virtual environment, you first select the Python
 version you want to use, e.g. using pyenv_::
@@ -369,8 +397,10 @@ back to where you created the virtual environment::
     /Users/etijskens/.pyenv/shims/python
     >
 
-Creating virtual environments with Poetry
-"""""""""""""""""""""""""""""""""""""""""
+.. _venv-poetry:
+
+1.2.2.2 Creating virtual environments with Poetry
+"""""""""""""""""""""""""""""""""""""""""""""""""
 Poetry_ uses the above mechanism to manage virtual environment on a per project
 basis, and can install all the dependencies of that project, as specified in the
 :file:`pyproject.toml` file, using the ``install`` command. Since our project does
@@ -427,7 +457,7 @@ working on several projects at the same time, you can sometimes get confused whi
 project's virtual environment is actually activated. Just run::
 
     (.venv) > which python
-    path/to/my_first-project/.venv/bin/python
+    path/to/my_first_project/.venv/bin/python
     (.venv) >
 
 If you no longer need the virtual environment, deactivate it::
@@ -538,6 +568,8 @@ side. If the module code and the tests become more involved, however,the file wi
 become cluttered with test code and a more scalable way to organise your tests is needed.
 Micc_ has already taken care of this.
 
+.. _testing:
+
 1.2.4 Testing your code
 ^^^^^^^^^^^^^^^^^^^^^^^
 `Test driven development <https://en.wikipedia.org/wiki/Test-driven_development>`_ is a
@@ -606,8 +638,10 @@ methods to be executed.
 If a test would fail you get a detailed report to help you find the cause of the
 error and fix it.
 
-Debugging test code
-"""""""""""""""""""
+.. _debug-test-code:
+
+1.2.4.1 Debugging test code
+"""""""""""""""""""""""""""
 When the report provided by pytest_ does not yield a clue on the
 cause of the failing test, you must use debugging and execute the failing test step
 by step to find out what is going wrong where. From the viewpoint of pytest_, the
@@ -639,6 +673,8 @@ that the script is finished.
 You can use your favourite Python debugger to execute this script and step into the
 ``test_hello_noargs`` test method and from there into ``my_first_project.hello`` to
 examine if everything goes as expected.
+
+.. _generate-doc:
 
 1.2.5 Generating documentation [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -816,6 +852,8 @@ command line interfaces (CLI, or console scripts) based on
 `click <https://click.palletsprojects.com/en/7.x/>`_ the documentation is generated
 neatly from the :py:obj:`help` strings of options and the doc-strings of the commands.
 
+.. _version-control:
+
 1.2.6 Version control [advanced]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     Although version control is extremely important for any software project
@@ -863,8 +901,13 @@ neatly from the :py:obj:`help` strings of options and the doc-strings of the com
 
     Note that the name of the remote git repo is the project name, not the module name.
 
+.. _miscellaneous:
+
 1.3 Miscellaneous
 -----------------
+
+.. _license:
+
 1.3.1 The license file [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     The project directory contains a :file:`LICENCE` file, a :file:`text` file
@@ -889,6 +932,8 @@ neatly from the :py:obj:`help` strings of options and the doc-strings of the com
 
     Of course, the project depends in no way on the license file, so it can
     be replaced manually at any time by the license you desire.
+
+.. _pyproject-toml:
 
 1.3.2 The pyproject.toml file [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -928,6 +973,8 @@ neatly from the :py:obj:`help` strings of options and the doc-strings of the com
        requires = ["poetry>=0.12"]
        build-backend = "poetry.masonry.api"
 
+.. _log-file:
+
 1.3.3 The log file Micc.log [intermediate]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The project directory also contains a log file :file:`micc.log`. All micc_ commands
@@ -951,6 +998,8 @@ project, the log file will only contain the log messages from the last subcomman
    > ll micc.log
    ls: micc.log: No such file or directory
 
+.. _adjusting-micc:
+
 1.3.4 Adjusting micc to your needs [advanced]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     Micc_ is based on a series of additive Cookiecutter_ templates which generate the
@@ -961,6 +1010,8 @@ project, the log file will only contain the log messages from the last subcomman
        :file:`~/.local/pipx/venvs/et-micc/lib/pythonX.Y/site-packages/et_micc`,
 
     where :file`pythonX.Y` is the python version you installed micc_ with.
+
+.. _first-project:
 
 1.4 A first real project
 ------------------------
@@ -1391,7 +1442,9 @@ to improve the user interface or the efficiency, or add a feature, we should run
 tests again to make sure that the changes did not break the code. of course, we should
 also extend the test suite to cover the new properties of the code.
 
-1.3 Improving efficiency
+.. _efficiency:
+
+1.5 Improving efficiency
 ------------------------
 There are times when a just a correct solution to the problem at hand
 is sufficient. If ``ET-dot`` is meant to compute a few dot products of small
@@ -1413,7 +1466,9 @@ to verify the correctness of later more efficient implementations. In addition,
 the analysis of this version can highlight the sources of inefficiency and help
 you focus your attention to the parts that really need it.
 
-1.3.1 Timing your code
+.. _timing-code:
+
+1.5.1 Timing your code
 ^^^^^^^^^^^^^^^^^^^^^^
 The simplest way to probe the efficiency of your code is to time it: write a simple script
 and record how long it takes to execute. Let us first look at the structure of a Python script.
@@ -1500,7 +1555,9 @@ and the second dot product computation.
 Note that the initialization phase took longer than the computation. Random number
 generation is rather expensive.
 
-1.3.2 Comparing to Numpy
+.. _comparison-numpy:
+
+1.5.2 Comparing to Numpy
 ^^^^^^^^^^^^^^^^^^^^^^^^
 As said earlier, our implementation of the dot product is rather naive. If you want
 to become a good programmer, you should understand that you are probably not the
@@ -1566,8 +1623,10 @@ The reasons for this improvement are:
     This allows to make full use of the processors hardware features, such as *vectorization*
     and *fused multiply-add* (FMA).
 
-1.3.3 Conclusion
-^^^^^^^^^^^^^^^^
+.. _conclusion:
+
+1.6 Conclusion
+--------------
 There are three important generic lessons to be learned from this tutorial:
 
 #.  Always start your projects with a simple and straightforward implementation which
