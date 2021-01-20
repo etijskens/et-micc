@@ -820,7 +820,7 @@ class Project:
                 modified = True
         if modified:
             self.pyproject_toml.save()
-            self.logger.warning("Dependencies added. Run `poetry update` to update the project's virtual environment.")
+            self.logger.warning("Dependencies added. Run `poetry install` to install missing dependencies in the project's virtual environment.")
 
     def module_to_package(self, module_py):
         """Move file :file:`module.py` to :file:`module/__init__.py`.

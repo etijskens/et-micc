@@ -83,7 +83,7 @@
     pybind11_add_module({{ cookiecutter.module_name }} {{ cookiecutter.module_name }}.cpp)
 
     install(
-        FILES       "_cmake_build/cmod${PYTHON_MODULE_EXTENSION}"
+        FILES       "_cmake_build/{{ cookiecutter.module_name }}${PYTHON_MODULE_EXTENSION}"
         DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/.."
     )
 #>> end boilerplate code
