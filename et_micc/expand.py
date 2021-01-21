@@ -59,7 +59,7 @@ def set_preferences(micc_file):
             preferences[parameter]['default'] = answer
             
     with micc_file.open(mode='w') as f:
-        json.dump(preferences,f)
+        json.dump(preferences, f, indent=2)
         
     return preferences
 
