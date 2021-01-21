@@ -500,10 +500,9 @@ def mv(ctx, cur_name, new_name, silent, entire_package, entire_project):
 @click.pass_context
 def setup(ctx,
         ):
-    """Rename or remove a component, i.e an app (CLI) or a submodule.
+    """Setup your micc preferences.
 
-    :param cur_name: name of component to be removed or renamed.
-    :param new_name: new name of the component. If empty, the component will be removed.
+    This command must be run once before you can use micc to manage your projects.
     """
     options = ctx.obj
 
