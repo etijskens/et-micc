@@ -515,7 +515,8 @@ def setup(ctx,
     shutil.copyfile(str(micc_file_template),str(dotmicc_miccfile))
     preferences = et_micc.expand.set_preferences(dotmicc_miccfile)
     print("Done\n\n"
-         f"If you want to change your preferences, edit the default entries in '{dotmicc_miccfile}'.\n"
+          "If you want to change your preferences, edit the default entries in file \n"
+         f"    {dotmicc_miccfile}\n"
           "Note that these changes will only affect NEW projects. Existing projects will be unaffected."
     )
 

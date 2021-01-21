@@ -1,12 +1,12 @@
 {
-  "full_name"		: {"default":"Engelbert Tijskens"
+  "full_name"		: {"default":"first-name last-name"
                   	  ,"text"   :"your full name"
                   	  }
-, "email"          	: {"default":"engelbert.tijskens@uantwerpen.be"
+, "email"          	: {"default":"your.email@whatev.er"
                       ,"text"   :"your e-mail address"
                       }
-, "github_username"	: {"default":"etijskens"
-               		  ,"text"   :"your github username (leave empty if you do not have one)"
+, "github_username"	: {"default":"your-github-username"
+               		  ,"text"   :"your github username (leave empty if you do not have one,\n  or create one at https://github.com/join)"
                		  }
 , "version"         : {"default":"0.0.0"
   					  ,"text"   :"the initial version number of a new project"
