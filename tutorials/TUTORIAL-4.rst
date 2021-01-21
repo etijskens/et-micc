@@ -3,6 +3,9 @@
 Tutorial 4: Version control and version management
 ==================================================
 
+Micc_ support the use of git_ for version control. Check out https://git-scm.com for
+documentation of git.
+
 .. _git-support:
 
 4.1 Git support
@@ -101,7 +104,7 @@ To bump the major component use the ``--major`` or ``-M`` flag:
 
 As you can see the minor component (as well as the patch component) is reset to 0.
 
-The version number has a ``--tag`` flag that creates a git_ tag (see
+The micc version command has a ``--tag`` flag that creates a git_ tag (see
 https://git-scm.com/book/en/v2/Git-Basics-Tagging) and trys
 
 .. code-block:: bash
