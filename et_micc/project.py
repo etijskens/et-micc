@@ -54,11 +54,16 @@ class Project:
                     et_micc.expand.get_template_parameters(template_parameters_json)
                 )
             else:
-                default_parameters.update(
-                    et_micc.expand.get_template_parameters(
-                        et_micc.expand.get_preferences(Path('.'))
-                    )
-                )
+                preferences = et_micc.expand.get_preferences(Path('.'))
+                if preferences is None:
+                    self.error("Micc has not been set up yet: the preferences file '~/.et_micc/micc.json' was not found).\n"
+                               "Run 'micc setup' to create it.\n"
+                               "If you do not have a github account yet, you might want to create one first at:\n"
+                               "    https://github.com/join")
+                    return
+                else:
+                    default_parameters.update( et_micc.expand.get_template_parameters(preferences) )
+
             # Add options.template_parameters to the default parameters
             # (options.template_parameters takes precedence, so they must be added last)
             default_parameters.update(options.template_parameters)

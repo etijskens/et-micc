@@ -45,10 +45,17 @@ def set_preferences(micc_file):
     """
     with micc_file.open() as f:
         preferences = json.load(f)
-        
+
+    ty = None
     for parameter,description in preferences.items():
         if not description['default'].startswith('{{ '):
+            if 'type' in description:
+                ty = description['type']
+                description['type'] = eval(ty)
             answer = click.prompt(**description)
+            if ty:
+                # set the string back
+                description['type'] = ty
             preferences[parameter]['default'] = answer
             
     with micc_file.open(mode='w') as f:
@@ -72,9 +79,10 @@ def get_preferences(micc_file):
         if dotmicc_miccfile.exists():
             preferences = get_preferences(dotmicc_miccfile)
         else:
-            micc_file_template = Path(__file__).parent / 'micc.json'
-            shutil.copyfile(str(micc_file_template),str(dotmicc_miccfile))
-            preferences = set_preferences(dotmicc_miccfile)
+            preferences = None
+            # micc_file_template = Path(__file__).parent / 'micc.json'
+            # shutil.copyfile(str(micc_file_template),str(dotmicc_miccfile))
+            # preferences = set_preferences(dotmicc_miccfile)
     else:
         with micc_file.open() as f:
             preferences = json.load(f)

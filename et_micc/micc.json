@@ -6,7 +6,7 @@
                       ,"text"   :"your e-mail address"
                       }
 , "github_username"	: {"default":"etijskens"
-               		  ,"text"   :"your github username (leave empty if you do not have)"
+               		  ,"text"   :"your github username (leave empty if you do not have one)"
                		  }
 , "version"         : {"default":"0.0.0"
   					  ,"text"   :"the initial version number of a new project"
@@ -22,12 +22,12 @@
 					  }
 , "sphinx_html_theme"
 	 				: {"default":"sphinx_rtd_theme"
-  					  ,"text"   :"Htlm theme for sphinx documentation"
+  					  ,"text"   :"Html theme for sphinx documentation"
   					  }
 , "open_source_license"
   					: {"default":"MIT license"
   					  ,"type"   :"click.Choice(['MIT license', 'BSD license', 'ISC license', 'Apache Software License 2.0', 'GNU General Public License v3', 'Not open source'])"
-  					  ,"text"   :"Choose open source license"
+  					  ,"text"   :"Choose default license"
 					  }  					  
 , "py"
 					: {"default":"py"

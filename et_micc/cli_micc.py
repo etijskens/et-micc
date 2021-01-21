@@ -4,7 +4,7 @@
 Application micc
 """
 
-import os, sys, platform
+import os, sys, shutil
 from types import SimpleNamespace
 from pathlib import Path
 
@@ -495,6 +495,29 @@ def mv(ctx, cur_name, new_name, silent, entire_package, entire_project):
     with et_micc.logger.logtime(options):
         project.mv_component()
 
+
+@main.command()
+@click.pass_context
+def setup(ctx,
+        ):
+    """Rename or remove a component, i.e an app (CLI) or a submodule.
+
+    :param cur_name: name of component to be removed or renamed.
+    :param new_name: new name of the component. If empty, the component will be removed.
+    """
+    options = ctx.obj
+
+    # options.cur_name = cur_name
+    micc_file_template = Path(__file__).parent / 'micc.json'
+    dotmicc = Path().home() / '.et_micc'
+    dotmicc.mkdir(exist_ok=True)
+    dotmicc_miccfile = dotmicc / 'micc.json'
+    shutil.copyfile(str(micc_file_template),str(dotmicc_miccfile))
+    preferences = et_micc.expand.set_preferences(dotmicc_miccfile)
+    print("Done\n\n"
+         f"If you want to change your preferences, edit the default entries in '{dotmicc_miccfile}'.\n"
+          "Note that these changes will only affect NEW projects. Existing projects will be unaffected."
+    )
 
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
