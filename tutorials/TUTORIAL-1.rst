@@ -1,29 +1,5 @@
 Tutorial 1: Getting started with micc
 =====================================
-**Contents**
-    * :ref:`create-proj`
-    * :ref:`modules-and-packages`
-    * :ref:`project-and-module-naming`
-    * :ref:`first-steps`
-    * :ref:`micc-project-path`
-    * :ref:`virtual-environments`
-    * :ref:`venv`
-    * :ref:`venv-poetry`
-    * :ref:`modules-and-scripts`
-    * :ref:`testing`
-    * :ref:`debug-test-code`
-    * :ref:`generate-doc`
-    * :ref:`version-control`
-    * :ref:`miscellaneous`
-    * :ref:`license`
-    * :ref:`pyproject-toml`
-    * :ref:`log-file`
-    * :ref:`adjusting-micc`
-    * :ref:`first-project`
-    * :ref:`efficiency`
-    * :ref:`timing-code`
-    * :ref:`comparison-numpy`
-    * :ref:`conclusion`
 
 .. note::
 

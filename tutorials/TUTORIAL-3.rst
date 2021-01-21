@@ -15,7 +15,7 @@ Just as one can add binary extension modules to a package, one can add python mo
    [INFO]               - Python test code in ET-doc/tests/test_foo.py.
    [INFO]           ] done.
 
-This adds a Python sub-module to the package, and a test script. The documentation 
+This adds a Python sub-module to the package, and a test script for it. The documentation
 for the sub-module is extracted from doc-strings of the functions and classes in 
 the sub-module.   
 
@@ -37,7 +37,7 @@ the doc-strings in your new module.
 3.2 Adding a Python Command Line Interface
 ------------------------------------------
 *Command Line Interfaces* are Python scripts that you want to be installed as
-executable programs when a user installs your package.
+executable programs when a user installs your package. E.g. micc_ is a CLI
 
 As an example, assume that we need quite often to read two arrays from file and
 compute their dot product, and that we want to execute this operation as:
@@ -48,10 +48,10 @@ compute their dot product, and that we want to execute this operation as:
    dot(file1,file2) = 123.456
    > 
    
-Micc_ supports two kinds of CLIs based on click_, a very practical tool for building 
+Micc_ supports two kinds of CLIs, both based on click_, a very practical tool for building
 Python CLIs. The first one is for CLIs that execute a single task, the second one for
-a command with sub-commands, like git_ or micc_ itself. The single task case default,
-so we can create it like:
+a command with sub-commands, like git_ or micc_ itself. The single task case is the
+default, so we can create it like:
 
 .. code-block:: bash
 
@@ -135,7 +135,7 @@ Here is the test code:
        runner = CliRunner()
        result = runner.invoke(main, ['file1.txt','file2.txt'])
        print(result.output)
-       ab = float(result.output[0:-1])
+       ab = float(result.output[0:-1]) # ignore the line feed character
        assert ab==30.0
    
 Finally, we run pytest_:
@@ -157,7 +157,6 @@ Finally, we run pytest_:
 
 Documenting an application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-When adding a CLI, Micc_ automatically adds documentation entries for it. in :file:`APPS.rst`.
-Calling ``micc docs`` will automatically extract documentation from the doc-strings of the command
-and  the ``:param ...:`` of the :py:obj:`click.argument` decorators in these doc-strings, and
-from the ``help`` parameters of the :py:obj:`click.option` decorators.
+When adding a CLI, Micc_ automatically adds documentation entries for it in :file:`APPS.rst`.
+The documentation will be automatically extracted from the doc-strings of the command and
+sub-commands and from the ``help`` parameters of the :py:obj:`click.option` decorators.

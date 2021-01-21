@@ -4,20 +4,6 @@
 
 Tutorial 2: Binary extensions
 =============================
-**Contents**
-
-    * :ref:`intro-HPPython`
-    * :ref:`f90-orr-cpp`
-    * :ref:`add-bin-ext`
-    * :ref:`building-f90`
-    * :ref:`f90-modules`
-    * :ref:`control-build-f90`
-    * :ref:`building-cpp`
-    * :ref:`control-build-cpp`
-    * :ref:`data-types`
-    * :ref:`corresponding-data-types`
-    * :ref:`return-large`
-    * :ref:`document-binext`
 
 .. _intro-HPPython:
 
