@@ -1,3 +1,5 @@
+.. tutorial-4:
+
 Tutorial 4: Version control and version management
 ==================================================
 
