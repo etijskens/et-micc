@@ -43,6 +43,36 @@ as you need them. Learning to use the following tools is certainly beneficial:
 
 The basic commands for theese tools are covered in these tutorials.
 
+1.0 Micc setup
+--------------
+
+Before micc can be used it must be setup to specify some preferences. Most entries
+have sensible default entries, but your name, email address and github user name
+have to be provided by you, if they are to make any sense, obviously. The github
+username is needed if you want to be able to push your commits to github.
+Run ``micc setup`` to set the preferences::
+
+    > micc setup
+    your full name [first-name last-name]: Engelbert Tijskens
+    your e-mail address [your.email@whatev.er]: engelbert.tijskens@uantwerpen.be
+    your github username (leave empty if you do not have one,
+      or create one at https://github.com/join) [your-github-username]: etijskens
+    the initial version number of a new project [0.0.0]:
+    default git branch [master]:
+    default minimal Python version [3.7]:
+    Html theme for sphinx documentation [sphinx_rtd_theme]:
+    Choose default license (MIT license, BSD license, ISC license, Apache Software License 2.0, GNU General Public License v3, Not open source) [MIT license]:
+    python file extension [py]:
+    Done
+
+    If you want to change your preferences, edit the default entries in file
+        /Users/etijskens/.et_micc/micc.json
+    Note that these changes will only affect NEW projects. Existing projects will be unaffected.
+
+You may want to correct your entries, but not that changes will only affect NEW projects,
+not existing ones.
+
+
 .. _create-proj:
 
 1.1 Creating a project with micc
@@ -841,7 +871,7 @@ neatly from the :py:obj:`help` strings of options and the doc-strings of the com
     Git_ is a version control system that solves many practical problems related
     to the process software development, independent of whether your are the only
     developer, or there is an entire team working on it from different places in
-    the world. You find more information about how micc_ uses git_ in *Tutorial 4*.
+    the world. You find more information about how micc_ uses git_ in :ref:`tutorial-4'.
 
     Let's take a close look at the output of the ``micc create my_first_project``
     command. The first line tells us that a project directory is being created::

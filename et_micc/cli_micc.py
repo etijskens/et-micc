@@ -516,7 +516,8 @@ def setup(ctx,
     print("Done\n\n"
           "If you want to change your preferences, edit the default entries in file \n"
          f"    {dotmicc_miccfile}\n"
-          "Note that these changes will only affect NEW projects. Existing projects will be unaffected."
+          "Note that these changes will only affect NEW projects. Existing projects will be unaffected.\n"
+          "Micc is now configured and ready to be used.s"
     )
 
 if __name__ == "__main__":
