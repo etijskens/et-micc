@@ -6,8 +6,9 @@ Publishing your code is an easy way to make your code available to other users.
 
 5.1 Publishing to the Python Package Index
 ------------------------------------------
-For this we rely on poetry_. If you do not have a PyPI_  account, create one and 
-run this command in your project directory, e.g. :file:`et-foo`:
+Poetry_ provides really easy interface to publishing your code to the Python Package
+Index (PyPI_). If you do not have a PyPI_  account, create one and
+run this command in a project directory, say :file:`et-foo`:
 
 .. code-block::
 
@@ -32,29 +33,35 @@ run this command in your project directory, e.g. :file:`et-foo`:
    we recommend that
 
    #. before you create a project that you might want to publish, you check wether
-      your project name is not already taken.
-   #. immediately after your project is created, you publish it, as to reserve the
-      name forever.
+      your project name is not already taken. This is easily done by adding the
+      ``--publish`` flag when creating a project. If the name is taken you get a
+      warning and the project is not created.
+   #. immediately after your project is created, you publish the empty, as to reserve
+      the name forever.
 
-Now everyone can install the package in his current Python environment as::
+After the project is published, everyone can install the package in his current Python
+environment as::
 
-   > pip install et-foo
+    > pip install et-foo
+    ...
 
 5.2 Publishing packages with binary extension modules
 -----------------------------------------------------
-Packages with binary extension modules are published in exactly the same way, that is,
-as a Python-only project. When you ``pip install`` a Micc_ project the package directory
-will end up in the :file:`site-packages` directory of the Python environment in which you
-install. The source code directories of the binary extensions modules are installed with
-the package, but without the binary extensions themselves. These must be compiled locally.
-Fortunately that happens automatically, at least if the binary extension were added to
-the package by Micc_. When Micc_ adds a binary extension to a project, two thing happen:
+Packages with binary extension modules are published in exactly the same way. That is,
+perhaps surprisingly, as a Python-only project. When you ``pip install`` a Micc_ project
+the package directory will end up in the :file:`site-packages` directory of the Python
+environment in which you install. The source code directories of the binary extensions
+modules are installed with the package, but without the binary extensions themselves.
+These must be compiled locally. Fortunately that happens automatically, at least if the
+binary extension were added to the package by Micc_. When Micc_ adds a binary extension
+to a project, two thing happen:
 
 * a dependency on micc-build_ is added to the project, and
 * in the top-level module :py:mod:`<package_name>/__init__.py` a :py:obj:`try-except`
   block is added that tries to import the binary extension and in case of failure
   (:py:exc:`ModuleNotFoundError`) will attempt to build it using the machinery provided
-  by micc-build_. This will usually succeed, provided the necessary compilers are available.
+  by micc-build_. This will usually succeed, provided the necessary compilers are available
+  and there are no syntax errors.
 
 As an example, let us create a project *foo* with a binary extension module *bar* written
 in C++
@@ -96,83 +103,16 @@ This creates this :file:`Foo/foo/__init__.py`:
        ...
 
 If the first ``import foo.bar`` fails, the ``except`` block imports the method
-:py:meth:`auto_build_binary_extension` and executes it arguments the  path to
-the package directory :file`Foo/foo` and the name of the binary extension module
-:py:mod:`bar`. If the build succeeds, the :py:obj:`msg` string is empty and
+:py:meth:`auto_build_binary_extension` and executes it to build the binary extension
+module :py:mod:`bar`. If the build succeeds, the :py:obj:`msg` string is empty and
 :py:mod:`foo.bar` is imported at last, otherwise the error message :py:obj:`msg`
 is printed.
-
-
-5.3 Providing :py:meth:`auto_build_binary_extension` with custom build parameters
----------------------------------------------------------------------------------
-
-The auto-build above will normally use the default build options, corresponding to `-O3`,
-which optimizes for speed. As the :py:meth:`auto_build_binary_extension` method is called
-automatically, we have not many options to set build options. The
-:py:meth:`auto_build_binary_extension` method will look for the existence of a file
-:file:`Foo/foo/cpp_bar/build_options.<platform>.json`, where ``<platform>`` is ``Darwin``,
-on MACOSX, ``Linux` on Linux and ``Windows`` on Windows. If it exists, it should contain a
-:py:class:`dict` with the build options to use.
-
-.. note:: The build options files are OS specific:
-
-    * On MacOSX  : ``build_options.Darwin.json``
-    * On Linux   : ``build_options.Linux.json``
-    * On Windows : ``build_options.Windows.json``
-
-f90 module build option specifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-All `options available to the f2py command line application <https://docs.scipy.org/doc/numpy/f2py/usage.html#command-f2py>`_
-can be entered in the build file specification. Pure flags, like e.g. ``--noopt``, which are present
-or not, but have no value, are entered in the dictionary with value None. Below are some examples of
-much used f2py_ flags.
-
-.. code-block:: python
-
-    import json
-    from pathlib import Path
-    import platform
-
-    f2py = {
-        '--f90exec' : 'f90 compiler executable'
-        '--f90flags': 'f90 compiler flags'
-        '--opt'     : 'f90 compiler optimization flags'
-        '--arch'    : 'f90 compiler architecture specific compiler flags'
-        '--noopt'   : None # neglect '--opt' contents
-        '--noarch'  : None # neglect '--arch' contents
-        '--debug'   : None # compile with debugging information
-    }
-    module_srcdir_path = Path(project_path) / package_name / f"f2py_{module_name}"
-    with (module_srcdir_path / f"build_options.{platform.system()}.json").open('w) as f:
-        json.dump(f2py, f)
-
-.. note:: The Python dictionary ``f2py`` is written to file in ``.json`` format, which is
-   human readable. You can also construct it with an editor.
-
-Cpp module build option specifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-For cpp binary extension modules the build tool is CMake_. Here, the entries of the build
-options dict consist of any CMake_ variable and its desired value.
-
-.. code-block:: python
-
-    import json
-    from pathlib import Path
-    import platform
-
-    cmake = {
-        'CMAKE_BUILD_TYPE' : 'RELEASE',
-        ...
-    }
-    module_srcdir_path = Path(project_path) / package_name / f"cpp_{module_name}"
-    with (module_srcdir_path / f"build_options.{platform.system()}.json").open('w) as f:
-        json.dump(cmake, f)
 
 5.4 Publishing your documentation on readthedocs.org
 ----------------------------------------------------
 Publishing your documentation to `Readthedocs <https://readthedocs.org>`_ relieves the users of your
 code from having to build documentation themselves. Making it happen is very easy. First, make sure
-the git repository of your code is published on Github_.Second, create a Readthedocs_ account if you
+the git repository of your code is pushed on Github_. Second, create a Readthedocs_ account if you
 do not already have one. Then, go to your Readthedocs_ page, go to *your projects* and hit import
 project. Fill in the fields and every time you push commits to Github_ its documentation will be
 rebuild automatically and published.
