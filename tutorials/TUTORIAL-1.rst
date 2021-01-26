@@ -41,7 +41,7 @@ as you need them. Learning to use the following tools is certainly beneficial:
 
 * Sphinx_: for building documentation. Optional but recommended.
 
-The basic commands for theese tools are covered in these tutorials.
+The basic commands for these tools are covered in these tutorials.
 
 1.0 Micc setup
 --------------
@@ -848,7 +848,7 @@ of :file:`.rst` files with **capitalized** names in the **project directory**:
 * :file:`AUTHORS.rst` list the contributors to the project
 * :file:`HISTORY.rst` which should describe the changes that were made to the code.
 
-The :file:`.rst` extenstion stands for reStructuredText_. It iss a simple and concise
+The :file:`.rst` extenstion stands for reStructuredText_. It is a simple and concise
 approach to text formatting.
 
 If you add components to your project through micc_, care is taken that the
@@ -871,7 +871,7 @@ neatly from the :py:obj:`help` strings of options and the doc-strings of the com
     Git_ is a version control system that solves many practical problems related
     to the process software development, independent of whether your are the only
     developer, or there is an entire team working on it from different places in
-    the world. You find more information about how micc_ uses git_ in :ref:`tutorial-4'.
+    the world. You find more information about how micc_ uses git_ in :ref:`tutorial-4`.
 
     Let's take a close look at the output of the ``micc create my_first_project``
     command. The first line tells us that a project directory is being created::

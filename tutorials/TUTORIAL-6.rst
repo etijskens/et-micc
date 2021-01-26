@@ -1,40 +1,88 @@
 
-This document walks you through the differences of using micc_ to manage your
-python+C++/Fortran projects on the VSC clusters. If you are already familiar with
-the use of HPC environments, the only relevant part of this tutorial is section
-`6.2 Using Poetry on the cluster`_. Otherwise, it is recommended to go through
-the entire tutorial.
-
-.. note:: This tutorial uses the Leibniz cluster of the University of Antwerp for the
-    examples. The principles pertain, however, to all VSC clusters, and most probably
-    also to other clusters using a module system for exposing its software stack.
+.. _tutorial-6:
 
 Tutorial 6 - Using micc projects on the VSC clusters
 ====================================================
 
-Most differences between using your local machine or a cluster stem from
-the fact that a cluster, typically, uses a *module* system for making software
-available to the user on a login node (interactive mode) and to a compute node
-(batch mode). In addition, the cluster uses a scheduler that determines when your
-compute jobs are executed.
+This tutorial uses the Leibniz cluster of the University of Antwerp for the
+examples. The principles pertain, however, to all VSC clusters, and most probably
+also to other clusters using a module system for exposing its software stack.
 
-The tools we need are, typically:
+Most differences between using your local machine or a cluster stem from these
+facts:
 
-* a modern Python version. As Python 2.7 is officially discontinued, that would
-  probably be 3.7 or later.
-* common Python packages for computing, like Numpy, scipy, matplotlib, ...
-* compilers for C++ and/or Fortran, for compiling binary extensions.
-* CMake, as the build system for C++ binary extensions.
-* git, for version control, if we are developing code on the cluster.
+    * a cluster is mainly a console based system accessed by the user on a login-node,
+    * a *scheduler* determines when your compute jobs are executed on one or more
+      compute-nodes,
+    * a *module* system is used for making software available, both on the login-nodes
+      and on the compute-nodes.
 
-6.1 Using modules
+The cluster's module system has the largest impact, so let us look at this first.
+
+6.1 Accessing the cluster
+-------------------------
+Accessing a login-node of a VSC_ cluster is detailed in the VSC_ documentation
+`Logging in to a cluster <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/access/access_and_data_transfer.html#logging-in-to-a-cluster>`_.
+By following the procedure, you get a console window (or a terminal, or a command prompt)
+connected to one of the login-nodes of the cluster::
+
+    > ssh -i path/to/my_key my_vsc_userid@login1-leibniz.hpc.uantwerpen.be
+    Last login: Wed Jan 13 08:52:51 2021 from 91.179.29.29
+
+    --------------------------------------------------------------------
+
+    Welcome to LEIBNIZ !
+
+    Useful links:
+      https://vscdocumentation.readthedocs.io
+      https://vscdocumentation.readthedocs.io/en/latest/antwerp/tier2_hardware.html
+      https://www.uantwerpen.be/hpc
+
+    Questions or problems? Do not hesitate and contact us:
+      hpc@uantwerpen.be
+
+    Happy computing!
+    >
+
+6.2 Using modules
 -----------------
-The cluster's operating system exposes some of these tools, but, they lag
-many versions behind and, although very reliable, they are **not** fit for
-high performance computing purposes.
+The module system of the VSC_ clusters is explained in the VSC documentation
+`Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_.
 
-As an example consider the GCC C++ compiler ``g++``. Here is the ``g++`` version
-exposed by the operating system (at the day of writing: August 2020)::
+HPC packages are installed as modules (yet another kind of module) and to make
+them accessible, they must be loaded. Loading a module means that your operating system's
+environment is modified such that it can find the software's executables, that is, the
+directories containing its executables are added to the ``PATH`` variable. In addition,
+other environment variables adjusted or added to make everything work smoothly.
+
+E.g., to use a recent version of git_ we ``load`` the git module::
+
+    > module load git
+    > which git
+    /apps/antwerpen/broadwell/centos7/git/2.13.3/bin/git
+    > git --version
+    git version 2.13.3
+    >
+
+The ``which <cmd>`` command prints the location of the first occurrence of ``<cmd>`` on
+the system path. Typically, commands of the operating system are found in ``/usr/bin``. Commands
+provided by some cluster module are, typically, found in ``/apps/<vsc-site>/...``.
+
+By not specifying a version in the ``module load`` command, we get the default git
+module, which is usually the most recent installed version, in this case version 2.13.3.
+
+Note that the operating system of the login-node also exposes a git version. If we
+run the last two commands without the git module loaded, this is the result::
+
+    > module unload git
+    > which git
+    /usr/bin/git
+    > git --version
+    git version 1.8.3.1
+    >
+
+This is a much older version. The login-node's operating system exposes several tools
+we might need, like git, but also compilers, like ``g++``::
 
     > which g++
     /usr/bin/g++
@@ -42,29 +90,15 @@ exposed by the operating system (at the day of writing: August 2020)::
     g++ (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39)
     ...
 
-Still at the day of writing, the latest GCC version is 6 major versions ahead of
-that: 10.2! The OS g++ is very reliable for building operating system components
-but it is not suited for building C++ binary extensions that must squeeze the last
-bit of performance out of the cluster's hardware. Obviously, this old g++ can
-impossibly be aware of modern hardware, and, consequentially, cannot generate
-code that exploit all the modern hardware features introduced for improving
-performance of scientific computations.
+The operating system tools usually lag many versions behind their current latest version,
+e.g. the current latest ``g++`` version is  10.2! Although the operating system ``g++``
+is very reliable for building operating system components, it is not suited for building
+C++ programs and librariees that must squeeze the last bit of performance out of the
+cluster's hardware. Obviously, this old g++ can impossibly be aware of modern hardware,
+and, consequentially, cannot generate code that exploit all the modern hardware features
+introduced for improving the performance of scientific computations. So as a rule of thumb:
 
-Similarly, the OS Python is 2.7.5, whereas 3.9 is almost released, and 2.7.x isn't
-even officially supported anymore.
-
-So as a rule of thumb:
-
-    **Never use the tools provided by the operating system.**
-
-As the preinstalled modules are built by VSC specialists for optimal performance on
-the cluster hardware, this rule should be extended as:
-
-    **Do not install your own tools (unless they are not performance critical, or, you are a specialist yourself).**
-
-If you need some software package, a library, a Python module, or, whatever, which
-is not available as a cluster module, especially, if it is performance critical, contact
-your local VSC team and they will build and install it for you (and all other users).
+    **Never use the tools provided by the operating system for building HPC software.**
 
 The VSC Team has installed many software packages ready to be used for high performance
 computing. In fact, they are built using the modern compilers and with optimal performance
@@ -72,44 +106,6 @@ in mind. Contrary to what you are used to on your personal computer where instal
 packages are immediately accessible, on the cluster an extra step must be taken to
 make installed packages accessible.
 
-If you are unsure whether a command is provided by the operating system or not, use the
-linux ``which`` command::
-
-    > which g++
-    /usr/bin/g++
-
-Typically, commands of the operating system are found in ``/usr/bin`` and should
-usually not be used for high performance computing. Commands provided by some
-cluster module are, typically, found in ``/apps/<vsc-site>/...``.
-
-.. note::
-   The ``which cmd`` command shows the path to the first ``cmd`` on the PATH
-   environment variable.
-
-So, how do we get access to the commands we are supposed to use?
-
-HPC packages are installed as modules and to make
-them accessible, they must be loaded. Loading a module means that your operating system
-environment is modified such that it can find the software's executables, that is, the
-directories containing its executables are added to the ``PATH`` variable. In additio,
-other environment variables adjusted or added to make everything work smoothly.
-
-E.g., to use a recent version of git_ we load the git module::
-
-    > module load git
-    > which git
-    /apps/antwerpen/broadwell/centos7/git/2.13.3/bin/git
-    > git --version
-    git version 2.13.3
-
-Before we loaded ``git``, the ``which`` command would have shown::
-
-    > which git
-    /usr/bin/git
-    > git --version
-    git version 1.8.3.1
-
-A much older version, indeed.
 
 You can search for modules containing e.g. the word ``gcc`` (case insensitive)::
 
@@ -120,31 +116,9 @@ If you know the package name, you can list the available versions with ``module 
 the available Python versions (the command is case insensitive)::
 
     > module av python/
+    ...
 
-which on Leibniz returns::
-
-    ----------------------------------------------------- /apps/antwerpen/modules/centos7/software-broadwell/2019b -----------------------------------------------------
-       Biopython/1.74-GCCcore-8.3.0-IntelPython3-2019b    Biopython/1.74-intel-2019b-Python-3.7.4 (D)    Python/3.7.4-intel-2019b (D)
-       Biopython/1.74-intel-2019b-Python-2.7.16           Python/2.7.16-intel-2019b
-
-    ----------------------------------------------------- /apps/antwerpen/modules/centos7/software-broadwell/2018b -----------------------------------------------------
-       Python/2.7.15-intel-2018b    Python/3.6.8-intel-2018b    Python/3.7.0-intel-2018b    Python/3.7.1-intel-2018b
-
-    ----------------------------------------------------- /apps/antwerpen/modules/centos7/software-broadwell/2018a -----------------------------------------------------
-       Python/2.7.14-intel-2018a    Python/3.6.4-intel-2018a    Python/3.6.6-intel-2018a
-
-    ----------------------------------------------------- /apps/antwerpen/modules/centos7/software-broadwell/2017a -----------------------------------------------------
-       Biopython/1.68-intel-2017a-Python-2.7.13    pbs_python/4.6.0-intel-2017a-Python-2.7.13    Python/3.6.1-intel-2017a
-       Biopython/1.68-intel-2017a-Python-3.6.1     Python/2.7.13-intel-2017a
-
-      Where:
-       D:  Default Module
-
-    If you need software that is not listed, request it at hpc@uantwerpen.be
-
-Please, mind the last line. If you need something that is not pre-installed, request it at mailto:hpc@antwerpen.be
-
-You can unload a module::
+You can ``unload`` a module::
 
     > module unload git
     > which git
@@ -156,81 +130,213 @@ You can unload all modules::
 
     > module purge
 
-To learn the details about the VSC clusters' module system, consult
-`Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_.
-
-6.2 Using Poetry on the cluster
+6.2 Using Micc on the cluster
 -------------------------------
+The tools we need as micc users are, typically:
 
-6.2.1 Installing Poetry
-^^^^^^^^^^^^^^^^^^^^^^^
-Poetry_ is, sofar, not available as a cluster module. You must install it yourself. The
-installation method recommended by the poetry_documentation_ is also applicable on the
-cluster (even when the system Python version is still 2.7.x)::
+* a modern Python version, e.g. 3.7 or later.
+* common Python packages for computing, like Numpy, scipy, matplotlib, ...
+* Poetry, for dependency resolution, publishing to PyPI_ and virtual environment creation
+* compilers for C++ and/or Fortran, for compiling binary extensions.
+* CMake, as the build system for C++ binary extensions.
+* git, for version control, if we are developing code on the cluster.
 
-    > module purge
-    > curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+and, of course
 
-The ``module purge`` command ensures that the system Python is used for the Poetry_ installation.
-This allows you to have a single poetry_ installation that works for all Python versions that you
-might want to use. So, internally, poetry_ commands use the system Python which is always available,
-but your projects can use any Python version that is made avaible by loading a cluster module, or,
-that you installed yourself.
+* micc, and
+* micc-build
 
-6.2.2 Using pre-installed Python packages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-As the cluster modules generally come with pre-installed Python packages which are built
-to achieve optimal performance in a HPC environment, e.g. Numpy_, `Scipy <https://scipy.org/>`_,
-...) we do not want ``poetry install`` to reinstall these packages in your project's virtual
-environment. That would lead to suboptimal performance, and waste disk space. Fortunately,
-there is a way to tell Poetry_ that it must use pre-installed Python packages::
+6.2.1 Python and Python packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    > mkdir -p ~/.cache/pypoetry/virtualenvs/.venv
-    > echo 'include-system-site-packages = true' > ~/.cache/pypoetry/virtualenvs/.venv/pyvenv.cfg'
+On Leibniz, two different Python distributions are available, each in several versions.
+There is the standard Python distribution from python.org:
 
-(If the name of your project's virtual environment is not ``.venv``, replace it with the
-name of your project's virtual environment).
+* Python/2.7.13-intel-2017a
+* Python/2.7.14-intel-2018a
+* Python/2.7.15-intel-2018b
+* Python/2.7.16-intel-2019b
+* Python/3.6.1-intel-2017a
+* Python/3.6.4-intel-2018a
+* Python/3.6.6-intel-2018a
+* Python/3.6.8-intel-2018b
+* Python/3.7.0-intel-2018b
+* Python/3.7.1-intel-2018b
+* Python/3.7.4-intel-2019b
+* Python/3.8.3-intel-2020a
 
-6.3 Using micc_ on the cluster
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-First, we make sure to load a modern Python version for our project. The VSC clusters have many
-Python versions available, and come in different flavours, depending on the toolchain that was
-used to build them. On Leibniz, e.g., we would load::
+Each module specifies the Python version, and the compiler suite used to compile it.
+E.g. Python/3.8.3-intel-2020a is Python version 3.8.3 compiled with the Intel compiler
+suite 2020a. There is also the Intel Python distribution which has been compiled by
+Intel specialists.
 
-    > module load leibniz/2019b     # unleashed all modules compiled with the intel-2019b toolchain
-    > module load Python/3.7.4-intel-2019b
+* IntelPython2/2019b -> Python 2.7.16
+* IntelPython3/2019b -> Python 3.6.9
+* IntelPython3/2020a -> Python 3.7.7
 
-This module comes with a number of pre-installed Python package wich you can see using;;
+In most cases these cluster modules come with a whole bunch of preinstalled Python
+packages useful for HPC, e.g. Numpy, scipy, and many others. For some the Python
+packages are in a separate module:
 
-    > ll $(dirname `which python`)/../lib/python3.7/site-packages
+* IntelPython3-Packages/2019b
+* IntelPython3-Packages/2020a-intel-2020a
 
-The above ``Python/3.7.4-intel-2019b`` is a good choice. Usually, loading a Python module
-will automatically also make the C++ and Fortran compilers available that were used to compile
-that Python module. They are, obviously, needed for building binary extensions from C++ and
-Fortran code.
+So to use the most recent Intel Python available with the packages, we must load::
 
-in addition, Micc_ relies on a number of other software package to do its work.
+    > module load IntelPython3/2020a
+    > module load IntelPython3-Packages/2020a-intel-2020a
 
-* Git_, our preferred  version control system. The system ``git`` is a bit old, hence::
+6.2.2 Using Poetry
+^^^^^^^^^^^^^^^^^^
 
-    > module purge
-    > git --version
-    git version 1.8.3.1 # this is the system git
-    > module load git
-    > git --version
-    git version 2.13.3
+Poetry_ is, sofar, not available as a cluster module. If you insist on having it, you have
+to install it yourself. Poetry wants to install itself only in :file:`$HOME/.poetry/bin`
+which is in the :file:`$VSC_USER` filesytem where the file quota are a bit restrictive for
+such installations. (It consumes more than 50% of your allowed number of files).
+A more serious problem is that we noticed problems with dependency resolution. Poetry tends to
+reinstall Python modules that are already installed as system site packages. This is not only a
+waste of disk space, it replaces modules that are carefully compiled for optimal performance on
+the cluster hardware, e.g. Numpy_, with standard compilations causing performance losses.
+This is unacceptable. As a consequence we strongly advise against the use of poetry on
+the VSC clusters, as long as Poetry_ fails to use system site packages. The consequences
+of refraining from Poetry_ are not to hard:
 
-* For building binary extensions from C++ we need CMake_, hence::
+* we must create our virtual environments ourselves,
+* we must manually install required Python modules that are not available in the system
+  site packages,
+* and we cannot publish.
 
-    > cmake --version
-    cmake version 2.8.12.2 # this is the system CMake
-    > module load leibniz/2019b
+Although the latter seems very restrictive, if you put your project on github, you can always
+check out the project on a desktop or laptop to publish it with Poetry. For the other two issues
+a simple workaround is presented below:
+
+6.2.3 Creating virtual environments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Since for this we cannot rely on poetry, we must do it manually. This command::
+
+    > python -m venv .venv --system-site-packages
+
+creates a virtual environment :file:`.venv` in the current working directory (typically
+a project directory). The ``--system-site-packages`` flag ensures that system site packages
+will be found by the ``python`` command. Otherwise, you will not be able to import numpy,
+e.g.. As usual the virtual environment is activated as:
+
+    > source .venv/bin/activate
+    (.venv) >
+
+With the ``IntelPython3`` and associated packages loaded as above::
+
+    (.venv) > which python
+    /data/antwerpen/201/vsc20170/workspace/ET-dot/.venv/bin/python
+    (.venv) > python --version
+    Python 3.7.7 :: Intel(R) Corporation
+    (.venv) >
+
+Note that the ``python`` executable ``/data/antwerpen/201/vsc20170/workspace/ET-dot/.venv/bin/python``
+is in fact a soft link to the python of the cluster module ``IntelPython3/2020a``. By
+using soft links the virtual environment takes up very little disk space and very little
+time to be created.
+
+6.2.4 Installing dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Since we cannot rely on poetry to install the dependencies of our project, we must
+do it ourselves. If you follow the recommended workflow and first develop your project
+on your own machine (where you can use poetry_), and then port it to the cluster,
+things are really easy:
+
+    #. develop your project on your own personal computer.
+    #. when everything works, push your code to the project's remote github repo.
+    #. clone the github repo on the cluster in your :file:`$VSC_DATA` filesystem.
+    #. create a virtual environment as detailed above in your project directory on
+       the cluster, and activate it.
+    #. check the :file:`pyproject.toml` file for the dependencies and development
+       dependencies and run ``pip install`` for each of them.
+
+You are now ready to test your project on the cluster.
+
+Starting the development of your project on the cluster is not recommended, because
+you can easily forget to update :file:`pyproject.toml` when adding dependencies.
+Porting the project to your own machine will then not have the correct dependencies.
+
+Having a system-wide ``micc`` on the cluster is not very practical. We recommend to
+``pip install micc-build`` or at least ``pip install micc`` (if you do not need to
+build binary extension modules) in your project's virtual environment. To use micc
+then, you must, obviously, activate the virtual environment.
+
+6.2.5 Access to compilers
+^^^^^^^^^^^^^^^^^^^^^^^^^
+For building binary extension modules from Fortran micc-build needs access to a Fortran
+compiler and a C compiler as well. For C++ binary extension modules access to a C++
+compiler is needed. The above loaded ``IntelPython3/2020a`` module was compiled with the
+Intel 2020a compiler toolchain so we must load::
+
+    (.venv) > module load intel/2020a
+    (.venv) > which ifort
+    /apps/antwerpen/x86_64/centos7/intel-psxe/2020.04/compilers_and_libraries_2020.4.304/linux/bin/intel64/ifort
+    (.venv) > which icc
+    /apps/antwerpen/x86_64/centos7/intel-psxe/2020.04/compilers_and_libraries_2020.4.304/linux/bin/intel64/icc
+    (.venv) > which icpc
+    /apps/antwerpen/x86_64/centos7/intel-psxe/2020.04/compilers_and_libraries_2020.4.304/linux/bin/intel64/icpc
+    (.venv) >
+
+6.2.6 CMake
+^^^^^^^^^^^
+CMake is available as a cluster module::
+
     > module load CMake
-    > cmake --version
-    cmake version 3.11.1
+    > module list
 
-* For building binary extensions from Fortran, we need f2py_, which is made available from
-  Numpy_. Hence, we need to load a cluster Python module with Numpy_ pre-installed (please
-  check `7.2.2 Using pre-installed Python packages`_ for this). The above loaded Python version
-  is ok for that.
+    Currently Loaded Modules:
+      1) leibniz/supported
+      2) GCCcore/9.3.0
+      3) binutils/2.34-GCCcore-9.3.0
+      4) IntelPython3/2020a
+      5) intel/2020a
+      6) baselibs/2020a-GCCcore-9.3.0
+      7) Tcl/8.6.10-intel-2020a
+      8) SQLite/3.31.1-intel-2020a
+      9) HDF5/1.10.6-intel-2020a-MPI
+      10) buildtools/2020a
+      11) IntelPython3-Packages/2020a-intel-2020a
+      12) CMake/3.11.1
 
+6.2.6 Git
+^^^^^^^^^
+As said, git too is available as a cluster module::
+
+    > module load git
+    > module list
+
+    Currently Loaded Modules:
+      1) leibniz/supported
+      2) GCCcore/9.3.0
+      3) binutils/2.34-GCCcore-9.3.0
+      4) IntelPython3/2020a
+      5) intel/2020a
+      6) baselibs/2020a-GCCcore-9.3.0
+      7) Tcl/8.6.10-intel-2020a
+      8) SQLite/3.31.1-intel-2020a
+      9) HDF5/1.10.6-intel-2020a-MPI
+      10) buildtools/2020a
+      11) IntelPython3-Packages/2020a-intel-2020a
+      12) CMake/3.11.1
+      13) git/2.13.3
+
+6.2.7 a remark on the order of things
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The first step when starting a cluster session on a login-node should always be to
+load all modules you need, followed by activating the virtual environment of your
+project. It is easy to forget things, so we recommend to put a bash script in your
+project directory that does this. E.g.::
+
+    # setup.sh script
+    module load git
+    module load CMake
+    module load IntelPython3/2020a
+    module load IntelPython3-Packages/2020a-intel-2020a
+    module load intel/2020a
+    module list
+    source .venv/bin/activate
+
+As the script must be sourced to activate the virtual environment, it is better
+not to make it executable, so you cannot forget to source it.
