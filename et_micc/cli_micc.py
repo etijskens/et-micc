@@ -519,6 +519,13 @@ def setup(ctx
     if not path_to_miccfile.exists() or force:
         shutil.copyfile(str(micc_file_template),str(path_to_miccfile))
         preferences = et_micc.expand.set_preferences(path_to_miccfile)
+        print("Configuring git"
+        cmds = [['git', 'config', '--global', 'user.name' , preferences['full_name']['default'] ]
+               ,['git', 'config', '--global', 'user.email', preferences['email'    ]['default'] ]
+               ,['git', 'config', '--global', 'credential.helper', 'cache']
+               ]
+        et_micc.utils.execute(cmds, print, stop_on_error=False)
+
     else:
         print("Micc has already been setup. Use '--force' or '-f' to overwrite the existing setup.")
     print("\nIf you want to change your preferences, edit the default entries in file \n"
