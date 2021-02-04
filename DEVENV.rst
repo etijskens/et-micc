@@ -11,7 +11,7 @@ working well, and then I port the code to the cluster for further testing. I swi
 forth between both environments several times.
 
 There are important differences in managing your environment on your local machine and on the
-cluster. They are described in detail in :ref:`Tutorial-cluster`.
+cluster. They are described in detail in :ref:`tutorial-6`.
 
 .. warning:: `Micc <https://github.com/etijskens/et-micc>`_ was designed for supporting HPC
     developers, and, consequentially, with Linux systems in mind. We provide support for Linux
@@ -26,8 +26,7 @@ by Jacob Kaplan-Moss. We will assume that this is indeed the case for all tutori
 particular:
 
 *   We use `pyenv <https://github.com/pyenv/pyenv>`_ to manage different Python versions on
-    our system (except for Anaconda or Miniconda Python distributions, where the Python version is
-    naturally embedded in conda_ virtual environmnent).
+    our system.
 *   `Pipx <https://github.com/pipxproject/pipx/>`_ is used to install Python applications
     system-wide. If your projects depend on different Python versions it is a good idea to
     ``pipx install`` Micc_, which we use for project management and and building binary extension
@@ -53,6 +52,11 @@ Setting up your local Development environment - step by step
 #.  Install pyenv: See
     `Managing Multiple Python Versions With pyenv <https://realpython.com/intro-to-pyenv/>`_
     for common install instructions on macos and Linux.
+
+    .. note::
+        Since Ubunty 20.10 the dependencies for pyenv_ can best be installed as shown in
+        https://github.com/asdf-vm/asdf/issues/570 . The realpython page above is not up
+        to date.
 
     If you're on Windows, consider using the fork `pyenv-win <https://github.com/pyenv-win/pyenv-win>`_.
     (Pyenv does not work on windows outside the Windows Subsystem for Linux).
@@ -141,7 +145,7 @@ You should be good to go now.
 
 Setting up your cluster Development environment - step by step
 --------------------------------------------------------------
-For details see :ref:`Tutorial-cluster`
+For details see :ref:`Tutorial-6`
 
 #.  On the cluster you must select the software packages you want to use manually by
     loading modules with the `module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html>`_
@@ -191,7 +195,7 @@ For details see :ref:`Tutorial-cluster`
         > module load CMake
 
 #.  If you need a full IDE, you must use one of the graphical environments on the cluster
-    (see https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/access/access_and_data_transfer.html#gui-applications-on-the-clusters_)
+    (see https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/access/access_and_data_transfer.html#gui-applications-on-the-clusters)
     Unfortunately, there are different gui environments for the different VSC clusters.
     If you only want a graphical editor, you can use Eclipse Remote system explorer as a
     remote editor.

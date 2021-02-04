@@ -497,8 +497,13 @@ def mv(ctx, cur_name, new_name, silent, entire_package, entire_project):
 
 
 @main.command()
+@click.option('--force', '-f', is_flag=True
+    , help="Overwrite existing setup."
+    , default=False
+)
 @click.pass_context
-def setup(ctx,
+def setup(ctx
+        , force
         ):
     """Setup your micc preferences.
 
@@ -506,18 +511,21 @@ def setup(ctx,
     """
     options = ctx.obj
 
-    # options.cur_name = cur_name
+    options.force = force
     micc_file_template = Path(__file__).parent / 'micc.json'
-    dotmicc = Path().home() / '.et_micc'
-    dotmicc.mkdir(exist_ok=True)
-    dotmicc_miccfile = dotmicc / 'micc.json'
-    shutil.copyfile(str(micc_file_template),str(dotmicc_miccfile))
-    preferences = et_micc.expand.set_preferences(dotmicc_miccfile)
-    print("Done\n\n"
-          "If you want to change your preferences, edit the default entries in file \n"
-         f"    {dotmicc_miccfile}\n"
+    setupdir = Path().home() / '.et_micc'
+    setupdir.mkdir(exist_ok=True)
+    path_to_miccfile = setupdir / 'micc.json'
+    if not path_to_miccfile.exists() or force:
+        shutil.copyfile(str(micc_file_template),str(path_to_miccfile))
+        preferences = et_micc.expand.set_preferences(path_to_miccfile)
+    else:
+        print("Micc has already been setup. Use '--force' or '-f' to overwrite the existing setup.")
+    print("\nIf you want to change your preferences, edit the default entries in file \n"
+         f"    {path_to_miccfile}\n"
           "Note that these changes will only affect NEW projects. Existing projects will be unaffected.\n"
-          "Micc is now configured and ready to be used.s"
+          "Micc is now configured and ready to be used.\n\n"
+          "Done"
     )
 
 if __name__ == "__main__":
