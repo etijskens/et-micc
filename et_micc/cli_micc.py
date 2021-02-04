@@ -99,6 +99,14 @@ def main(ctx, verbosity, project_path, clear_log):
     , help="use this name for the module, rather than deriving it from the project name."
     , default=''
 )
+@click.option('--remote'
+    , help="Create remote repo on github."
+    , default=False
+)
+@click.option('--private'
+    , help="Create private repo on github."
+    , default=False
+)
 @click.argument('name', type=str, default='')
 @click.pass_context
 def create(ctx
@@ -112,6 +120,8 @@ def create(ctx
            , template
            , allow_nesting
            , publish
+           , remote
+           , private
            ):
     """Create a new project skeleton.
 
@@ -151,6 +161,8 @@ def create(ctx
     options.package = package
     options.publish = publish
     options.module_name = module_name
+    options.remote = remote
+    options.private = private
 
     if not template:  # default, empty list
         if options.package:
@@ -519,7 +531,7 @@ def setup(ctx
     if not path_to_miccfile.exists() or force:
         shutil.copyfile(str(micc_file_template),str(path_to_miccfile))
         preferences = et_micc.expand.set_preferences(path_to_miccfile)
-        print("Configuring git"
+        print("\nConfiguring git:")
         cmds = [['git', 'config', '--global', 'user.name' , preferences['full_name']['default'] ]
                ,['git', 'config', '--global', 'user.email', preferences['email'    ]['default'] ]
                ,['git', 'config', '--global', 'credential.helper', 'cache']

@@ -194,15 +194,15 @@ class Project:
                         cmds = [['git', 'init']
                             , ['git', 'add', '*']
                             , ['git', 'add', '.gitignore']
-                            , ['git', 'commit', '-m', '"first commit"']
+                            , ['git', 'commit', '-m', '"And so this begun..."']
                         ]
                         if template_parameters['github_username']:
-                            cmds.extend(
-                                [ ['git', 'remote', 'add', 'origin',
-                                  f"https://github.com/{template_parameters['github_username']}/{self.project_name}"]
-                                , ['git', 'push', '-u', 'origin', 'master']
-                                ]
-                            )
+                            github_username = template_parameters['github_username']
+                            pat_file = Path.home() / '.pat.txt'
+                            if pat_file.exists():
+                                cmds.append(['gh', 'auth', 'login', '--with-token', '<', str(pat_file)])
+                                cmds.append(['gh', 'repo', 'create', self.project_name, ('--private' if self.options.private else '--public'), '-y'])
+                                cmds.append(['git', 'push', '-u', 'origin', 'master'])
                         et_micc.utils.execute(cmds, self.logger.debug, stop_on_error=False)
 
                 self.logger.warning(
