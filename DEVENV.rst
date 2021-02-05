@@ -122,7 +122,18 @@ Setting up your local Development environment - step by step
     with the `PyDev <https://pydev.org>`_ plugin,  but recently I became addicted to
     `PyCharm Community Edition`_. Both are available for MacOS, Linux and Windows.
 
-#.  Create a git account at <https://github.com>/join/.
+#.  Create a git account at https://github.com>/join/. Also
+    `create a personal access token <https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token>`_
+    At point 7 check at least these boxes:
+
+        * repo
+        * read:org
+
+    At point 9 copy the toke to the clipboard and paste it in :file:`~/.pat.txt`::
+
+        > echo shift+ctrl+V > ~/.pat.txt
+
+    Micc_ uses this file to automatically create a GitHub repo for your micc_ projects.
 
 #.  Install ``git`` (https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and
     the github cli ``gh`` (https://github.com/cli/cli#installation).

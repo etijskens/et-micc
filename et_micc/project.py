@@ -196,13 +196,19 @@ class Project:
                             , ['git', 'add', '.gitignore']
                             , ['git', 'commit', '-m', '"And so this begun..."']
                         ]
-                        if template_parameters['github_username']:
-                            github_username = template_parameters['github_username']
+                        github_username = template_parameters['github_username']
+                        if github_username and not self.options.remote is None:
                             pat_file = Path.home() / '.pat.txt'
                             if pat_file.exists():
                                 cmds.append(['gh', 'auth', 'login', '--with-token', '<', str(pat_file)])
-                                cmds.append(['gh', 'repo', 'create', self.project_name, ('--private' if self.options.private else '--public'), '-y'])
+                                cmds.append(['gh', 'repo', 'create', self.project_name, f'--{self.options.remote}', '-y'])
                                 cmds.append(['git', 'push', '-u', 'origin', 'master'])
+                            else:
+                                self.logger.error("Unable to access your GitHub account: file '~/.pat.txt' not found.\n"
+                                                  "Remote repository not created."
+                                                 )
+                        else:
+                            self.logger.warning("Not creating remote GitHub repository ")
                         et_micc.utils.execute(cmds, self.logger.debug, stop_on_error=False)
 
                 self.logger.warning(

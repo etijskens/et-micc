@@ -100,12 +100,8 @@ def main(ctx, verbosity, project_path, clear_log):
     , default=''
 )
 @click.option('--remote'
-    , help="Create remote repo on github."
-    , default=False
-)
-@click.option('--private'
-    , help="Create private repo on github."
-    , default=False
+    , help="Create remote repo on github. 'public'*|'private'|'none'"
+    , default='public'
 )
 @click.argument('name', type=str, default='')
 @click.pass_context
@@ -121,7 +117,6 @@ def create(ctx
            , allow_nesting
            , publish
            , remote
-           , private
            ):
     """Create a new project skeleton.
 
@@ -161,8 +156,9 @@ def create(ctx
     options.package = package
     options.publish = publish
     options.module_name = module_name
+    if not remote in ['public','private']:
+        remote = None
     options.remote = remote
-    options.private = private
 
     if not template:  # default, empty list
         if options.package:
