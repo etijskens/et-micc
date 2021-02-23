@@ -1,5 +1,6 @@
 .. _pip: https://pypi.org/project/pip/
 
+
 Principles
 ----------
 
@@ -17,7 +18,13 @@ cluster. They are described in detail in :ref:`tutorial-6`.
     developers, and, consequentially, with Linux systems in mind. We provide support for Linux
     (Ubuntu 19.10, CentOS 7.7), and macOS. Due to lack of human resources, it has not been
     tested on Windows, and no support is provided for it. However,
-    `WSL-2 <https://pbpython.com/wsl-python.html>`_ may do the trick on Windows.
+    `WSL-2 <https://pbpython.com/wsl-python.html>`_ may do the trick on Windows. Any feedback
+    is welcome
+
+If you want to experiment with micc without having to setup the environment, You can download
+anb Ubuntu 20.10 virtual machine for VirtualBox with everything pre-installed at
+https://calcua.uantwerpen.be/courses/parallel-programming/ubuntu-20.10.ova. It has a userid
+``user`` with password ``calcua@ua``.
 
 For Python development on your local machine, we highly recommend to set up your development
 environment as described in

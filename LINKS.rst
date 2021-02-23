@@ -1,5 +1,8 @@
 This page is a compilation of links I found interesting while learning Python and while solving
-everyday problems. As I keep on learning this list evolves continuously :-)
+everyday problems in project management and maintenance, and of course scientific computing.
+As I keep on learning this list evolves continuously :-)
+
+
 
 "the most dangerous thought you can have as a creative person, is that you know what you
 are doing." `Bret Victor - The Future of Programming <https://vimeo.com/71278954>`_.
@@ -9,6 +12,8 @@ For Beginners
 * `De Programmeursleerling - Pieter Spronck <http://www.spronck.net/pythonbook/dutchindex.xhtml>`_ (in Dutch)
 * `Slither into Python <https://www.slitherintopython.com>`_
 * `Learn Python by building 5 games <https://www.youtube.com/watch?v=XGf2GcyHPhc>`_
+* `HOW DO I START LEARNING PYTHON? <https://automationpanda.com/2020/02/18/how-do-i-start-learning-python/>`_
+
 
 Python as a language
 --------------------
@@ -37,6 +42,16 @@ Python internals
 * `The many ways to pass code to Python from the terminal <https://snarky.ca/the-many-ways-to-pass-code-to-python-from-the-terminal/>`_
 * `Unpacking in Python: Beyond Parallel Assignment <https://stackabuse.com/unpacking-in-python-beyond-parallel-assignment/>`_
 * `Pragmatic Unicode - Ned Batchelder - PyCon 2012 <https://nedbatchelder.com/text/unipain.html>`_
+* `Tracing the Python GIL <https://www.maartenbreddels.com/perf/jupyter/python/tracing/gil/2021/01/14/Tracing-the-Python-GIL.html>`_
+* `Constant folding in Python (constant expressions) <https://arpitbhayani.me/blogs/constant-folding-python>`_
+* `Python behind the scenes <https://tenthousandmeters.com>`_
+* `Python behind the scenes #7: how Python attributes work <https://tenthousandmeters.com/blog/python-behind-the-scenes-7-how-python-attributes-work/>`_
+* `Unravelling the import statement <https://snarky.ca/unravelling-the-import-statement/>`_
+* `Episode 40: How Python Manages Memory and Creating Arrays With np.linspace <https://realpython.com/podcasts/rpp/40/>`_
+* `RealPython podcasts <https://realpython.com/podcasts/rpp/>`_
+* `Syntactic sugar <https://snarky.ca/tag/syntactic-sugar/>`_
+* `Python Pitfalls - Expecting The Unexpected <https://towardsdatascience.com/python-pitfalls-expecting-the-unexpected-2e595dd1306c>`_
+
 
 Python for HPC
 --------------
@@ -49,6 +64,8 @@ rely on automatic code transformation from Python, so there is no need to write 
 * `High performance Python 2 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-2>`_
 * `High performance Python 3 <http://www.admin-magazine.com/HPC/Articles/High-Performance-Python-3>`_
 * `Python Bindings: Calling C or C++ From Python <https://realpython.com/python-bindings-overview/#strengths-and-weaknesses_2>`_
+* `Implementing C++ Virtual Functions in Cython <https://monadical.com/posts/virtual-classes-in-cython.html>`_
+* `Wrapping C++ with Cython: intro <https://azhpushkin.me/posts/cython-cpp-intro>`_
 
 Approaches mimicking or wrapping OpenMP and MPI:
 
@@ -65,6 +82,10 @@ Other parallel processing approaches:
 * `Common Issues Using Celery (And Other Task Queues) <https://adamj.eu/tech/2020/02/03/common-celery-issues-on-django-projects/>`_
 * `The Parallelism Blues: when faster code is slower <https://pythonspeed.com/articles/parallelism-slower/>`_
 * `Dask <https://dask.org>`_
+
+GPU
+
+* `Accelerating Python on GPUs with nvc++ and Cython <https://developer.nvidia.com/blog/accelerating-python-on-gpus-with-nvc-and-cython/>`_
 
 Concepts and ideas:
 
@@ -83,6 +104,8 @@ Profiling
 * `Profiling Python Code <https://www.admin-magazine.com/HPC/Articles/Profiling-Python-Code?utm_source=ADMIN+Newsletter&utm_campaign=HPC_Update_134_2020-03-19_MPI_Apps_with_Singularity&utm_medium=email>`_
 * `Disassemble Your Python Code <https://florian-dahlitz.de/blog/disassemble-your-python-code>`_
 * `Counting FLOPS and other CPU counters in Python <http://www.bnikolic.co.uk/blog/python/flops/2019/09/27/python-counting-events.html>`_
+* `A Comprehensive Guide to Profiling Python Programs <https://medium.com/better-programming/a-comprehensive-guide-to-profiling-python-programs-f8b7db772e6>`_
+* `Yet Another Python Profiler, but this time thread&coroutine&greenlet aware <https://github.com/sumerc/yappi>`_
 
 Resource monitoring
 -------------------
@@ -127,18 +150,21 @@ Python idioms and readability
 * `Why You Should Use More Enums In Python <https://florian-dahlitz.de/blog/why-you-should-use-more-enums-in-python>`_
 * `Regular Expressions: Regexes in Python (Part 1) <https://realpython.com/regex-python/>`_
 * `Regular Expressions: Regexes in Python (Part 2) <https://realpython.com/regex-python-part-2/>`_
+* `Novice to Advanced RegEx in Less-than 30 Minutes + Python <https://www.youtube.com/watch?v=GyJtxd14DTc>`_
 * `10 Awesome Pythonic One-Liners Explained <https://dev.to/devmount/10-awesome-pythonic-one-liners-explained-3doc>`_
 * `Stop writing classes <https://www.youtube.com/watch?v=o9pEzgHorH0>`_
 * `Generators, Iterables, Iterators in Python: When and Where <https://www.pythonforthelab.com/blog/generators-iterables-iterators-python-when-and-where/>`_
 * `New Features in Python 3.9 You Should Know About <https://medium.com/@martin.heinz/new-features-in-python-3-9-you-should-know-about-14f3c647c2b4>`_
 * `The Curious Case of Python's Context Manager <https://rednafi.github.io/digressions/python/2020/03/26/python-contextmanager.html>`_
-* `Demystifying Python’s Descriptor Protocol <https://deepsource.io/blog/demystifying-python-descriptor-protocol/>`_
 * `Python 101 – Working with Strings <https://www.blog.pythonlibrary.org/2020/04/07/python-101-working-with-strings/>`_
 * `A Guide to Python Lambda Functions <https://adamj.eu/tech/2020/08/10/a-guide-to-python-lambda-functions/>`_
 * `Pythonic code review <https://access.redhat.com/blogs/766093/posts/2802001>`_
 * `Python args and kwargs: Demystified <https://realpython.com/courses/python-kwargs-and-args/>`_
 * `Python Dictionary Iteration: Advanced Tips & Tricks <https://realpython.com/courses/python-dictionary-iteration/>`_
 * `Python Code style and pythonic idioms <https://docs.python-guide.org/writing/style/>`_
+* `Learn something new about Python every day in less than 1 minute <https://www.youtube.com/c/PythonIn1Minute/videos>`_
+* `The pass Statement: How to Do Nothing in Python <https://realpython.com/python-pass/>`_
+* `73 Examples to Help You Master Python's f-strings <https://miguendes.me/amp/73-examples-to-help-you-master-pythons-f-strings>`_
 
 Useful packages
 ---------------
@@ -156,6 +182,8 @@ Useful packages
 * `Pickle’s nine flaws <https://nedbatchelder.com/blog/202006/pickles_nine_flaws.html>`_
 * `Taichi:a programming language designed for high-performance computer graphics <https://github.com/taichi-dev/taichi>`_
 * `rich: rich text and beautiful formatting in the terminal <https://github.com/willmcgugan/rich>`_
+* `Awesome pattern matching (apm) for Python <https://github.com/scravy/awesome-pattern-matching>`_
+* `Scheduling All Kinds of Recurring Jobs with Python <https://towardsdatascience.com/scheduling-all-kinds-of-recurring-jobs-with-python-b8784c74d5dc>`_
 
 Exceptions
 ----------
@@ -170,6 +198,7 @@ Type checking in Python
   mypy
 * `Applying mypy to real world projects <http://calpaterson.com/mypy-hints.html>`_
 * `Types at the Edges in Python <https://blog.meadsteve.dev/programming/2020/02/10/types-at-the-edges-in-python/>`_
+* `Exhaustiveness (enum) Checking with Mypy <https://hakibenita.com/python-mypy-exhaustive-checking>`_
 
 Design patterns
 ---------------
@@ -208,7 +237,11 @@ Testing
 * `ARRANGE-ACT-ASSERT: A PATTERN FOR WRITING GOOD TESTS <https://automationpanda.com/2020/07/07/arrange-act-assert-a-pattern-for-writing-good-tests/>`_
 * `There's no one right way to test your code <https://mattsegal.dev/alternate-test-styles.html>`_
 * `Why you should document your tests <https://hynek.me/articles/document-your-tests/>`_
-
+* `Property-Based Testing with hypothesis, and associated use cases <https://bytes.yingw787.com/posts/2021/02/02/property_based_testing/>`_
+* `Testing Python Applications with Pytest [Guide] <https://stribny.name/blog/pytest/>`_
+* `Learning Python Test Automation <https://automationpanda.com/2020/11/09/learning-python-test-automation/amp/>`_
+  These days, there’s a wealth of great content on Python testing. Here’s a brief reference to help you get started.
+* `How to write doctests in Python <https://www.digitalocean.com/community/tutorials/how-to-write-doctests-in-python>`_
 Debugging
 ---------
 * `pdb - The Python debugger <https://docs.python.org/3/library/pdb.html>`_
@@ -218,12 +251,17 @@ Debugging
 * `Liran Haimovitch - Understanding Python’s Debugging Internals - PyCon 2019 <https://www.youtube.com/watch?v=QU158nGABxI&t=765s&pbjreload=10>`_
 * `bdb - debugger framework <https://docs.python.org/3.8/library/bdb.html>`_
 * `pudb for Visual Debugging <https://realpython.com/python-packages/#pudb-for-visual-debugging>`_
+* `Cyberbrain: Python debugging, redefined <https://github.com/laike9m/Cyberbrain>`_
+* `Python Traceback (Error Message) Printing Variables <https://github.com/andy-landy/traceback_with_variables>`_
+* `Introspection in Python <https://anvil.works/blog/introspection-in-python>`_
 
 Logging
 -------
 * `Python logging tutorial <http://www.patricksoftwareblog.com/python-logging-tutorial/>`_
 * `Writing custom profilers for Python <https://pythonspeed.com/articles/custom-python-profiler/>`_
 * `Do not log <https://sobolevn.me/2020/03/do-not-log>`_
+* `Understanding Python's logging library<https://blog.urbanpiper.com/understanding-python-logging-library/>`_
+
 
 Profiling
 ---------
@@ -235,6 +273,8 @@ Scientific Python
 * `Numeric and Scientific Python Packages built on Numpy <https://wiki.python.org/moin/NumericAndScientific>`_
 * `Symbolic Maths in Python <https://alexandrugris.github.io/maths/2017/04/30/symbolic-maths-python.html>`_
 * `How to use HDF5 files in Python <https://www.pythonforthelab.com/blog/how-to-use-hdf5-files-in-python/>`_
+* `A free course on Numpy <https://www.youtube.com/playlist?list=PL9oKUrtC4VP6gDp1Vq3BzfViO0TWgR0vR>`_
+* `Generating Stl Models with Python (CAD) <https://micronote.tech/2020/12/Generating-STL-Models-with-Python/>`_
 
 Machine learning and datascience
 --------------------------------
@@ -247,14 +287,30 @@ Machine learning and datascience
 * `Top 10 Python Packages for Machine Learning <https://www.activestate.com/blog/top-10-python-machine-learning-packages/?utm_source=pycoders-weekly&utm_medium=email&utm_content=newsletter-2020-03-17-top-10-ML-packages&utm_campaign=as-blog>`_
 * `streamz: Build Pipelines to Manage Continuous Streams of Data <https://github.com/python-streamz/streamz/blob/master/docs/source/index.rst>`_
 * `nfstream - A flexible network data analysis framework <https://github.com/aouinizied/nfstream>`_
+* `A series how to turn machine learning models into production-ready software solutions <https://www.youtube.com/playlist?list=PLx8omXiw3n9y26FKZLV5ScyS52D_c29QN>`_
+* `A free course on Python Pandas <https://www.youtube.com/playlist?list=PL9oKUrtC4VP7ry0um1QOUUfJBXKnkf-dA>`_
+* `Neural Networks Explained from Scratch using Python <https://youtu.be/9RN2Wr8xvro>`_
+* `Machine learning made easy withe Python <https://opensource.com/article/21/1/machine-learning-python?utm_medium=Email&utm_campaign=weekly&sc_cid=7013a0000026SeIAAU>`_
 
-CLIs
-----
+CLIs and scripting
+------------------
 * `Building a CLI for Firmware Projects using Invoke <https://interrupt.memfault.com/blog/building-a-cli-for-firmware-projects>`_
 * `Click <https://click.palletsprojects.com/en/7.x/>`_
 * `QUICK: A real quick GUI generator for click <https://github.com/szsdk/quick>`_
 * `When laziness is efficient: Make the most of your command line <https://stackoverflow.blog/2020/02/12/when-laziness-is-efficient-make-the-most-of-your-command-line/?utm_source=Iterable&utm_medium=email&utm_campaign=the_overflow_newsletter&utm_content=02-19-20>`_
 * `Typer: build CLIs with Python type hints <https://typer.tiangolo.com/>`_
+* `Messing with the python shell <https://www.kbairak.net/programming/python/2021/02/01/messing-with-the-python-shell.html>`_
+* `Converting shell scripts to python scripts <https://github.com/jroose/shtk>`_
+* `a Python shell environment that combines the expressiveness of shell pipelines with the power of python iterators <https://github.com/redhog/pieshell>`_
+* `build a command line text editor with Python and curses <https://wasimlorgat.com/editor.html>`_
+* `Show progress in your Python apps with tqdm <https://opensource.com/article/20/12/tqdm-python>`_
+* `Questionary is a Python library for effortlessly building pretty command line interfaces <https://github.com/tmbo/questionary>`_
+* `Command Line Interface Guidelines <https://clig.dev>`_
+* `iterm2 plugins written in python <https://cgamesplay.com/post/2020/11/25/iterm-plugins/>`_
+
+GUI
+---
+* `Use PyQt's QThread to Prevent Freezing GUIs <https://realpython.com/python-pyqt-qthread/>`_
 
 Packaging
 ---------
@@ -281,6 +337,8 @@ Graphics
 * `Grammar of graphics for Pyhon (using plotnine and pandas) <https://www.datascienceworkshops.com/blog/plotnine-grammar-of-graphics-for-python/>`_
 * `plotly Express <https://pbpython.com/plotly-look.html>`_
 * `widgets in matplotlib <https://kapernikov.com/ipywidgets-with-matplotlib/>`_
+* `How to build beautiful plots with Python and Seaborn <https://livecodestream.dev/post/how-to-build-beautiful-plots-with-python-and-seaborn/>`_
+* `HiPlot is a lightweight interactive visualization tool to help  discover correlations and patterns in high-dimensional data <https://github.com/facebookresearch/hiplot>`_
 
 Installing packages
 -------------------
@@ -301,10 +359,20 @@ Tools
 * `Python static analysis tools <https://luminousmen.com/post/python-static-analysis-tools>`_
 * `Leverage Sublime project folders to ease your work <https://storiesinmypocket.com/articles/leverage-sublime-project-folders-ease-your-work/>`_
 * `Deep dive into how pyenv actually works by leveraging the shim design pattern <https://mungingdata.com/python/how-pyenv-works-shims/>`_
+* `Explore binaries using this full-featured Linux tool <https://opensource.com/article/21/1/linux-radare2?utm_medium=Email&utm_campaign=weekly&sc_cid=7013a0000026SeIAAU>`_
+* `How to write a configuration file in python <https://towardsdatascience.com/from-novice-to-expert-how-to-write-a-configuration-file-in-python-273e171a8eb3>`_
+* `How to automatically set up a development machine with Ansible <https://stribny.name/blog/ansible-dev/>`_
+
+git and other VCS
+
 * `9 useful tricks of git branch <https://gitbetter.substack.com/p/9-useful-tricks-of-git-branch-you>`_
 * `gitutor <https://github.com/artemisa-mx/gitutor>`_
+* `Git Commands to Live By - The cheat sheet that goes beyond Git basics <https://medium.com/better-programming/git-commands-to-live-by-349ab1fe3139>`_
 * `Things You Want to Do in Git and How to Do Them <https://stu2b50.dev/posts/things-you-wante9665>`_
 * `Helpful git commands for beginners <https://dev.to/s2engineers/helpful-git-commands-for-beginners-40bm>`_
+* `understanding git: commits are snapshots not diffs <https://github.blog/2020-12-17-commits-are-snapshots-not-diffs/>`_
+* `Pijul, a sound and fast distributed version control system based on a mathematical theory of asynchronous work. <https://nest.pijul.com/pijul/pijul>`_
+* `Getting The Most Out Of Git <https://www.smashingmagazine.com/2021/02/getting-the-most-out-of-git/?utm_source=tldrnewsletter>`_
 
 Development environment, developement workflow
 ----------------------------------------------
@@ -318,6 +386,9 @@ Development environment, developement workflow
 * `Thoughts on where tools fit into a workflow <https://snarky.ca/thoughts-on-a-tooling-workflow/>`_
 * `poetry <https://github.com/python-poetry/poetry>`_
 * `Blazing fast CI with GitHub Actions, Poetry, Black and Pytest <https://medium.com/@vanflymen/blazing-fast-ci-with-github-actions-poetry-black-and-pytest-9e74299dd4a5>`_
+* `Rewriting your git history, removing files permanently - cheatsheet & guide <https://blog.gitguardian.com/rewriting-git-history-cheatsheet/>`_
+* `pipupgrade <https://github.com/achillesrasquinha/pipupgrade>`_
+* `How to Set Environment Variables in Linux and Mac: The Missing Manual <https://doppler.com/blog/how-to-set-environment-variables-in-linux-and-mac>`_
 
 Problem solving
 ---------------
@@ -346,6 +417,7 @@ Compilers
 ---------
 
 * `CppCon 2017: Matt Godbolt “What Has My Compiler Done for Me Lately? Unbolting the Compiler's Lid” <https://youtu.be/bSkpMdDe4g4>`_
+* `A Complete Guide to LLVM for Programming Language Creators <https://mukulrathi.co.uk/create-your-own-programming-language/llvm-ir-cpp-api-tutorial/>`_
 
 Notebooks
 ---------
@@ -372,3 +444,10 @@ Programming blogs
 * `Ruslan Spivak <https://ruslanspivak.com/>`_
 * `<https://rhodesmill.org/brandon/>`_
 * `testandcode <https://testandcode.com>`_
+
+QUOTES
+------
+* "The code you write makes you a programmer. The code you delete makes you a good one.
+  The code you don't have to write makes you a great one." - Mario Fusco
+* “It's hard enough to find an error in your code when you're looking for it;
+  it's even harder when you've assumed your code is error-free.” - Steve McConnell
