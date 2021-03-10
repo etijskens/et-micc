@@ -1,5 +1,5 @@
-***************************************
-Interesting links on Python programming
-***************************************
+*****************
+Interesting links
+*****************
 
 .. include:: ../LINKS.rst

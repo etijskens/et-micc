@@ -242,6 +242,7 @@ Testing
 * `Learning Python Test Automation <https://automationpanda.com/2020/11/09/learning-python-test-automation/amp/>`_
   These days, there’s a wealth of great content on Python testing. Here’s a brief reference to help you get started.
 * `How to write doctests in Python <https://www.digitalocean.com/community/tutorials/how-to-write-doctests-in-python>`_
+
 Debugging
 ---------
 * `pdb - The Python debugger <https://docs.python.org/3/library/pdb.html>`_
@@ -260,7 +261,7 @@ Logging
 * `Python logging tutorial <http://www.patricksoftwareblog.com/python-logging-tutorial/>`_
 * `Writing custom profilers for Python <https://pythonspeed.com/articles/custom-python-profiler/>`_
 * `Do not log <https://sobolevn.me/2020/03/do-not-log>`_
-* `Understanding Python's logging library<https://blog.urbanpiper.com/understanding-python-logging-library/>`_
+* `Understanding Python's logging library <https://blog.urbanpiper.com/understanding-python-logging-library/>`_
 
 
 Profiling
@@ -373,6 +374,7 @@ git and other VCS
 * `understanding git: commits are snapshots not diffs <https://github.blog/2020-12-17-commits-are-snapshots-not-diffs/>`_
 * `Pijul, a sound and fast distributed version control system based on a mathematical theory of asynchronous work. <https://nest.pijul.com/pijul/pijul>`_
 * `Getting The Most Out Of Git <https://www.smashingmagazine.com/2021/02/getting-the-most-out-of-git/?utm_source=tldrnewsletter>`_
+* `Git is my buddy: Effective Git as a solo developer <https://mikkel.ca/blog/git-is-my-buddy-effective-solo-developer/?utm_source=tldrnewsletter>`_
 
 Development environment, developement workflow
 ----------------------------------------------
@@ -407,11 +409,16 @@ Django
 ------
 * `Understanding django <https://www.mattlayman.com/understand-django/browser-to-django/>`_
 
-Fortran/C/C++
--------------
+Fortran/C/C++ Syntax
+--------------------
 * `<https://www.fortran90.org>`_
 * `<http://www.cplusplus.com>`_
 * `<http://cppreference.com>`_
+
+C++
+---
+* `A friendly guide to the syntax of C++ method pointers <https://opensource.com/article/21/2/ccc-method-pointers?utm_medium=Email&utm_campaign=weekly&sc_cid=7013a000002vqnQAAQ>`_
+* `How Many Strings Does C++ Have? <https://blogs.msmvps.com/gdicanio/2018/05/28/how-many-strings-does-c-have/>`_
 
 Compilers
 ---------

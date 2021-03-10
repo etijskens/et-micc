@@ -56,6 +56,12 @@ particular:
 
 Setting up your local Development environment - step by step
 ------------------------------------------------------------
+
+.. note::
+
+   The steps below are only suitable on your local laptop or desktop. For working on the VSC
+   clusters, a separate tutorial is provided (:ref:`tutorial-6`).
+
 #.  Install pyenv: See
     `Managing Multiple Python Versions With pyenv <https://realpython.com/intro-to-pyenv/>`_
     for common install instructions on macos and Linux.

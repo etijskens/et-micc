@@ -183,23 +183,59 @@ packages are in a separate module:
 
 So to use the most recent Intel Python available with the packages, we must load::
 
-    > module load IntelPython3/2020a
     > module load IntelPython3-Packages/2020a-intel-2020a
+    > module list
+
+    Currently Loaded Modules:
+      1) leibniz/supported             5) IntelPython3/2020a             9) HDF5/1.10.6-intel-2020a-MPI
+      2) GCCcore/9.3.0                 6) baselibs/2020a-GCCcore-9.3.0  10) buildtools/2020a
+      3) binutils/2.34-GCCcore-9.3.0   7) Tcl/8.6.10-intel-2020a        11) IntelPython3-Packages/2020a-intel-2020a
+      4) intel/2020a                   8) SQLite/3.31.1-intel-2020a
 
 6.2.2 Using Poetry
 ^^^^^^^^^^^^^^^^^^
 
 Poetry_ is, sofar, not available as a cluster module. If you insist on having it, you have
-to install it yourself. Poetry wants to install itself only in :file:`$HOME/.poetry/bin`
-which is in the :file:`$VSC_USER` filesytem where the file quota are a bit restrictive for
-such installations. (It consumes more than 50% of your allowed number of files).
-A more serious problem is that we noticed problems with dependency resolution. Poetry tends to
-reinstall Python modules that are already installed as system site packages. This is not only a
-waste of disk space, it replaces modules that are carefully compiled for optimal performance on
-the cluster hardware, e.g. Numpy_, with standard compilations causing performance losses.
-This is unacceptable. As a consequence we strongly advise against the use of poetry on
-the VSC clusters, as long as Poetry_ fails to use system site packages. The consequences
-of refraining from Poetry_ are not to hard:
+to install it yourself. On a VSC cluster this can best be done like this::
+
+    > module load IntelPython3
+    > export POETRY_HOME=$VSC_DATA/.poetry
+    > curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+    > source /data/antwerpen/201/vsc20170/.poetry/env
+
+This installs poetry_ in your $VSC_DATA file system, rather than  in :file:`$HOME/.poetry/bin`
+where it would consume to much of your file quota. If the system's Python is Python 3.x, rather
+than 2.7.x, the first line is not necessary. The last line makes sure the current shell can use
+``poetry`` right away.
+
+A more serious problem is that Poetry doesn't play well with the system site-packages. There are
+two issues.
+
+#.  ``poetry install`` fails unless we create the virtual environment ourselves wiht the
+    ``--system-site-packages`` flag. Poetry will then use :file:`.venv` (if it is activated)::
+
+        > python -m venv .venv --system-site-packages
+        > source .venv/bin/activate
+        (.venv) > poetry install
+
+#.  The second issue is that poetry will install newer versions of the system site packages
+    (in :file:`.venv` if it finds any. In general that will cause no problems. However, some of
+    the system site packages have been built with special attention to performance because they
+    are heavily used for scientific computation. One such package is numpy, which is a dependency
+    of micc-build. E.g. the above :file:`IntelPython3` module has numpy 1.18.5 pre-installed as a
+    system site package. Unfortunately, ``poetry install`` ignores its presence and installs a more
+    recent version (c.q. 1.20.1), but this lack the performance optimisation features of the pre-
+    installed version. To make use of the pre-installed numpy, we must manually remove the newer
+    version installed in the virtual environment::
+
+        > pip uninstall numpy
+
+    This will remove numpy 1.20.1, and any references to numpy will now make use of the pre-installed
+    numpy 1.18.5.
+
+Admittedly, this approach is not very elegant, but it is expected that the poetry_ developers
+will solve this problem some day. If the approach above does not suit you, you can go on without
+using poetry, as explained below. The consequences of refraining from Poetry_ are not to hard:
 
 * we must create our virtual environments ourselves,
 * we must manually install required Python modules that are not available in the system
@@ -210,8 +246,8 @@ Although the latter seems very restrictive, if you put your project on github, y
 check out the project on a desktop or laptop to publish it with Poetry. For the other two issues
 a simple workaround is presented below:
 
-6.2.3 Creating virtual environments
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6.2.3 Manual management of virtual environments and dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Since for this we cannot rely on poetry, we must do it manually. This command::
 
     > python -m venv .venv --system-site-packages
