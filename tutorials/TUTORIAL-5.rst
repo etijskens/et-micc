@@ -8,9 +8,7 @@ Publishing your code is an easy way to make your code available to other users.
 ------------------------------------------
 Poetry_ provides really easy interface to publishing your code to the Python Package
 Index (PyPI_). If you do not have a PyPI_  account, create one and
-run this command in a project directory, say :file:`et-foo`:
-
-.. code-block::
+run this command in a project directory, say :file:`et-foo`::
 
    > cd path/to/et-foo
    > source .venv/bin/activate
@@ -28,6 +26,7 @@ run this command in a project directory, say :file:`et-foo`:
    
     - Uploading et-foo-0.1.0.tar.gz 100%
     - Uploading et_foo-0.1.0-py3-none-any.whl 100%
+
     
 .. note:: It is crucial that your project name is not already taken. For this reason,
    we recommend that
@@ -69,7 +68,7 @@ in C++
 .. code-block:: bash
 
    > micc -p Foo create
-   > cd auto-build
+   > cd Foo
    > micc add bar --cpp
 
 This creates this :file:`Foo/foo/__init__.py`:
