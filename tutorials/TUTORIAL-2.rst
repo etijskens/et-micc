@@ -766,11 +766,11 @@ Finally, run pytest:
 
     The build parameters for our C++ binary extension module are detailed in
     the file :file:`et_dot/cpp_dotc/CMakeLists.txt`. It contains significantly
-    less boilerplate code (which you should not need to touch), and provides
-    the same functionality as its counterpart for Fortran binary extension
-    modules. By default this file specifies that a release version is to be built.
-    Here is the section of :file:`et_dot/cpp_dotc/CMakeLists.txt` that you might
-    want to adjust to your needs:
+    less boilerplate code (which you should not need to touch) than for the
+    Fortran case, and provides the same functionality as its counterpart for
+    Fortran binary extension modules. By default this file specifies that a
+    release version is to be built. Here is the section of :file:`et_dot/cpp_dotc/CMakeLists.txt`
+    that you might want to adjust to your needs:
 
     .. code-block:: cmake
 
