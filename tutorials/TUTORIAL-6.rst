@@ -44,8 +44,8 @@ connected to one of the login-nodes of the cluster::
     Happy computing!
     >
 
-6.2 Using modules
------------------
+6.2 Using clusterr modules
+--------------------------
 The module system of the VSC_ clusters is explained in the VSC documentation
 `Using the module system <https://vlaams-supercomputing-centrum-vscdocumentation.readthedocs-hosted.com/en/latest/software/software_stack.html#using-the-module-system>`_.
 
@@ -135,7 +135,7 @@ You can unload all modules::
 The tools we need as micc users are, typically:
 
 * a modern Python version, e.g. 3.7 or later.
-* common Python packages for computing, like Numpy, scipy, matplotlib, ...
+* common Python packages for computing, like numpy, scipy, matplotlib, ...
 * Poetry, for dependency resolution, publishing to PyPI_ and virtual environment creation
 * compilers for C++ and/or Fortran, for compiling binary extensions.
 * CMake, as the build system for C++ binary extensions.
@@ -208,15 +208,17 @@ where it would consume to much of your file quota. If the system's Python is Pyt
 than 2.7.x, the first line is not necessary. The last line makes sure the current shell can use
 ``poetry`` right away.
 
-A more serious problem is that Poetry doesn't play well with the system site-packages. There are
-two issues.
+A more serious problem is that, so far, Poetry doesn't play well with the system site-packages.
+There are two issues:
 
 #.  ``poetry install`` fails unless we create the virtual environment ourselves wiht the
-    ``--system-site-packages`` flag. Poetry will then use :file:`.venv` (if it is activated)::
+    ``--system-site-packages`` flag. Poetry will then use :file:`.venv` (if it is activated)
+    to install the dependencies::
 
         > python -m venv .venv --system-site-packages
         > source .venv/bin/activate
         (.venv) > poetry install
+        ...
 
 #.  The second issue is that poetry will install newer versions of the system site packages
     (in :file:`.venv` if it finds any. In general that will cause no problems. However, some of
@@ -262,11 +264,18 @@ e.g.. As usual the virtual environment is activated as:
 
 With the ``IntelPython3`` and associated packages loaded as above::
 
-    (.venv) > which python
-    /data/antwerpen/201/vsc20170/workspace/ET-dot/.venv/bin/python
-    (.venv) > python --version
-    Python 3.7.7 :: Intel(R) Corporation
-    (.venv) >
+    (.venv) > python
+    Python 3.7.7 (default, Jun 26 2020, 05:10:03)
+    [GCC 7.3.0] :: Intel(R) Corporation on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    Intel(R) Distribution for Python is brought to you by Intel Corporation.
+    Please check out: https://software.intel.com/en-us/python-distribution
+    >>> import numpy as np
+    >>> np.__version__
+    '1.18.5'
+    >>> np.__file__
+    '/apps/antwerpen/x86_64/centos7/intel-psxe/2020.02/intelpython3/lib/python3.7/site-packages/numpy/__init__.py'
+    >>>
 
 Note that the ``python`` executable ``/data/antwerpen/201/vsc20170/workspace/ET-dot/.venv/bin/python``
 is in fact a soft link to the python of the cluster module ``IntelPython3/2020a``. By
@@ -275,8 +284,8 @@ time to be created.
 
 6.2.4 Installing dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Since we cannot rely on poetry to install the dependencies of our project, we must
-do it ourselves. If you follow the recommended workflow and first develop your project
+Installing the dependencies of our project without Poetry_, is easily achieved using
+``pip install``. If you follow the recommended workflow and first develop your project
 on your own machine (where you can use poetry_), and then port it to the cluster,
 things are really easy:
 
@@ -289,6 +298,9 @@ things are really easy:
        dependencies and run ``pip install`` for each of them.
 
 You are now ready to test your project on the cluster.
+
+Being lazy, there is a quick and dirty way as well. Just run your python code as is,
+and when you get an ``ImportError``, run ``pip install`` for the missing Python package.
 
 Starting the development of your project on the cluster is not recommended, because
 you can easily forget to update :file:`pyproject.toml` when adding dependencies.
@@ -358,7 +370,7 @@ As said, git too is available as a cluster module::
       12) CMake/3.11.1
       13) git/2.13.3
 
-6.2.7 a remark on the order of things
+6.2.7 A remark on the order of things
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The first step when starting a cluster session on a login-node should always be to
 load all modules you need, followed by activating the virtual environment of your
@@ -374,5 +386,7 @@ project directory that does this. E.g.::
     module list
     source .venv/bin/activate
 
-As the script must be sourced to activate the virtual environment, it is better
-not to make it executable, so you cannot forget to source it.
+As the script must be ``source``-d (to expose the loaded modules in your shell,
+and to activate the virtual environment), it is better
+not to make it executable, so you cannot forget to source it. (To ``source`` a
+script, it must not be executable).
