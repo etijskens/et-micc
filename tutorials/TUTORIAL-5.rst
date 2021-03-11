@@ -53,7 +53,7 @@ environment in which you install. The source code directories of the binary exte
 modules are installed with the package, but without the binary extensions themselves.
 These must be compiled locally. Fortunately that happens automatically, at least if the
 binary extension were added to the package by Micc_. When Micc_ adds a binary extension
-to a project, two thing happen:
+to a project, two things happen:
 
 * a dependency on micc-build_ is added to the project, and
 * in the top-level module :py:mod:`<package_name>/__init__.py` a :py:obj:`try-except`

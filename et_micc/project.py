@@ -643,6 +643,11 @@ class Project:
                                     , 'f90_' + module_name
                                     , module_name + '.f90'
                                     )
+            cmk_file = os.path.join(project_path.name
+                                    , package_name
+                                    , 'f90_' + module_name
+                                    , 'CMakeLists.txt'
+                                    )
             tst_file = os.path.join(project_path.name
                                     , 'tests'
                                     , 'test_f90_' + module_name + '.py'
@@ -654,6 +659,7 @@ class Project:
                                     , module_name + '.rst'
                                     )
             self.logger.info(f"- Fortran source in       {src_file}.")
+            self.logger.info(f"- build settings in       {cmk_file}.")
             self.logger.info(f"- Python test code in     {tst_file}.")
             self.logger.info(f"- module documentation in {rst_file} (restructuredText format).")
 
@@ -718,6 +724,11 @@ class Project:
                                     , 'cpp_' + module_name
                                     , module_name + '.cpp'
                                     )
+            cmk_file = os.path.join(project_path.name
+                                    , package_name
+                                    , 'cpp_' + module_name
+                                    , 'CMakeLists.txt'
+                                    )
             tst_file = os.path.join(project_path.name
                                     , 'tests'
                                     , 'test_cpp_' + module_name + '.py'
@@ -729,6 +740,7 @@ class Project:
                                     , module_name + '.rst'
                                     )
             self.logger.info(f"- C++ source in           {src_file}.")
+            self.logger.info(f"- build settings in       {cmk_file}.")
             self.logger.info(f"- Python test code in     {tst_file}.")
             self.logger.info(f"- module documentation in {rst_file} (restructuredText format).")
 

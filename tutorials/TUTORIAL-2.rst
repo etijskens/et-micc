@@ -201,6 +201,7 @@ dot product, say ``dotf``, where the ``f``, obviously, is for Fortran::
     > micc add dotf --f90
     [INFO]           [ Adding f90 module dotf to project ET-dot.
     [INFO]               - Fortran source in       ET-dot/et_dot/f90_dotf/dotf.f90.
+    [INFO]               - Build settings in       ET-dot/et_dot/f90_dotf/CMakeLists.txt.
     [INFO]               - Python test code in     ET-dot/tests/test_f90_dotf.py.
     [INFO]               - module documentation in ET-dot/et_dot/f90_dotf/dotf.rst (in restructuredText format).
     [WARNING]            Dependencies added. Run \'poetry update\' to update the project\'s virtual environment.
@@ -590,6 +591,7 @@ Use the ``micc add`` command to add a cpp module:
     > micc add dotc --cpp
     [INFO]           [ Adding cpp module dotc to project ET-dot.
     [INFO]               - C++ source in           ET-dot/et_dot/cpp_dotc/dotc.cpp.
+    [INFO]               - build settings in       ET-dot/et_dot/cpp_dotc/CMakeLists.txt.
     [INFO]               - module documentation in ET-dot/et_dot/cpp_dotc/dotc.rst (in restructuredText format).
     [INFO]               - Python test code in     ET-dot/tests/test_cpp_dotc.py.
     [INFO]           ] done.
