@@ -15,10 +15,10 @@ cpp = {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
 
 
 def test_cpp_add():
-    x = np.array([0,1,2,3,4],dtype=np.float)
+    x = np.array([0,1,2,3,4],dtype=float)
     shape = x.shape
-    y = np.ones (shape,dtype=np.float)
-    z = np.zeros(shape,dtype=np.float)
+    y = np.ones (shape,dtype=float)
+    z = np.zeros(shape,dtype=float)
     expected_z = x + y
     result = cpp.add(x,y,z)
     assert (z == expected_z).all()
