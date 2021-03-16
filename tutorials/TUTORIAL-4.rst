@@ -4,33 +4,34 @@ Tutorial 4: Version control and version management
 ==================================================
 
 Micc_ support the use of git_ for version control. Check out https://git-scm.com for
-documentation of git.
+documentation of git. To make sure everything works smoothly, you must
+
+#.  Create a github account. Go to https://github.com, enter your e-mail address, click
+    “Sign up for GitHub” and follow the instructions.
+#.  You need a personal access token, so that micc can automatically create a remote
+    repository whenever you create a new project.
+
+    #.  Follow `Creating a personal access token <https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token>`_.
+    #.  At point 7 check at least these boxes: ``repo`` and ``read:org``.
+    #.  After point 9 (copying the token), paste it in a text file :file:`.pat.txt` in your
+        home directory. In a Linux terminal you can type ``echo shift+ctrl+V > ~/.pat.txt``
+        (``shift+ctrl+V`` is the paste keyboard shortcut, om macos it is be ``Cmd+v``).
+    #.  Skip point 10.
+
+The ``micc create`` command has a ``--remote`` switch which can be ``public`` (default),
+``private`` or ``none`` to select the creation of a resp. a public remote repository on
+github, a private remote repository on github, or no remote repo at all.
 
 .. _git-support:
 
 4.1 Git support
 ---------------
 When you create a new project, Micc_ immediately provides a local git_ repository for 
-you and commits the initial files Micc_ set up for you. If you have a github_ account you
-can register it in the preferences file :file:`~/.micc/micc.json`, using the 
-``github_username`` entry::
-
-   {
-   ...
-   , "github_username"  : {"default":"etijskens"
-                          ,"text"   :"your github username"
-                          }
-   ...
-   }
-
-Micc_ cannot create a remote `github <https://github.com>`_ repository for you, 
-but if you registered your github_ username in the preferences file, it will add 
-a remote origin at ``https://github.com/etijskens/<your_project_name>/``, and
-try to push the files to the github_ repo. If you have created the remote repository 
-before you create the project, the new project will be immediately pushed onto
-the remote origin. Otherwise, you get a warning that the remote repository does not
-yet exist. You can create the remote repository whenever you like and push your work
-onto the remote repository using the git_ CLI. 
+you and commits the initial files Micc_ set up for you with the commit message
+"And so this begun...". If you have created a Github personal access token, it will by
+default also create a public remote repository and push your first commit. If you want
+a private remote repository you can specify ``--remote=private``, or ``--remote=none``
+for no remote repository.
 
 .. _version-management:
 

@@ -43,13 +43,17 @@ as you need them. Learning to use the following tools is certainly beneficial:
 
 The basic commands for these tools are covered in these tutorials.
 
+.. _micc-setup:
+
 1.0 Micc setup
 --------------
 
 Before micc can be used it must be setup to specify some preferences. Most entries
 have sensible default entries, but your name, email address and github user name
 have to be provided by you, if they are to make any sense, obviously. The github
-username is needed if you want to be able to push your commits to github.
+username is needed if you want to be able to push your commits to github (see
+:ref:`tutorial-4` for details).
+
 Run ``micc setup`` to set the preferences::
 
     > micc setup
@@ -68,6 +72,8 @@ Run ``micc setup`` to set the preferences::
     If you want to change your preferences, edit the default entries in file
         /Users/etijskens/.et_micc/micc.json
     Note that these changes will only affect NEW projects. Existing projects will be unaffected.
+
+You can always change your settings by running ``micc setup --force``.
 
 You may want to correct your entries, but not that changes will only affect NEW projects,
 not existing ones.

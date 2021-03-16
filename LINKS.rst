@@ -2,8 +2,6 @@ This page is a compilation of links I found interesting while learning Python an
 everyday problems in project management and maintenance, and of course scientific computing.
 As I keep on learning this list evolves continuously :-)
 
-
-
 "the most dangerous thought you can have as a creative person, is that you know what you
 are doing." `Bret Victor - The Future of Programming <https://vimeo.com/71278954>`_.
 
@@ -255,6 +253,8 @@ Debugging
 * `Cyberbrain: Python debugging, redefined <https://github.com/laike9m/Cyberbrain>`_
 * `Python Traceback (Error Message) Printing Variables <https://github.com/andy-landy/traceback_with_variables>`_
 * `Introspection in Python <https://anvil.works/blog/introspection-in-python>`_
+* `Learn to debug code with the GNU Debugger <https://opensource.com/article/21/3/debug-code-gdb?utm_medium=Email&utm_campaign=weekly&sc_cid=7013a000002vsCLAAY>`_
+* `GDBGUI - A browser-based frontend to gdb <https://www.gdbgui.com>`_
 
 Logging
 -------

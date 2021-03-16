@@ -113,8 +113,8 @@ Publishing your documentation to `Readthedocs <https://readthedocs.org>`_ reliev
 code from having to build documentation themselves. Making it happen is very easy. First, make sure
 the git repository of your code is pushed on Github_. Second, create a Readthedocs_ account if you
 do not already have one. Then, go to your Readthedocs_ page, go to *your projects* and hit import
-project. Fill in the fields and every time you push commits to Github_ its documentation will be
-rebuild automatically and published.
+project. After filling in the fields, the documentation will be rebuild automatically and published
+every time you push your code to the Github_ remote repository.
 
 .. note:: Sphinx must be able to import your project in order to extract the documentation.
     If your codes depend on Python modules other than the standard library, this will fail and
