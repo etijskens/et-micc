@@ -102,8 +102,13 @@ Typically, the new project is created in the current working directory:
        ...
        [INFO]           ] done.
 
+If you have setup micc with a Github account, and created a personal access token
+(see :ref:`tutorial-4`), this will also create a public remote repository at Github.
+If you do not want a public remote repo, or no remote repo at all, you must add
+``--remote=private``, or ``--remote=none`` to the ``micc create`` command.
+
 After creating the project, we ``cd`` into the project directory because then any further
-micc_ commands will automatically act on the project in the current working directory::
+micc_ commands will then automatically act on the project in the current working directory::
 
        > cd my_first_project
 
