@@ -87,8 +87,9 @@ Roadmap
 =======
 These features are still on our wish list:
 
-* Deployment on the `VSC <https://www.vscentrum.be>`_ clusters
 * Contininous integtration (CI)
 * Code style, e.g. `flake8 <http://flake8.pycqa.org/en/latest/>`_ or `black <https://github.com/psf/black>`_
 * Profiling
+* Gui for debugging C++/Fortran binary extensions
+* Micc projects on Windows (So far, only support on Linux and MacOS).
 
