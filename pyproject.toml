@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "et-micc"
-version = "1.1.6"
+version = "2.0.0"
 description = "A practical Python project skeleton generator."
 authors = ["Engelbert Tijskens <engelbert.tijskens@uantwerpen.be>"]
 license = "MIT"
@@ -22,6 +22,8 @@ walkdir="^0.4.1"
 tomlkit = "^0.5.8"
 semantic_version = "^2.8.3"
 pypi-simple = "^0.8.0"
+numpy = "^1.17.0"
+pybind11 = "^2.6.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.4.2"

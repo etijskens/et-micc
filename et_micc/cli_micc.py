@@ -510,9 +510,9 @@ def mv(ctx, cur_name, new_name, silent, entire_package, entire_project):
     , default=False
 )
 @click.pass_context
-def setup(ctx
-        , force
-        ):
+def setup( ctx
+         , force
+         ):
     """Setup your micc preferences.
 
     This command must be run once before you can use micc to manage your projects.
@@ -542,6 +542,50 @@ def setup(ctx
           "Micc is now configured and ready to be used.\n\n"
           "Done"
     )
+
+
+@main.command()
+@click.option('-m', '--module'
+    , help="Build only this module. The module kind prefix (``cpp_`` "
+           "for C++ modules, ``f90_`` for Fortran modules) may be omitted."
+    , default=''
+)
+@click.option('-b', '--build-type'
+    , help="build type: any of the standard CMake build types: "
+           "DEBUG, MINSIZEREL, RELEASE, RELWITHDEBINFO."
+    , default='RELEASE'
+)
+@click.option('--clean'
+    , help="Perform a clean build."
+    , default=False, is_flag=True
+)
+@click.option('--cleanup'
+    , help="Cleanup build directory after successful build."
+    , default=False, is_flag=True
+)
+@click.pass_context
+def build( ctx
+         , module
+         , build_type
+         , clean
+         , cleanup
+         ):
+    """Build binary extensions."""
+    options = ctx.obj
+    options.build_options = SimpleNamespace( module_to_build = module
+                                           , clean           = clean
+                                           , cleanup         = cleanup
+                                           , cmake           = {'CMAKE_BUILD_TYPE': build_type}
+                                           )
+    project = Project(options)
+    if project.exit_code:
+        ctx.exit(project.exit_code)
+
+    with et_micc.logger.logtime(options):
+        project.build_cmd()
+
+    if project.exit_code:
+        ctx.exit(project.exit_code)
 
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover

@@ -7,13 +7,14 @@ Module et_micc.project
 An OO interface to *micc* projects.
 
 """
-import os
+import os, sys
+import sysconfig
 import shutil
 import json
 from pathlib import Path
-import subprocess
 from operator import xor
 import requests
+from types import SimpleNamespace
 
 import click
 import semantic_version
@@ -673,7 +674,7 @@ class Project:
             self.logger.info(f"- module documentation in {rst_file} (restructuredText format).")
 
             with et_micc.utils.in_directory(project_path):
-                self.add_dependencies({'et-micc-build': f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
+                # self.add_dependencies({'et-micc-build': f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
                 filename = "API.rst"
                 text = f"\n.. include:: ../{package_name}/f90_{module_name}/{module_name}.rst\n"
@@ -694,7 +695,7 @@ class Project:
             "    # Try to build this binary extension:",
             "    from pathlib import Path",
             "    import click",
-            "    from et_micc_build.cli_micc_build import auto_build_binary_extension",
+            "    from et_micc.project import auto_build_binary_extension",
             f"    msg = auto_build_binary_extension(Path(__file__).parent, '{module_name}')",
             "    if not msg:",
             f"        import {self.package_name}.{module_name}",
@@ -754,7 +755,7 @@ class Project:
             self.logger.info(f"- module documentation in {rst_file} (restructuredText format).")
 
             with et_micc.utils.in_directory(project_path):
-                self.add_dependencies({'et-micc-build': f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
+                # self.add_dependencies({'et-micc-build': f"^{CURRENT_ET_MICC_BUILD_VERSION}"})
                 # docs
                 with open("API.rst", "a") as f:
                     filename = "API.rst"
@@ -764,6 +765,59 @@ class Project:
                     db_entry[filename] = text
 
         self.add_auto_build_code(db_entry)
+
+
+    def build_cmd(self):
+        """Build a binary extension."""
+
+        project_path = self.options.project_path
+        if getattr(self, 'module', False):
+            self.warning(
+                f"Nothing to do. A module project ({self.project_name}) cannot have binary extension modules."
+            )
+
+        build_options = self.options.build_options
+
+        # get extension for binary extensions (depends on OS and python version)
+        extension_suffix = get_extension_suffix()
+
+        package_path = self.options.project_path / self.package_name
+        dirs = os.listdir(package_path)
+        succeeded = []
+        failed = []
+        for d in dirs:
+            if ((package_path / d).is_dir()
+                    and (d.startswith("f90_") or d.startswith("cpp_")) ):
+                if self.options.build_options.module_to_build and not d.endswith(self.options.build_options.module_to_build):
+                    # build only module module_to_build.
+                    continue
+
+                module_kind, module_name = d.split('_', 1)
+                binary_extension = package_path / (module_name + extension_suffix)
+                self.options.module_srcdir_path = package_path / d
+                self.options.module_kind = module_kind
+                self.options.module_name = module_name
+                self.options.package_path = package_path
+                self.exit_code = build_binary_extension(self.options)
+
+                if self.exit_code:
+                    failed.append(binary_extension)
+                else:
+                    succeeded.append(binary_extension)
+        build_logger = self.logger
+        if succeeded:
+            build_logger.info("\n\nBinary extensions built successfully:")
+            for binary_extension in succeeded:
+                build_logger.info(f"  - {binary_extension}")
+        if failed:
+            build_logger.error("\nBinary extensions failing to build:")
+            for binary_extension in failed:
+                build_logger.error(f"  - {binary_extension}")
+        if not succeeded and not failed:
+            self.warning(
+                f"No binary extensions found in package ({self.package_name})."
+            )
+
 
     def app_exists(self, app_name):
         """Test if there is already an app with name ``app_name`` in this project.
@@ -1154,6 +1208,75 @@ class Project:
                 f.write(new_contents)
 
 
+def get_extension_suffix():
+    """Return the extension suffix, e.g. :file:`.cpython-37m-darwin.so`."""
+    return sysconfig.get_config_var('EXT_SUFFIX')
+
+
+def build_binary_extension(options):
+    """Build a binary extension described by *options*.
+
+    :param options:
+    :return:
+    """
+    # get extension for binary extensions (depends on OS and python version)
+    extension_suffix = get_extension_suffix()
+
+    build_options = options.build_options
+
+    # Remove so file to avoid "RuntimeError: Symlink loop from ..."
+    so_file = options.package_path / (options.module_name + extension_suffix)
+    try:
+        so_file.unlink()  # missing_ok=True only available from 3.8 on, not in 3.7
+    except FileNotFoundError:
+        pass
+
+    build_log_file = options.module_srcdir_path / "micc-build.log"
+    build_logger = et_micc.logger.create_logger(build_log_file, filemode='w')
+    with et_micc.logger.log(build_logger.info, f"Building {options.module_kind} module '{options.module_name}':"):
+        binary_extension = options.module_name + extension_suffix
+        destination = (options.package_path / binary_extension).resolve()
+
+        if options.module_kind in ('cpp', 'f90') and (options.module_srcdir_path / 'CMakeLists.txt').exists():
+            output_dir = options.module_srcdir_path / '_cmake_build'
+            build_dir = output_dir
+            if build_options.clean and output_dir.exists():
+                build_logger.info(f"--clean: shutil.removing('{output_dir}').")
+                shutil.rmtree(output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            with et_micc.utils.in_directory(output_dir):
+                cmake_cmd = ['cmake',
+                             '-D', f"PYTHON_EXECUTABLE={sys.executable}",
+                             ]
+
+                if options.module_kind == 'cpp':
+                    cmake_cmd.extend(['-D', f"pybind11_DIR={path_to_cmake_tools()}"])
+
+                cmake_cmd.append('..')
+
+                cmds = [
+                    cmake_cmd,
+                    ['make'],
+                    ['make', 'install']
+                ]
+                exit_code = et_micc.utils.execute(
+                    cmds, build_logger.debug, stop_on_error=True, env=os.environ.copy()
+                )
+                if build_options.cleanup:
+                    build_logger.info(f"--cleanup: shutil.removing('{build_dir}').")
+                    shutil.rmtree(build_dir)
+        else:
+            raise RuntimeError("Bad module kind, or no CMakeLists.txt   ")
+
+    return exit_code
+
+
+def path_to_cmake_tools():
+    """Return the path to the folder with the CMake tools."""
+    p = (Path(__file__) / '..' / '..' / 'pybind11' / 'share' / 'cmake' / 'pybind11').resolve()
+    return str(p)
+
+
 def _filter(folders):
     """"In place modification of the list of folders to traverse.
 
@@ -1174,5 +1297,40 @@ def _filter(folders):
     """
     exclude_folders = ['.venv', '.git', '_build', '_cmake_build', '__pycache__']
     folders[:] = [f for f in folders if not f in exclude_folders]
+
+def auto_build_binary_extension(package_path, module_to_build):
+    """Set options for building binary extensions, and build
+    binary extension *module_to_build* in *package_path*.
+
+    :param Path package_path:
+    :param str module_to_build:
+    :return: exit_code
+    """
+    options = SimpleNamespace( package_path  = package_path
+                             , verbosity     = 1
+                             , build_options = SimpleNamespace( module_to_build = module_to_build
+                                                              , clean           = True
+                                                              , cleanup         = True
+                                                              , cmake           = {'CMAKE_BUILD_TYPE': 'RELEASE'}
+                                                              )
+                             )
+    for module_prefix in ["cpp", "f90"]:
+        module_srcdir_path = package_path / f"{module_prefix}_{options.module_name}"
+        if module_srcdir_path.exists():
+            options.module_kind = module_prefix
+            options.module_srcdir_path = module_srcdir_path
+            options.build_options.build_tool_options = {}
+            break
+    else:
+        raise ValueError(f"No binary extension source directory found for module '{module_to_build}'.")
+
+    exit_code = build_binary_extension(options)
+
+    msg = ("[ERROR]\n"
+           "    Binary extension module 'bar{get_extension_suffix}' could not be build.\n"
+           "    Any attempt to use it will raise exceptions.\n"
+           ) if exit_code else ""
+    return msg
+
 
 # eof

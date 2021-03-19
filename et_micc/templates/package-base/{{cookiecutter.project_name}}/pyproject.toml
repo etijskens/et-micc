@@ -16,7 +16,6 @@ keywords = ['packaging', 'poetry']
 python = "^{{ cookiecutter.python_version }}"
 
 [tool.poetry.dev-dependencies]
-pytest = "^4.4.2"
 
 [tool.poetry.scripts]
 
