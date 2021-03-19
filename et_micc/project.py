@@ -23,7 +23,7 @@ import et_micc.expand
 import et_micc.logger
 from et_micc import __version__
 # from et_micc.db import Database
-
+import subprocess
 CURRENT_ET_MICC_BUILD_VERSION = __version__
 
 
@@ -189,27 +189,36 @@ class Project:
                     json.dump(template_parameters, f)
                     self.logger.debug(f" . Wrote project template parameters to {my_micc_file}.")
 
-                with et_micc.logger.log(self.logger.info, "Creating git repository"):
+                with et_micc.logger.log(self.logger.info, "Creating local git repository"):
                     with et_micc.utils.in_directory(self.project_path):
-                        cmds = [['git', 'init']
-                            , ['git', 'add', '*']
-                            , ['git', 'add', '.gitignore']
-                            , ['git', 'commit', '-m', '"And so this begun..."']
-                        ]
-                        github_username = template_parameters['github_username']
-                        if github_username and not self.options.remote is None:
-                            pat_file = Path.home() / '.pat.txt'
-                            if pat_file.exists():
-                                cmds.append(['gh', 'auth', 'login', '--with-token', '<', str(pat_file)])
-                                cmds.append(['gh', 'repo', 'create', self.project_name, f'--{self.options.remote}', '-y'])
-                                cmds.append(['git', 'push', '-u', 'origin', 'master'])
-                            else:
-                                self.logger.error("Unable to access your GitHub account: file '~/.pat.txt' not found.\n"
-                                                  "Remote repository not created."
-                                                 )
-                        else:
-                            self.logger.warning("Not creating remote GitHub repository ")
-                        et_micc.utils.execute(cmds, self.logger.debug, stop_on_error=False)
+                        cmds = [ ['git', 'init']
+                               , ['git', 'add', '*']
+                               , ['git', 'add', '.gitignore']
+                               , ['git', 'commit', '-m', '"And so this begun..."']
+                               ]
+                        returncode = et_micc.utils.execute(cmds, self.logger.debug, stop_on_error=True)
+                if not returncode:
+                    github_username = template_parameters['github_username']
+                    if github_username and not self.options.remote is None:
+                        with et_micc.logger.log(self.logger.info, f"Creating remote git repository at https://github.com/{github_username}/{self.project_name}"):
+                            with et_micc.utils.in_directory(self.project_path):
+                                pat_file = Path.home() / '.pat.txt'
+                                if pat_file.exists():
+                                    with open(pat_file) as f:
+                                        completed_process = \
+                                            subprocess.run( ['gh', 'auth', 'login', '--with-token'], stdin=f, text=True )
+                                        et_micc.utils.log_completed_process(completed_process,self.logger.debug)
+
+                                        cmds = [ ['gh', 'repo', 'create', self.project_name, f'--{self.options.remote}', '-y']
+                                               , ['git', 'push', '-u', 'origin', 'master']
+                                               ]
+                                        et_micc.utils.execute(cmds, self.logger.debug, stop_on_error=True)
+                                else:
+                                    self.logger.error("Unable to access your GitHub account: file '~/.pat.txt' not found.\n"
+                                                      "Remote repository not created."
+                                                     )
+                    else:
+                        self.logger.warning("Creation of remote GitHub repository not requested.")
 
                 self.logger.warning(
                     "Run 'poetry install' in the project directory to create a virtual "

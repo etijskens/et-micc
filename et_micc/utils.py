@@ -313,14 +313,17 @@ def in_directory(path):
     os.chdir(previous_dir)
 
 
-def execute(cmds,logfun=None,stop_on_error=True,env=None,cwd=None):
+def execute(cmds,logfun=None,stop_on_error=True,env=None,cwd=None,verbose=True):
     """Executes a list of OS commands, and logs with logfun.
     
     :param list cmds: list of OS commands (=list of list of str) or a single command (list of str)
-    :parma callable logfun: a function to write output, typically 
+    :param callable logfun: a function to write output, typically
         ``logging.getLogger('et_micc').debug``.
+    :param bool stop_on_error: stops the commands in case the exit code is not 0.
+    :param cwd: current working directory
+    :param verbose: if False, output on stderr is not logged.
     :returns int: return code of first failing command, or 0 if all
-        commanbds succeed.
+        commanbs succeed.
     """
     if isinstance(cmds[0],str):
         # this is a single command
@@ -338,24 +341,43 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None,cwd=None):
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 )
-            if not logfun is None:
-                if completed_process.returncode:
-                    logfun0 = logfun
-                    try:
-                        logfun = logfun.__self__.warning
-                    except:
-                        pass
-                    logfun(f"> {' '.join(cmd)}")
-                if completed_process.stdout:
-                    logfun(' (stdout)\n' + completed_process.stdout.decode('utf-8'))
-                if completed_process.stderr:
-                    logfun(' (stderr)\n' + completed_process.stderr.decode('utf-8'))
-                if completed_process.returncode:
-                    logfun = logfun0
-            if completed_process.returncode:
-                if stop_on_error:
-                    return completed_process.returncode
-    return 0
+            returncode = log_completed_process(completed_process, logfun)
+
+            if stop_on_error and returncode:
+                return returncode
+
+        return returncode
+
+def log_completed_process(completed_process, logfun=None):
+    """Executes a list of OS commands, and logs with logfun.
+
+    :param completed_process: output of subprocess.run
+    :param callable logfun: a function to write output, typically
+        ``logging.getLogger('et_micc').debug``.
+    :returns int: return code of first failing command, or 0 if all
+        commanbs succeed.
+    """
+    if logfun is None:
+        return
+
+    if completed_process.returncode:
+        logfun0 = logfun
+        try:
+            logfun = logfun.__self__.warning
+        except:
+            pass
+        logfun(f"> {' '.join(completed_process.args)}")
+
+    if completed_process.stdout:
+        logfun(' (stdout)\n' + completed_process.stdout.decode('utf-8'))
+
+    if completed_process.returncode and completed_process.stderr:
+        logfun(' (stderr)\n' + completed_process.stderr.decode('utf-8'))
+
+    if completed_process.returncode:
+        logfun = logfun0
+
+    return completed_process.returncode
 
 
 def get_project_path(p):

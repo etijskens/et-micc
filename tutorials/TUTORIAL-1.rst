@@ -884,40 +884,6 @@ neatly from the :py:obj:`help` strings of options and the doc-strings of the com
     developer, or there is an entire team working on it from different places in
     the world. You find more information about how micc_ uses git_ in :ref:`tutorial-4`.
 
-    Let's take a close look at the output of the ``micc create my_first_project``
-    command. The first line tells us that a project directory is being created::
-
-       [INFO]           [ Creating project (my_first_project):
-
-    The next line explains the structure of the project, module or package::
-
-       [INFO]               Python module (my_first_project): structure = (my_first_project/my_first_project.py)
-
-    Next we are informed that a local git_ repository is being created::
-
-       [INFO]               [ Creating git repository
-
-    Micc_ tries to push this local repository to a remote repository at
-    https://github.com/yourgitaccount. If you did not create a remote git_
-    repository on beforehand, this gives rise to some warnings::
-
-       [WARNING]                    > git push -u origin master
-       [WARNING]                    (stderr)
-                                    remote: Repository not found.
-                                    fatal: repository 'https://github.com/yourgitaccount/my_first_project/' not found
-
-    Micc_ is unable to push the local repo to github, if the remote repo does
-    not exist. The local repo is for many purposes sufficient, but the remote
-    repo enables sharing your work with others and provides a backup of your work.
-
-    Finally, micc_ informs us that the tasks are finished.
-
-       [INFO]               ] done.
-       [INFO]           ] done.
-       >
-
-    Note that the name of the remote git repo is the project name, not the module name.
-
 .. _miscellaneous:
 
 1.3 Miscellaneous
