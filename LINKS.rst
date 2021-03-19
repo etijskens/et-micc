@@ -10,8 +10,8 @@ For Beginners
 * `De Programmeursleerling - Pieter Spronck <http://www.spronck.net/pythonbook/dutchindex.xhtml>`_ (in Dutch)
 * `Slither into Python <https://www.slitherintopython.com>`_
 * `Learn Python by building 5 games <https://www.youtube.com/watch?v=XGf2GcyHPhc>`_
-* `HOW DO I START LEARNING PYTHON? <https://automationpanda.com/2020/02/18/how-do-i-start-learning-python/>`_
-
+* `How do I start learning Python? <https://automationpanda.com/2020/02/18/how-do-i-start-learning-python/>`_
+* `Learn Python Programming <https://www.programiz.com/python-programming>`_
 
 Python as a language
 --------------------
@@ -367,6 +367,7 @@ Tools
 
 git and other VCS
 
+* `Introduction to Git In 16 Minutes <https://vickyikechukwu.hashnode.dev/introduction-to-git-in-16-minutes?utm_source=tldrnewsletter>`_
 * `9 useful tricks of git branch <https://gitbetter.substack.com/p/9-useful-tricks-of-git-branch-you>`_
 * `gitutor <https://github.com/artemisa-mx/gitutor>`_
 * `Git Commands to Live By - The cheat sheet that goes beyond Git basics <https://medium.com/better-programming/git-commands-to-live-by-349ab1fe3139>`_
