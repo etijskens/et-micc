@@ -156,9 +156,15 @@ def create(ctx
     options.package = package
     options.publish = publish
     options.module_name = module_name
-    if not remote in ['public','private']:
-        remote = None
-    options.remote = remote
+    if not remote in ['public','private', 'none']:
+        print(f"ERROR: --remote={remote} is not recognized. Valid options are:\n"
+              f"       --remote=public\n"
+              f"       --remote=private\n"
+              f"       --remote=none\n"
+              )
+        ctx.exit(-1)
+
+    options.remote = None if remote=='none' else remote
 
     if not template:  # default, empty list
         if options.package:

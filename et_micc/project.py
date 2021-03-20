@@ -71,22 +71,22 @@ class Project:
             # Store all the parameters in options.template_parameters.
             options.template_parameters = default_parameters
 
-        if et_micc.utils.is_project_directory(project_path, self):
-            # existing project
+        if getattr(options, 'create', False):
+            # Request to create a project
+            if project_path.exists() and os.listdir(str(project_path)):
+                self.error(f"Cannot create project in ({project_path}):\n"
+                           f"  Directory must be empty."
+                           )
+            else:
+                # ok create the project
+                self.create()
+        else:
+            if not et_micc.utils.is_project_directory(project_path, self):
+                self.error(f"Not a project directory ({project_path}):")
+                
             self.get_logger()
             self.version = self.pyproject_toml['tool']['poetry']['version']
-        else:
-            # not a project directory or not a directory at all
-            if getattr(options, 'create', False):
-                if project_path.exists() and os.listdir(str(project_path)):
-                    self.error(f"Cannot create project in ({project_path}):\n"
-                               f"  Directory must be empty."
-                               )
-                else:
-                    self.create()
-            else:
-                # all other micc commands require a project directory.
-                self.error(f"Not a project directory ({project_path}).")
+
 
     @property
     def project_path(self):
