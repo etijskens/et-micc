@@ -83,7 +83,7 @@ class Project:
         else:
             if not et_micc.utils.is_project_directory(project_path, self):
                 self.error(f"Not a project directory ({project_path}):")
-                
+
             self.get_logger()
             self.version = self.pyproject_toml['tool']['poetry']['version']
 
@@ -1308,6 +1308,7 @@ def auto_build_binary_extension(package_path, module_to_build):
     """
     options = SimpleNamespace( package_path  = package_path
                              , verbosity     = 1
+                             , module_name   = module_to_build
                              , build_options = SimpleNamespace( module_to_build = module_to_build
                                                               , clean           = True
                                                               , cleanup         = True
