@@ -59,6 +59,9 @@ def main(ctx, verbosity, project_path, clear_log):
         clear_log=clear_log,
         template_parameters={},
     )
+    print("====================================================")
+    print("WARNING: This is micc2 - it is still experimental...")
+    print("====================================================")
 
 
 @main.command()
