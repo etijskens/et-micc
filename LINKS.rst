@@ -80,6 +80,7 @@ Other parallel processing approaches:
 * `Common Issues Using Celery (And Other Task Queues) <https://adamj.eu/tech/2020/02/03/common-celery-issues-on-django-projects/>`_
 * `The Parallelism Blues: when faster code is slower <https://pythonspeed.com/articles/parallelism-slower/>`_
 * `Dask <https://dask.org>`_
+* `Visualize multi-threaded Python programs with an open source tool <https://opensource.com/article/21/3/python-viztracer?utm_medium=Email&utm_campaign=weekly&sc_cid=7013a000002vuw2AAA>`_
 
 GPU
 

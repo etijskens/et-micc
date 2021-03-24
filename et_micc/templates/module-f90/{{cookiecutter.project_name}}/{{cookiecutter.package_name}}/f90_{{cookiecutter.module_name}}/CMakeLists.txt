@@ -91,6 +91,8 @@ list(APPEND F2PY_defines "-DF2PY_REPORT_ON_ARRAY_COPY=1")
 
 # Set additional f90 compiler flags:
 # set(F2PY_f90flags your_flags_here)
+# set(F2PY_f90flags -cpp)   # enable the C preprocessor (preprocessor directives must appear on the
+                            # on the first column of the line).
 
 # Set architecture specific optimization compiler flags:
 # set(F2PY_arch your_flags_here)
