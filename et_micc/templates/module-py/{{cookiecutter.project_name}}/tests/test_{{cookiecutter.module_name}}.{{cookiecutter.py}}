@@ -5,16 +5,11 @@
 
 import pytest
 
-import {{ cookiecutter.package_name }} 
-{#
-{%- if cookiecutter.command_line_interface|lower == 'click' %}
-from {{ cookiecutter.project_name }} import cli
-{%- endif %}
-#}
+import {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}
 
 def test_greet():
     expected = "Hello John!"
-    greeting = greet("John")
+    greeting = {{ cookiecutter.package_name }}.{{ cookiecutter.module_name }}.greet("John")
     assert greeting==expected
 
 
@@ -23,7 +18,7 @@ def test_greet():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_
+    the_test_you_want_to_debug = test_greet
 
     the_test_you_want_to_debug()
     print("-*# finished #*-")

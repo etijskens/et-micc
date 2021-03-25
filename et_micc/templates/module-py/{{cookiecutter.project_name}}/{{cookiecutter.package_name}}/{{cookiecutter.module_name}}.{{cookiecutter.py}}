@@ -15,4 +15,4 @@ def greet(to=''):
 	
 	:param str to: whom you want to say hello to.
 	"""
-	f"Hello {to}!")
+	f"Hello {to}!"
