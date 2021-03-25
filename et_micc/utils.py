@@ -346,7 +346,7 @@ def execute(cmds,logfun=None,stop_on_error=True,env=None,cwd=None,verbose=True):
             if stop_on_error and returncode:
                 return returncode
 
-        return returncode
+    return returncode
 
 def log_completed_process(completed_process, logfun=None):
     """Executes a list of OS commands, and logs with logfun.
